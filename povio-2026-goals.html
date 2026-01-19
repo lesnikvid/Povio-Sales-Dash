@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 Sales Goals — Povio</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --povio-white: #FFFFFF;
+            --povio-bg: #F8F8F8;
+            --povio-card: #FFFFFF;
+            --povio-card-hover: #FAFAFA;
+            --povio-border: #E5E5E5;
+            --povio-border-hover: #D4D4D4;
+            --povio-blue: #1F35FF;
+            --povio-blue-hover: #1428CC;
+            --povio-blue-subtle: rgba(31, 53, 255, 0.08);
+            --povio-black: #0A0A0A;
+            --povio-gray-900: #171717;
+            --povio-gray-700: #404040;
+            --povio-gray-500: #737373;
+            --povio-gray-400: #A3A3A3;
+            --povio-gray-200: #E5E5E5;
+            --povio-gray-100: #F5F5F5;
+            --povio-success: #16A34A;
+            --povio-success-subtle: rgba(22, 163, 74, 0.08);
+            --povio-warning: #CA8A04;
+            --povio-warning-subtle: rgba(202, 138, 4, 0.08);
+            --povio-danger: #DC2626;
+            --povio-danger-subtle: rgba(220, 38, 38, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--povio-bg);
+            color: var(--povio-gray-900);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .app-container { max-width: 1600px; margin: 0 auto; padding: 32px 24px; }
+
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--povio-border);
+        }
+
+        .header-brand { display: flex; align-items: center; gap: 20px; }
+        .logo { height: 32px; width: auto; }
+        .header-divider { width: 1px; height: 32px; background: var(--povio-border); }
+        .header-title h1 { font-size: 20px; font-weight: 700; color: var(--povio-black); letter-spacing: -0.3px; }
+        .header-subtitle { font-size: 13px; color: var(--povio-gray-500); margin-top: 2px; }
+        .header-actions { display: flex; align-items: center; gap: 16px; }
+
+        .view-toggle { display: flex; gap: 4px; background: var(--povio-white); padding: 4px; border-radius: 10px; border: 1px solid var(--povio-border); }
+        .view-btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--povio-gray-500); transition: all 0.2s ease; }
+        .view-btn.active { background: var(--povio-blue); color: white; }
+        .view-btn:hover:not(.active) { background: var(--povio-gray-100); color: var(--povio-gray-700); }
+
+        .btn { padding: 12px 20px; border-radius: 100px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s ease; display: flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--povio-blue); color: var(--povio-white); }
+        .btn-primary:hover { background: var(--povio-blue-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(31, 53, 255, 0.25); }
+        .btn-secondary { background: var(--povio-white); color: var(--povio-gray-700); border: 1px solid var(--povio-border); }
+        .btn-secondary:hover { background: var(--povio-bg); border-color: var(--povio-border-hover); }
+        .btn-danger { background: var(--povio-danger); color: white; }
+        .btn-danger:hover { background: #B91C1C; }
+        .btn-small { padding: 8px 16px; font-size: 13px; }
+
+        .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: var(--povio-card); border: 1px solid var(--povio-border); border-radius: 16px; padding: 24px; transition: all 0.2s ease; }
+        .stat-card:hover { border-color: var(--povio-border-hover); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04); transform: translateY(-2px); }
+        .stat-card h3 { font-size: 11px; text-transform: uppercase; color: var(--povio-gray-500); margin-bottom: 12px; letter-spacing: 1px; font-weight: 600; }
+        .stat-card .value { font-size: 36px; font-weight: 800; color: var(--povio-black); letter-spacing: -1px; }
+        .stat-card .value.blue { color: var(--povio-blue); }
+        .stat-card .value.green { color: var(--povio-success); }
+        .stat-card .value.yellow { color: var(--povio-warning); }
+        .stat-card .value.red { color: var(--povio-danger); }
+
+        .status-legend { display: flex; gap: 24px; margin-bottom: 24px; padding: 16px 20px; background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 12px; font-size: 12px; }
+        .status-legend-item { display: flex; align-items: center; gap: 8px; color: var(--povio-gray-700); }
+        .status-legend-item .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .status-legend-item .dot.not-started { background: var(--povio-gray-400); }
+        .status-legend-item .dot.on-track { background: var(--povio-success); }
+        .status-legend-item .dot.at-risk { background: var(--povio-warning); }
+        .status-legend-item .dot.behind { background: var(--povio-danger); }
+        .status-legend-item .dot.complete { background: var(--povio-blue); }
+
+        .goals-grid { display: flex; flex-wrap: wrap; gap: 20px; }
+        .goal-card { background: var(--povio-card); border: 1px solid var(--povio-border); border-radius: 16px; overflow: hidden; transition: all 0.2s ease; width: calc(50% - 10px); flex-shrink: 0; }
+        .goal-card:hover { border-color: var(--povio-border-hover); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06); transform: translateY(-2px); }
+        .goal-header { padding: 24px; display: flex; justify-content: space-between; align-items: flex-start; cursor: pointer; }
+        .goal-title-section { flex: 1; }
+        .goal-number { font-size: 11px; color: var(--povio-blue); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+        .goal-title { font-size: 17px; font-weight: 700; color: var(--povio-black); margin-bottom: 12px; letter-spacing: -0.3px; }
+        .goal-meta { display: flex; gap: 20px; font-size: 13px; color: var(--povio-gray-500); }
+        .goal-meta span { display: flex; align-items: center; gap: 6px; }
+
+        .status-badge { padding: 8px 14px; border-radius: 100px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .status-on-track { background: var(--povio-success-subtle); color: var(--povio-success); }
+        .status-at-risk { background: var(--povio-warning-subtle); color: var(--povio-warning); }
+        .status-behind { background: var(--povio-danger-subtle); color: var(--povio-danger); }
+        .status-not-started { background: rgba(115, 115, 115, 0.08); color: var(--povio-gray-500); }
+        .status-complete { background: var(--povio-blue-subtle); color: var(--povio-blue); }
+
+        .progress-bar-container { padding: 0 24px 24px; }
+        .progress-bar { height: 4px; background: var(--povio-gray-200); border-radius: 100px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; border-radius: 100px; transition: width 0.4s ease; }
+        .progress-bar-fill.blue { background: var(--povio-blue); }
+        .progress-bar-fill.green { background: var(--povio-success); }
+        .progress-bar-fill.yellow { background: var(--povio-warning); }
+        .progress-bar-fill.red { background: var(--povio-danger); }
+
+        .goal-expanded { border-top: 1px solid var(--povio-border); padding: 24px; background: var(--povio-bg); }
+        .milestones-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .milestones-header h4 { font-size: 13px; font-weight: 700; color: var(--povio-gray-500); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .milestone-item { display: flex; align-items: flex-start; gap: 14px; padding: 16px; background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 12px; margin-bottom: 10px; transition: all 0.2s ease; }
+        .milestone-item:hover { border-color: var(--povio-border-hover); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); }
+        .milestone-item.overdue { border-color: var(--povio-danger); background: var(--povio-danger-subtle); }
+        .milestone-item.due-soon { border-color: var(--povio-warning); background: var(--povio-warning-subtle); }
+
+        .milestone-checkbox { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--povio-border-hover); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; transition: all 0.2s ease; }
+        .milestone-checkbox:hover { border-color: var(--povio-blue); }
+        .milestone-checkbox.checked { background: var(--povio-blue); border-color: var(--povio-blue); }
+        .milestone-checkbox.checked::after { content: '✓'; color: white; font-size: 12px; font-weight: bold; }
+
+        .milestone-content { flex: 1; }
+        .milestone-title { font-size: 14px; font-weight: 500; color: var(--povio-gray-900); margin-bottom: 6px; }
+        .milestone-title.completed { text-decoration: line-through; color: var(--povio-gray-400); }
+        .milestone-details { display: flex; gap: 16px; font-size: 12px; color: var(--povio-gray-500); }
+        .milestone-details .overdue-text { color: var(--povio-danger); font-weight: 600; }
+        .milestone-details .due-soon-text { color: var(--povio-warning); font-weight: 600; }
+
+        .milestone-actions { display: flex; gap: 6px; opacity: 0; transition: opacity 0.2s ease; }
+        .milestone-item:hover .milestone-actions { opacity: 1; }
+
+        .icon-btn { background: none; border: none; color: var(--povio-gray-500); cursor: pointer; padding: 6px; border-radius: 6px; transition: all 0.2s ease; font-size: 14px; }
+        .icon-btn:hover { color: var(--povio-gray-700); background: var(--povio-gray-200); }
+        .icon-btn.danger:hover { color: var(--povio-danger); background: var(--povio-danger-subtle); }
+
+        .success-metric { background: var(--povio-white); border: 1px solid var(--povio-border); border-left: 3px solid var(--povio-blue); border-radius: 8px; padding: 16px 20px; margin-top: 20px; }
+        .success-metric h4 { font-size: 11px; text-transform: uppercase; color: var(--povio-blue); margin-bottom: 8px; letter-spacing: 1px; font-weight: 700; }
+        .success-metric p { font-size: 14px; color: var(--povio-gray-700); line-height: 1.6; }
+
+        .add-goal-card { background: var(--povio-white); border: 2px dashed var(--povio-border); border-radius: 16px; padding: 60px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; width: calc(50% - 10px); flex-shrink: 0; }
+        .add-goal-card:hover { border-color: var(--povio-blue); background: var(--povio-blue-subtle); }
+        .add-goal-card span { color: var(--povio-gray-500); font-size: 15px; font-weight: 600; }
+        .add-goal-card:hover span { color: var(--povio-blue); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+        .modal { background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 20px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); }
+        .modal-header { padding: 24px; border-bottom: 1px solid var(--povio-border); display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { font-size: 18px; font-weight: 700; color: var(--povio-black); }
+        .modal-body { padding: 24px; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--povio-gray-700); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 14px 16px; background: var(--povio-bg); border: 1px solid var(--povio-border); border-radius: 10px; color: var(--povio-gray-900); font-size: 14px; font-family: inherit; transition: all 0.2s ease; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: var(--povio-blue); box-shadow: 0 0 0 3px var(--povio-blue-subtle); background: var(--povio-white); }
+        .form-group textarea { resize: vertical; min-height: 100px; }
+        .form-group select { cursor: pointer; }
+        .modal-footer { padding: 20px 24px; border-top: 1px solid var(--povio-border); display: flex; justify-content: flex-end; gap: 12px; }
+
+        .roadmap-container { background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 16px; overflow: hidden; }
+        .timeline-header { display: flex; border-bottom: 1px solid var(--povio-border); background: var(--povio-gray-100); position: sticky; top: 0; z-index: 10; }
+        .goal-label-header { width: 280px; min-width: 280px; padding: 16px 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--povio-gray-500); border-right: 1px solid var(--povio-border); }
+        .months-header { flex: 1; display: flex; }
+        .month-header { flex: 1; padding: 12px 8px; text-align: center; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--povio-gray-500); border-right: 1px solid var(--povio-border); }
+        .month-header:last-child { border-right: none; }
+        .month-header.current { background: var(--povio-blue-subtle); color: var(--povio-blue); }
+
+        .quarter-row { display: flex; background: var(--povio-white); border-bottom: 1px solid var(--povio-border); }
+        .quarter-label-spacer { width: 280px; min-width: 280px; border-right: 1px solid var(--povio-border); }
+        .quarters-container { flex: 1; display: flex; }
+        .quarter-block { flex: 1; padding: 8px; text-align: center; font-size: 12px; font-weight: 700; color: var(--povio-gray-700); border-right: 1px solid var(--povio-border); }
+        .quarter-block:last-child { border-right: none; }
+
+        .goal-row { display: flex; border-bottom: 1px solid var(--povio-border); transition: background 0.2s ease; }
+        .goal-row:last-child { border-bottom: none; }
+        .goal-row:hover { background: var(--povio-gray-100); }
+
+        .goal-info { width: 280px; min-width: 280px; padding: 16px 20px; border-right: 1px solid var(--povio-border); display: flex; flex-direction: column; justify-content: center; }
+        .goal-info .goal-number { font-size: 10px; font-weight: 700; color: var(--povio-blue); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .goal-info .goal-name { font-size: 14px; font-weight: 600; color: var(--povio-black); margin-bottom: 4px; line-height: 1.3; }
+        .goal-info .goal-owner { font-size: 12px; color: var(--povio-gray-500); }
+        .goal-progress { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+        .goal-progress-bar { flex: 1; height: 4px; background: var(--povio-gray-200); border-radius: 100px; overflow: hidden; }
+        .goal-progress-fill { height: 100%; background: var(--povio-blue); border-radius: 100px; transition: width 0.3s ease; }
+        .goal-progress-text { font-size: 12px; font-weight: 700; color: var(--povio-blue); min-width: 36px; text-align: right; }
+
+        .timeline-track { flex: 1; position: relative; min-height: 80px; display: flex; align-items: center; }
+        .month-grid { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; pointer-events: none; }
+        .month-grid-line { flex: 1; border-right: 1px solid var(--povio-border); }
+        .month-grid-line:last-child { border-right: none; }
+        .month-grid-line.current { background: var(--povio-blue-subtle); }
+        .today-line { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--povio-blue); z-index: 5; }
+
+        .milestone-marker { position: absolute; width: 16px; height: 16px; border-radius: 50%; transform: translate(-50%, 0); cursor: pointer; transition: all 0.2s ease; z-index: 2; }
+        .milestone-marker:hover { transform: translate(-50%, 0) scale(1.3); z-index: 10; }
+        .milestone-marker.complete { background: var(--povio-blue); box-shadow: 0 0 0 3px var(--povio-blue-subtle); }
+        .milestone-marker.on-track { background: var(--povio-success); box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15); }
+        .milestone-marker.due-soon { background: var(--povio-warning); box-shadow: 0 0 0 3px rgba(202, 138, 4, 0.15); }
+        .milestone-marker.overdue { background: var(--povio-danger); box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15); animation: pulse 2s infinite; }
+        .milestone-marker.pending { background: var(--povio-white); border: 2px solid var(--povio-gray-400); }
+
+        @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15); } 50% { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0.15); } }
+
+        .bucket-header { background: var(--povio-gray-100); padding: 12px 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--povio-gray-500); border-bottom: 1px solid var(--povio-border); }
+
+        .tooltip { position: fixed; background: var(--povio-black); color: white; padding: 12px 16px; border-radius: 10px; font-size: 13px; max-width: 280px; z-index: 1000; pointer-events: none; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); }
+        .tooltip-title { font-weight: 600; margin-bottom: 4px; }
+        .tooltip-date { font-size: 11px; color: var(--povio-gray-400); margin-bottom: 6px; }
+        .tooltip-status { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tooltip-status.complete { color: #60a5fa; }
+        .tooltip-status.on-track { color: #4ade80; }
+        .tooltip-status.due-soon { color: #fbbf24; }
+        .tooltip-status.overdue { color: #f87171; }
+        .tooltip-status.pending { color: var(--povio-gray-400); }
+        .tooltip-notes { font-size: 12px; color: var(--povio-gray-300); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--povio-gray-700); }
+
+        @media (max-width: 1200px) { .goal-info, .goal-label-header, .quarter-label-spacer { width: 200px; min-width: 200px; } }
+        @media (max-width: 900px) {
+            .stats-bar { grid-template-columns: repeat(2, 1fr); }
+            .goal-card, .add-goal-card { width: 100%; }
+            .roadmap-container { overflow-x: auto; }
+            .timeline-header, .quarter-row, .goal-row { min-width: 1000px; }
+            .status-legend { flex-wrap: wrap; gap: 12px; }
+            .header { flex-direction: column; gap: 16px; align-items: flex-start; }
+            .header-actions { width: 100%; justify-content: space-between; }
+        }
+        @media (max-width: 600px) { .stat-card .value { font-size: 28px; } .goal-meta { flex-direction: column; gap: 8px; } }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // ==================== UTILITIES ====================
+        const parseDate = (dateStr) => {
+            if (!dateStr) return null;
+            if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return new Date(dateStr + 'T00:00:00');
+            return null;
+        };
+
+        const formatDateForDisplay = (dateStr) => {
+            const date = parseDate(dateStr);
+            if (!date) return dateStr || 'No date';
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        };
+
+        const formatDateShort = (dateStr) => {
+            const date = parseDate(dateStr);
+            if (!date) return '';
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        };
+
+        const formatDateForInput = (dateStr) => {
+            if (!dateStr) return '';
+            if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return dateStr;
+            return '';
+        };
+
+        const getDaysUntilDue = (dateStr) => {
+            const date = parseDate(dateStr);
+            if (!date) return null;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const diffTime = date.getTime() - today.getTime();
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        };
+
+        const getMilestoneStatus = (milestone) => {
+            if (milestone.status === 'complete') return 'complete';
+            const daysUntil = getDaysUntilDue(milestone.dueDate);
+            if (daysUntil === null) return 'pending';
+            if (daysUntil < 0) return 'overdue';
+            if (daysUntil <= 7) return 'due-soon';
+            return 'on-track';
+        };
+
+        const calculateGoalStatus = (milestones) => {
+            if (!milestones || milestones.length === 0) return 'not-started';
+            const total = milestones.length;
+            const completed = milestones.filter(m => m.status === 'complete').length;
+            const overdue = milestones.filter(m => {
+                if (m.status === 'complete') return false;
+                const daysUntil = getDaysUntilDue(m.dueDate);
+                return daysUntil !== null && daysUntil < 0;
+            }).length;
+            const dueSoon = milestones.filter(m => {
+                if (m.status === 'complete') return false;
+                const daysUntil = getDaysUntilDue(m.dueDate);
+                return daysUntil !== null && daysUntil >= 0 && daysUntil <= 7;
+            }).length;
+            if (completed === total) return 'complete';
+            if (overdue > 0) return 'behind';
+            if (dueSoon > 0) return 'at-risk';
+            if (completed > 0) return 'on-track';
+            return 'not-started';
+        };
+
+        const calculateProgress = (milestones) => {
+            if (!milestones || milestones.length === 0) return 0;
+            const completed = milestones.filter(m => m.status === 'complete').length;
+            return Math.round((completed / milestones.length) * 100);
+        };
+
+        const getTimelinePosition = (dateStr) => {
+            const date = parseDate(dateStr);
+            if (!date) return null;
+            const yearStart = new Date('2026-01-01T00:00:00');
+            const yearEnd = new Date('2026-12-31T23:59:59');
+            const totalDays = (yearEnd - yearStart) / (1000 * 60 * 60 * 24);
+            const daysPassed = (date - yearStart) / (1000 * 60 * 60 * 24);
+            return Math.max(0, Math.min(100, (daysPassed / totalDays) * 100));
+        };
+
+        const getCurrentMonthIndex = () => {
+            const now = new Date();
+            if (now.getFullYear() !== 2026) return 0;
+            return now.getMonth();
+        };
+
+        const getStatusClass = (status) => {
+            switch(status) {
+                case 'on-track': return 'status-on-track';
+                case 'at-risk': return 'status-at-risk';
+                case 'behind': return 'status-behind';
+                case 'complete': return 'status-complete';
+                default: return 'status-not-started';
+            }
+        };
+
+        const getStatusLabel = (status) => {
+            switch(status) {
+                case 'on-track': return 'On Track';
+                case 'at-risk': return 'At Risk';
+                case 'behind': return 'Behind';
+                case 'complete': return 'Complete';
+                default: return 'Not Started';
+            }
+        };
+
+        const getProgressColor = (status) => {
+            switch(status) {
+                case 'complete': return 'blue';
+                case 'on-track': return 'green';
+                case 'at-risk': return 'yellow';
+                case 'behind': return 'red';
+                default: return 'blue';
+            }
+        };
+
+        // ==================== INITIAL DATA ====================
+        const initialGoals = [
+            {
+                id: 1, bucket: 'Foundation', number: 'Goal 1', title: 'ICP Strategy — Three Lanes Live',
+                owner: 'Vid Lešnik', deadline: '2026-03-31',
+                successMetric: 'By end of Q1, 100% of new opps are lane-tagged and you can report pipeline/conversion by lane.',
+                milestones: [
+                    { id: 1, title: 'Lane definitions documented', status: 'pending', dueDate: '2026-01-31', notes: 'Written criteria for Early/Mid/Enterprise' },
+                    { id: 2, title: 'CRM tagging live in Copper', status: 'pending', dueDate: '2026-01-31', notes: 'Every new opp tagged by lane' },
+                    { id: 3, title: 'Lane owners assigned', status: 'complete', dueDate: '2026-01-10', notes: 'Jernej (E), Žiga (M), Durdica (Ent)' },
+                    { id: 4, title: 'Collateral per lane', status: 'pending', dueDate: '2026-02-28', notes: 'Decks, one-pagers, case studies' },
+                    { id: 5, title: 'Q1 pipeline review by lane', status: 'pending', dueDate: '2026-03-31', notes: 'First real data on lane performance' }
+                ]
+            },
+            {
+                id: 3, bucket: 'Foundation', number: 'Goal 3', title: 'New Sales Comp Structure',
+                owner: 'Vid + HR', deadline: '2026-02-01',
+                successMetric: 'Team signed off, no surprises, structure incentivizes hunting behavior.',
+                milestones: [
+                    { id: 1, title: 'Draft structure', status: 'pending', dueDate: '2026-01-15', notes: 'Hunting vs. farming balance' },
+                    { id: 2, title: 'Finance sign-off', status: 'pending', dueDate: '2026-01-22', notes: 'Confirm budget/margin impact' },
+                    { id: 3, title: 'Team review', status: 'pending', dueDate: '2026-01-28', notes: 'Get buy-in, address concerns' },
+                    { id: 4, title: 'Go-live', status: 'pending', dueDate: '2026-02-01', notes: 'Effective for Feb pipeline' }
+                ]
+            },
+            {
+                id: 4, bucket: 'Foundation', number: 'Goal 4', title: 'LTV Gap Audit',
+                owner: 'Vid + Finance', deadline: '2026-02-28',
+                successMetric: 'Defensible CAC:LTV by segment, usable for budget justification.',
+                milestones: [
+                    { id: 1, title: 'Pull "Won Deals" from Copper', status: 'pending', dueDate: '2026-01-20', notes: '' },
+                    { id: 2, title: 'Pull "Finance Actuals"', status: 'pending', dueDate: '2026-01-20', notes: 'Real revenue per client' },
+                    { id: 3, title: 'Gap analysis complete', status: 'pending', dueDate: '2026-02-15', notes: 'Delta between CRM and reality' },
+                    { id: 4, title: 'CAC:LTV by segment calculated', status: 'pending', dueDate: '2026-02-28', notes: 'Baseline for budget asks' }
+                ]
+            },
+            {
+                id: 5, bucket: 'Growth Engines', number: 'Goal 5', title: 'AI Sales Coach (TLDV)',
+                owner: 'Vid + Ops', deadline: '2026-06-30',
+                successMetric: 'All calls auto-scored, onboarding time reduced by 30%.',
+                milestones: [
+                    { id: 1, title: 'TLDV API scoped', status: 'pending', dueDate: '2026-02-15', notes: "What's possible, what's not" },
+                    { id: 2, title: 'Scoring criteria defined', status: 'pending', dueDate: '2026-03-15', notes: 'What does a "good call" look like?' },
+                    { id: 3, title: 'Pilot with 2-3 reps', status: 'pending', dueDate: '2026-04-30', notes: 'Test and refine' },
+                    { id: 4, title: 'Full rollout', status: 'pending', dueDate: '2026-06-30', notes: '100% of calls scored' }
+                ]
+            },
+            {
+                id: 6, bucket: 'Growth Engines', number: 'Goal 6', title: 'Outbound Automation',
+                owner: 'TBD', deadline: '2026-12-31',
+                successMetric: '2x qualified discovery calls per AE per month vs. baseline.',
+                milestones: [
+                    { id: 1, title: 'Owner assigned', status: 'pending', dueDate: '2026-01-31', notes: 'Who runs this?' },
+                    { id: 2, title: 'Tool evaluation', status: 'pending', dueDate: '2026-02-28', notes: 'Shortlist 2-3 options' },
+                    { id: 3, title: 'Pilot launch', status: 'pending', dueDate: '2026-03-31', notes: 'Test with one lane/AE' },
+                    { id: 4, title: 'Baseline measured', status: 'pending', dueDate: '2026-01-31', notes: 'Current qualified meetings/AE/month' },
+                    { id: 5, title: '2x target hit', status: 'pending', dueDate: '2026-12-31', notes: '' }
+                ]
+            },
+            {
+                id: 7, bucket: 'Growth Engines', number: 'Goal 7', title: 'Marketing/Growth Integration',
+                owner: 'Daša + AE', deadline: '2026-03-31',
+                successMetric: 'Marketing and Sales have shared accountability on MQL quality and conversion.',
+                milestones: [
+                    { id: 1, title: 'AE embedded in growth team', status: 'pending', dueDate: '2026-01-31', notes: "Who? What's the operating rhythm?" },
+                    { id: 2, title: 'Shared metrics defined', status: 'pending', dueDate: '2026-02-15', notes: 'MQL quality, MQL→SQL conversion, cost per SQL' },
+                    { id: 3, title: 'First joint review', status: 'pending', dueDate: '2026-03-31', notes: "What's working, what's not" }
+                ]
+            },
+            {
+                id: 2, bucket: 'Strategic Bets', number: 'Goal 2', title: 'New Sales Target — $2.07M',
+                owner: 'Vid + Lane Owners', deadline: '2026-12-31',
+                successMetric: 'Hit $2.07M in new sales (15% YoY increase).',
+                milestones: [
+                    { id: 1, title: 'Q1 target: $517K', status: 'pending', dueDate: '2026-03-31', notes: 'Quarterly pacing check' },
+                    { id: 2, title: 'Q2 target: $517K', status: 'pending', dueDate: '2026-06-30', notes: 'Quarterly pacing check' },
+                    { id: 3, title: 'Q3 target: $517K', status: 'pending', dueDate: '2026-09-30', notes: 'Quarterly pacing check' },
+                    { id: 4, title: 'Q4 target: $519K', status: 'pending', dueDate: '2026-12-31', notes: 'Final push' }
+                ]
+            },
+            {
+                id: 8, bucket: 'Strategic Bets', number: 'Goal 8', title: 'Partnerships',
+                owner: 'TBD', deadline: '2026-12-31',
+                successMetric: 'Dedicated owner, clear pipeline, 67% growth over $150K baseline.',
+                milestones: [
+                    { id: 1, title: 'Decide: hire vs. promote', status: 'pending', dueDate: '2026-02-15', notes: '' },
+                    { id: 2, title: 'Owner in seat', status: 'pending', dueDate: '2026-03-31', notes: '' },
+                    { id: 3, title: 'Q1 baseline: pipeline from partners', status: 'pending', dueDate: '2026-03-31', notes: "What's already in motion?" },
+                    { id: 4, title: 'H1 target: $100K pipeline', status: 'pending', dueDate: '2026-06-30', notes: '' },
+                    { id: 5, title: 'EOY target: $250K closed', status: 'pending', dueDate: '2026-12-31', notes: '' }
+                ]
+            },
+            {
+                id: 9, bucket: 'Strategic Bets', number: 'Goal 9', title: 'Whale Protection Program',
+                owner: 'Vid', deadline: '2026-03-31',
+                successMetric: '0 churn in top 10, 15% expansion revenue from whales.',
+                milestones: [
+                    { id: 1, title: 'Top 10 accounts identified', status: 'complete', dueDate: '2026-01-10', notes: 'AntonPaar, Vyne, TOS, Lossdog, Facelift, Pump, Partyhat, Tarsadia, Medifit, Deduction' },
+                    { id: 2, title: 'Health scoring criteria defined', status: 'pending', dueDate: '2026-02-15', notes: 'What signals risk? What signals expansion?' },
+                    { id: 3, title: 'QBR cadence set', status: 'pending', dueDate: '2026-02-28', notes: 'Quarterly? Monthly for at-risk?' },
+                    { id: 4, title: 'First round of QBRs complete', status: 'pending', dueDate: '2026-03-31', notes: '' }
+                ]
+            }
+        ];
+
+        const months = [
+            { name: 'Jan' }, { name: 'Feb' }, { name: 'Mar' }, { name: 'Apr' },
+            { name: 'May' }, { name: 'Jun' }, { name: 'Jul' }, { name: 'Aug' },
+            { name: 'Sep' }, { name: 'Oct' }, { name: 'Nov' }, { name: 'Dec' }
+        ];
+
+        const quarters = [
+            { name: 'Q1', months: 3 }, { name: 'Q2', months: 3 },
+            { name: 'Q3', months: 3 }, { name: 'Q4', months: 3 }
+        ];
+
+        // ==================== COMPONENTS ====================
+        const PovioLogo = () => (
+            <svg className="logo" viewBox="0 0 105 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M54.6778 7C53.9446 7 53.3608 7.59739 53.3608 8.31697C53.3608 9.03656 53.9582 9.63395 54.6778 9.63395C55.3973 9.63395 55.9947 9.03656 55.9947 8.31697C55.9947 7.59739 55.4109 7 54.6778 7Z" fill="#0A0A0A"/>
+                <path fillRule="evenodd" clipRule="evenodd" d="M15.4538 11.4261C11.34 11.4261 8 14.9289 8 19.2193V33H9.84648V24.3107C11.2042 26.035 13.2543 27.0397 15.4538 27.0533C19.5676 27.0533 22.9076 23.5368 22.9076 19.2057C22.894 14.9289 19.5541 11.4261 15.4538 11.4261ZM15.4538 25.2067C12.3582 25.2067 9.84648 22.5185 9.84648 19.2192C9.84648 15.9608 12.3582 13.3132 15.4538 13.3132C18.5494 13.3132 21.0611 15.9608 21.0611 19.2192C21.0475 22.5185 18.5358 25.2067 15.4538 25.2067Z" fill="#0A0A0A"/>
+                <path d="M46.6268 26.6595H44.9568L44.9432 26.6187L39.2001 11.9148H41.196L45.7986 23.7132L50.3876 11.9148H52.3835L46.6268 26.6595Z" fill="#0A0A0A"/>
+                <path d="M55.6011 11.9148H53.7411V26.6323H55.6011V11.9148Z" fill="#0A0A0A"/>
+                <path fillRule="evenodd" clipRule="evenodd" d="M57.5833 19.3143C57.5833 14.9697 60.9232 11.4261 65.0235 11.4261C69.1373 11.4261 72.4909 14.9697 72.4909 19.3143C72.4909 23.6047 69.1238 27.094 65.0235 27.094C60.9232 27.094 57.5833 23.6047 57.5833 19.3143ZM59.4297 19.3143C59.4297 22.6135 61.9415 25.3018 65.0235 25.3018C68.1055 25.3018 70.6172 22.6135 70.6172 19.3143C70.6172 15.9472 68.1055 13.2182 65.0235 13.2182C61.9415 13.2182 59.4297 15.9608 59.4297 19.3143Z" fill="#0A0A0A"/>
+                <path fillRule="evenodd" clipRule="evenodd" d="M31.8819 11.4261C27.7816 11.4261 24.4416 14.9697 24.4416 19.3143C24.4416 23.6047 27.7816 27.094 31.8819 27.094C35.9821 27.094 39.3492 23.6047 39.3492 19.3143C39.3492 14.9697 36.0093 11.4261 31.8819 11.4261ZM31.8819 25.3018C28.7999 25.3018 26.2882 22.6135 26.2882 19.3143C26.2882 15.9608 28.7999 13.2182 31.8819 13.2182C34.9639 13.2182 37.4756 15.9472 37.4756 19.3143C37.4756 22.6135 34.9775 25.3018 31.8819 25.3018Z" fill="#0A0A0A"/>
+            </svg>
+        );
+
+        const Modal = ({ isOpen, onClose, title, children }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2>{title}</h2>
+                            <button className="icon-btn" onClick={onClose}>✕</button>
+                        </div>
+                        {children}
+                    </div>
+                </div>
+            );
+        };
+
+        const MilestoneForm = ({ milestone, onSave, onCancel }) => {
+            const [title, setTitle] = useState(milestone.title);
+            const [dueDate, setDueDate] = useState(formatDateForInput(milestone.dueDate));
+            const [notes, setNotes] = useState(milestone.notes || '');
+            const handleSubmit = (e) => { e.preventDefault(); onSave({ title, dueDate, notes }); };
+            return (
+                <form onSubmit={handleSubmit}>
+                    <div className="modal-body">
+                        <div className="form-group"><label>Title</label><input type="text" value={title} onChange={e => setTitle(e.target.value)} required placeholder="What needs to be done?" /></div>
+                        <div className="form-group"><label>Due Date</label><input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} required /></div>
+                        <div className="form-group"><label>Notes</label><textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Additional context..." /></div>
+                    </div>
+                    <div className="modal-footer">
+                        <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+                        <button type="submit" className="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            );
+        };
+
+        const GoalForm = ({ goal, onSave, onDelete, onCancel }) => {
+            const [title, setTitle] = useState(goal.title || '');
+            const [owner, setOwner] = useState(goal.owner || '');
+            const [deadline, setDeadline] = useState(formatDateForInput(goal.deadline));
+            const [successMetric, setSuccessMetric] = useState(goal.successMetric || '');
+            const [bucket, setBucket] = useState(goal.bucket || 'Foundation');
+            const handleSubmit = (e) => { e.preventDefault(); onSave({ title, owner, deadline, successMetric, bucket }); };
+            return (
+                <form onSubmit={handleSubmit}>
+                    <div className="modal-body">
+                        <div className="form-group"><label>Title</label><input type="text" value={title} onChange={e => setTitle(e.target.value)} required /></div>
+                        <div className="form-group"><label>Owner</label><input type="text" value={owner} onChange={e => setOwner(e.target.value)} /></div>
+                        <div className="form-group"><label>Bucket</label><select value={bucket} onChange={e => setBucket(e.target.value)}><option value="Foundation">Foundation</option><option value="Growth Engines">Growth Engines</option><option value="Strategic Bets">Strategic Bets</option></select></div>
+                        <div className="form-group"><label>Deadline</label><input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} /></div>
+                        <div className="form-group"><label>Success Metric</label><textarea value={successMetric} onChange={e => setSuccessMetric(e.target.value)} /></div>
+                    </div>
+                    <div className="modal-footer">
+                        {goal.id && <button type="button" className="btn btn-danger" onClick={onDelete} style={{ marginRight: 'auto' }}>Delete</button>}
+                        <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+                        <button type="submit" className="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            );
+        };
+
+        const GoalCard = ({ goal, onUpdate, onDelete }) => {
+            const [expanded, setExpanded] = useState(false);
+            const [editingMilestone, setEditingMilestone] = useState(null);
+            const [editingGoal, setEditingGoal] = useState(false);
+            const [addingMilestone, setAddingMilestone] = useState(false);
+            const progress = calculateProgress(goal.milestones);
+            const status = useMemo(() => calculateGoalStatus(goal.milestones), [goal.milestones]);
+            const progressColor = getProgressColor(status);
+
+            const toggleMilestone = (milestoneId) => {
+                const updatedMilestones = goal.milestones.map(m => m.id === milestoneId ? { ...m, status: m.status === 'complete' ? 'pending' : 'complete' } : m);
+                onUpdate({ ...goal, milestones: updatedMilestones });
+            };
+            const updateMilestone = (milestoneId, updates) => {
+                const updatedMilestones = goal.milestones.map(m => m.id === milestoneId ? { ...m, ...updates } : m);
+                onUpdate({ ...goal, milestones: updatedMilestones });
+                setEditingMilestone(null);
+            };
+            const deleteMilestone = (milestoneId) => {
+                const updatedMilestones = goal.milestones.filter(m => m.id !== milestoneId);
+                onUpdate({ ...goal, milestones: updatedMilestones });
+            };
+            const addMilestone = (newMilestone) => {
+                const newId = Math.max(...goal.milestones.map(m => m.id), 0) + 1;
+                const updatedMilestones = [...goal.milestones, { ...newMilestone, id: newId, status: 'pending' }];
+                onUpdate({ ...goal, milestones: updatedMilestones });
+                setAddingMilestone(false);
+            };
+            const getMilestoneClass = (milestone) => {
+                const milestoneStatus = getMilestoneStatus(milestone);
+                if (milestoneStatus === 'overdue') return 'overdue';
+                if (milestoneStatus === 'due-soon') return 'due-soon';
+                return '';
+            };
+            const getDueDateDisplay = (milestone) => {
+                const daysUntil = getDaysUntilDue(milestone.dueDate);
+                const dateDisplay = formatDateForDisplay(milestone.dueDate);
+                if (milestone.status === 'complete') return <span>Due: {dateDisplay}</span>;
+                if (daysUntil === null) return <span>Due: {dateDisplay}</span>;
+                if (daysUntil < 0) return <span className="overdue-text">Overdue by {Math.abs(daysUntil)} days</span>;
+                if (daysUntil === 0) return <span className="due-soon-text">Due today</span>;
+                if (daysUntil <= 7) return <span className="due-soon-text">Due in {daysUntil} days</span>;
+                return <span>Due: {dateDisplay}</span>;
+            };
+
+            return (
+                <div className="goal-card">
+                    <div className="goal-header" onClick={() => setExpanded(!expanded)}>
+                        <div className="goal-title-section">
+                            <div className="goal-number">{goal.number}</div>
+                            <div className="goal-title">{goal.title}</div>
+                            <div className="goal-meta"><span>👤 {goal.owner}</span><span>📅 {formatDateForDisplay(goal.deadline)}</span></div>
+                        </div>
+                        <span className={`status-badge ${getStatusClass(status)}`}>{getStatusLabel(status)}</span>
+                    </div>
+                    <div className="progress-bar-container"><div className="progress-bar"><div className={`progress-bar-fill ${progressColor}`} style={{ width: `${progress}%` }} /></div></div>
+                    {expanded && (
+                        <div className="goal-expanded">
+                            <div className="milestones-header">
+                                <h4>Milestones ({goal.milestones.filter(m => m.status === 'complete').length}/{goal.milestones.length})</h4>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button className="btn btn-secondary btn-small" onClick={() => setAddingMilestone(true)}>+ Add</button>
+                                    <button className="btn btn-secondary btn-small" onClick={() => setEditingGoal(true)}>Edit Goal</button>
+                                </div>
+                            </div>
+                            {goal.milestones.map(milestone => (
+                                <div key={milestone.id} className={`milestone-item ${getMilestoneClass(milestone)}`}>
+                                    <div className={`milestone-checkbox ${milestone.status === 'complete' ? 'checked' : ''}`} onClick={() => toggleMilestone(milestone.id)} />
+                                    <div className="milestone-content">
+                                        <div className={`milestone-title ${milestone.status === 'complete' ? 'completed' : ''}`}>{milestone.title}</div>
+                                        <div className="milestone-details">{getDueDateDisplay(milestone)}{milestone.notes && <span>• {milestone.notes}</span>}</div>
+                                    </div>
+                                    <div className="milestone-actions">
+                                        <button className="icon-btn" onClick={() => setEditingMilestone(milestone)}>✎</button>
+                                        <button className="icon-btn danger" onClick={() => deleteMilestone(milestone.id)}>🗑</button>
+                                    </div>
+                                </div>
+                            ))}
+                            {goal.successMetric && <div className="success-metric"><h4>Success Metric</h4><p>{goal.successMetric}</p></div>}
+                        </div>
+                    )}
+                    <Modal isOpen={editingMilestone !== null} onClose={() => setEditingMilestone(null)} title="Edit Milestone">
+                        {editingMilestone && <MilestoneForm milestone={editingMilestone} onSave={(updates) => updateMilestone(editingMilestone.id, updates)} onCancel={() => setEditingMilestone(null)} />}
+                    </Modal>
+                    <Modal isOpen={addingMilestone} onClose={() => setAddingMilestone(false)} title="Add Milestone">
+                        <MilestoneForm milestone={{ title: '', dueDate: '', notes: '' }} onSave={addMilestone} onCancel={() => setAddingMilestone(false)} />
+                    </Modal>
+                    <Modal isOpen={editingGoal} onClose={() => setEditingGoal(false)} title="Edit Goal">
+                        <GoalForm goal={goal} onSave={(updates) => { onUpdate({ ...goal, ...updates }); setEditingGoal(false); }} onDelete={() => { onDelete(goal.id); setEditingGoal(false); }} onCancel={() => setEditingGoal(false)} />
+                    </Modal>
+                </div>
+            );
+        };
+
+        const Tooltip = ({ milestone, position }) => {
+            if (!milestone) return null;
+            const status = getMilestoneStatus(milestone);
+            const statusLabels = { 'complete': 'Complete', 'on-track': 'On Track', 'due-soon': 'Due Soon', 'overdue': 'Overdue', 'pending': 'Pending' };
+            return (
+                <div className="tooltip" style={{ left: position.x + 15, top: position.y - 10 }}>
+                    <div className="tooltip-title">{milestone.title}</div>
+                    <div className="tooltip-date">{formatDateShort(milestone.dueDate)}</div>
+                    <div className={`tooltip-status ${status}`}>{statusLabels[status]}</div>
+                    {milestone.notes && <div className="tooltip-notes">{milestone.notes}</div>}
+                </div>
+            );
+        };
+
+        const GoalRow = ({ goal, onMilestoneHover, onMilestoneLeave }) => {
+            const currentMonthIndex = getCurrentMonthIndex();
+            const todayPosition = getTimelinePosition(new Date().toISOString().split('T')[0]);
+            const totalMilestones = goal.milestones.length;
+            const completedMilestones = goal.milestones.filter(m => m.status === 'complete').length;
+            const completionPercent = totalMilestones > 0 ? Math.round((completedMilestones / totalMilestones) * 100) : 0;
+            return (
+                <div className="goal-row">
+                    <div className="goal-info">
+                        <div className="goal-number">{goal.number}</div>
+                        <div className="goal-name">{goal.title}</div>
+                        <div className="goal-owner">{goal.owner}</div>
+                        <div className="goal-progress"><div className="goal-progress-bar"><div className="goal-progress-fill" style={{ width: `${completionPercent}%` }}></div></div><div className="goal-progress-text">{completionPercent}%</div></div>
+                    </div>
+                    <div className="timeline-track">
+                        <div className="month-grid">{months.map((month, idx) => <div key={month.name} className={`month-grid-line ${idx === currentMonthIndex ? 'current' : ''}`} />)}</div>
+                        {todayPosition !== null && <div className="today-line" style={{ left: `${todayPosition}%` }} />}
+                        {goal.milestones.map(milestone => {
+                            const position = getTimelinePosition(milestone.dueDate);
+                            if (position === null) return null;
+                            const status = getMilestoneStatus(milestone);
+                            return <div key={`${goal.id}-${milestone.id}`} className={`milestone-marker ${status}`} style={{ left: `${position}%` }} onMouseEnter={(e) => onMilestoneHover(milestone, e)} onMouseLeave={onMilestoneLeave} />;
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
+        const GoalsView = ({ goals, onUpdate, onDelete, onAdd }) => {
+            const [addingGoal, setAddingGoal] = useState(false);
+            const addGoal = (newGoal) => { onAdd(newGoal); setAddingGoal(false); };
+            return (
+                <>
+                    <div className="status-legend">
+                        <div className="status-legend-item"><span className="dot not-started"></span> Not Started</div>
+                        <div className="status-legend-item"><span className="dot on-track"></span> On Track</div>
+                        <div className="status-legend-item"><span className="dot at-risk"></span> At Risk (due ≤7 days)</div>
+                        <div className="status-legend-item"><span className="dot behind"></span> Behind (overdue)</div>
+                        <div className="status-legend-item"><span className="dot complete"></span> Complete</div>
+                    </div>
+                    <div className="goals-grid">
+                        {goals.map(goal => <GoalCard key={goal.id} goal={goal} onUpdate={onUpdate} onDelete={onDelete} />)}
+                        <div className="add-goal-card" onClick={() => setAddingGoal(true)}><span>+ Add New Goal</span></div>
+                    </div>
+                    <Modal isOpen={addingGoal} onClose={() => setAddingGoal(false)} title="Add New Goal">
+                        <GoalForm goal={{ title: '', owner: '', deadline: '', successMetric: '', bucket: 'Foundation' }} onSave={addGoal} onCancel={() => setAddingGoal(false)} />
+                    </Modal>
+                </>
+            );
+        };
+
+        const RoadmapView = ({ goals }) => {
+            const [tooltip, setTooltip] = useState({ milestone: null, position: { x: 0, y: 0 } });
+            const currentMonthIndex = getCurrentMonthIndex();
+            const handleMilestoneHover = (milestone, e) => { setTooltip({ milestone, position: { x: e.clientX, y: e.clientY } }); };
+            const handleMilestoneLeave = () => { setTooltip({ milestone: null, position: { x: 0, y: 0 } }); };
+            const buckets = ['Foundation', 'Growth Engines', 'Strategic Bets'];
+            const goalsByBucket = buckets.map(bucket => ({ name: bucket, goals: goals.filter(g => g.bucket === bucket) }));
+            return (
+                <>
+                    <div className="status-legend">
+                        <div className="status-legend-item"><span className="dot complete"></span> Complete</div>
+                        <div className="status-legend-item"><span className="dot on-track"></span> On Track</div>
+                        <div className="status-legend-item"><span className="dot at-risk"></span> Due within 7 days</div>
+                        <div className="status-legend-item"><span className="dot behind"></span> Overdue</div>
+                        <div className="status-legend-item"><span className="dot not-started"></span> Pending</div>
+                    </div>
+                    <div className="roadmap-container">
+                        <div className="quarter-row"><div className="quarter-label-spacer"></div><div className="quarters-container">{quarters.map(q => <div key={q.name} className="quarter-block" style={{ flex: q.months }}>{q.name}</div>)}</div></div>
+                        <div className="timeline-header"><div className="goal-label-header">Goals</div><div className="months-header">{months.map((month, idx) => <div key={month.name} className={`month-header ${idx === currentMonthIndex ? 'current' : ''}`}>{month.name}</div>)}</div></div>
+                        {goalsByBucket.map(bucket => (
+                            <React.Fragment key={bucket.name}>
+                                <div className="bucket-header">{bucket.name}</div>
+                                {bucket.goals.map(goal => <GoalRow key={goal.id} goal={goal} onMilestoneHover={handleMilestoneHover} onMilestoneLeave={handleMilestoneLeave} />)}
+                            </React.Fragment>
+                        ))}
+                    </div>
+                    <Tooltip milestone={tooltip.milestone} position={tooltip.position} />
+                </>
+            );
+        };
+
+        // ==================== MAIN APP ====================
+        const App = () => {
+            const [view, setView] = useState('goals');
+            const [goals, setGoals] = useState(() => {
+                const saved = localStorage.getItem('povio-goals-2026-combined');
+                return saved ? JSON.parse(saved) : initialGoals;
+            });
+            useEffect(() => { localStorage.setItem('povio-goals-2026-combined', JSON.stringify(goals)); }, [goals]);
+            const updateGoal = (updatedGoal) => { setGoals(goals.map(g => g.id === updatedGoal.id ? updatedGoal : g)); };
+            const deleteGoal = (goalId) => { setGoals(goals.filter(g => g.id !== goalId)); };
+            const addGoal = (newGoal) => {
+                const newId = Math.max(...goals.map(g => g.id), 0) + 1;
+                setGoals([...goals, { ...newGoal, id: newId, number: `Goal ${newId}`, milestones: [] }]);
+            };
+            const allMilestones = goals.flatMap(g => g.milestones);
+            const totalMilestones = allMilestones.length;
+            const completedMilestones = allMilestones.filter(m => m.status === 'complete').length;
+            const overallProgress = totalMilestones > 0 ? Math.round((completedMilestones / totalMilestones) * 100) : 0;
+            const goalStatuses = goals.map(g => calculateGoalStatus(g.milestones));
+            const goalsOnTrack = goalStatuses.filter(s => s === 'on-track' || s === 'complete').length;
+            const goalsAtRisk = goalStatuses.filter(s => s === 'at-risk' || s === 'behind').length;
+
+            return (
+                <div className="app-container">
+                    <div className="header">
+                        <div className="header-brand"><PovioLogo /><div className="header-divider" /><div className="header-title"><h1>2026 Sales Goals</h1><span className="header-subtitle">Vid Lešnik • Head of Sales & Partnerships</span></div></div>
+                        <div className="header-actions"><div className="view-toggle"><button className={`view-btn ${view === 'goals' ? 'active' : ''}`} onClick={() => setView('goals')}>Goals</button><button className={`view-btn ${view === 'roadmap' ? 'active' : ''}`} onClick={() => setView('roadmap')}>Roadmap</button></div></div>
+                    </div>
+                    <div className="stats-bar">
+                        <div className="stat-card"><h3>Overall Progress</h3><div className="value blue">{overallProgress}%</div></div>
+                        <div className="stat-card"><h3>Milestones Complete</h3><div className="value">{completedMilestones}/{totalMilestones}</div></div>
+                        <div className="stat-card"><h3>Goals On Track</h3><div className="value green">{goalsOnTrack}</div></div>
+                        <div className="stat-card"><h3>Goals At Risk</h3><div className="value red">{goalsAtRisk}</div></div>
+                    </div>
+                    {view === 'goals' ? <GoalsView goals={goals} onUpdate={updateGoal} onDelete={deleteGoal} onAdd={addGoal} /> : <RoadmapView goals={goals} />}
+                </div>
+            );
+        };
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
