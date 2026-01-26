@@ -1192,7 +1192,15 @@
                     return;
                 }
 
-                setGoals(data || []);
+                // Map database fields to component fields
+                const mappedGoals = (data || []).map(goal => ({
+                    ...goal,
+                    bucket: goal.category,  // RoadmapView expects 'bucket'
+                    successMetric: goal.target,  // Some components expect 'successMetric'
+                    owner: goal.owner || 'Vid Lešnik'  // Default owner if not set
+                }));
+
+                setGoals(mappedGoals);
             };
 
             // Fetch whales from database
@@ -1208,7 +1216,17 @@
                     return;
                 }
 
-                setWhales(data || []);
+                // Map database fields (snake_case) to component fields (camelCase)
+                const mappedWhales = (data || []).map(whale => ({
+                    ...whale,
+                    contractEnd: whale.contract_end,
+                    accountManager: whale.account_manager,
+                    lastQBR: whale.last_qbr,
+                    nextQBR: whale.next_qbr,
+                    churnRisk: whale.churn_risk
+                }));
+
+                setWhales(mappedWhales);
             };
 
             // Migrate localStorage data to database if needed
@@ -1287,9 +1305,9 @@
                     .update({
                         number: updatedGoal.number,
                         title: updatedGoal.title,
-                        target: updatedGoal.target,
+                        target: updatedGoal.target || updatedGoal.successMetric,
                         deadline: updatedGoal.deadline,
-                        category: updatedGoal.category,
+                        category: updatedGoal.category || updatedGoal.bucket,
                         milestones: updatedGoal.milestones
                     })
                     .eq('id', updatedGoal.id)
@@ -1300,7 +1318,14 @@
                     return;
                 }
 
-                setGoals(goals.map(g => g.id === updatedGoal.id ? updatedGoal : g));
+                // Map updated goal back to component format
+                const mappedGoal = {
+                    ...updatedGoal,
+                    bucket: updatedGoal.category || updatedGoal.bucket,
+                    successMetric: updatedGoal.target || updatedGoal.successMetric
+                };
+
+                setGoals(goals.map(g => g.id === updatedGoal.id ? mappedGoal : g));
             };
 
             // Delete goal from database
@@ -1327,9 +1352,9 @@
                         user_id: user.sub,
                         number: newGoal.number || `Goal ${goals.length + 1}`,
                         title: newGoal.title,
-                        target: newGoal.target,
+                        target: newGoal.target || newGoal.successMetric,
                         deadline: newGoal.deadline,
-                        category: newGoal.category,
+                        category: newGoal.category || newGoal.bucket,
                         milestones: newGoal.milestones || []
                     }])
                     .select()
@@ -1340,7 +1365,15 @@
                     return;
                 }
 
-                setGoals([...goals, data]);
+                // Map new goal to component format
+                const mappedGoal = {
+                    ...data,
+                    bucket: data.category,
+                    successMetric: data.target,
+                    owner: data.owner || 'Vid Lešník'
+                };
+
+                setGoals([...goals, mappedGoal]);
             };
 
             // Update whales in database
