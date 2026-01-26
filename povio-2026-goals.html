@@ -235,6 +235,41 @@
             .header-actions { width: 100%; justify-content: space-between; }
         }
         @media (max-width: 600px) { .stat-card .value { font-size: 28px; } .goal-meta { flex-direction: column; gap: 8px; } }
+
+        /* Whale Tracking Styles */
+        .whale-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px; }
+        .whale-card { background: var(--povio-card); border: 1px solid var(--povio-border); border-radius: 16px; padding: 24px; transition: all 0.2s ease; }
+        .whale-card:hover { border-color: var(--povio-border-hover); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06); transform: translateY(-2px); }
+        .whale-card.healthy { border-left: 4px solid var(--povio-success); }
+        .whale-card.warning { border-left: 4px solid var(--povio-warning); }
+        .whale-card.critical { border-left: 4px solid var(--povio-danger); }
+
+        .whale-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .whale-name { font-size: 18px; font-weight: 700; color: var(--povio-black); margin-bottom: 4px; }
+        .whale-industry { font-size: 12px; color: var(--povio-gray-500); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .health-badge { padding: 6px 12px; border-radius: 100px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .health-badge.healthy { background: var(--povio-success-subtle); color: var(--povio-success); }
+        .health-badge.warning { background: var(--povio-warning-subtle); color: var(--povio-warning); }
+        .health-badge.critical { background: var(--povio-danger-subtle); color: var(--povio-danger); }
+
+        .whale-metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 20px 0; padding: 16px 0; border-top: 1px solid var(--povio-border); border-bottom: 1px solid var(--povio-border); }
+        .whale-metric { }
+        .whale-metric-label { font-size: 11px; color: var(--povio-gray-500); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .whale-metric-value { font-size: 20px; font-weight: 700; color: var(--povio-black); }
+        .whale-metric-value.revenue { color: var(--povio-blue); }
+
+        .whale-details { font-size: 13px; color: var(--povio-gray-700); line-height: 1.6; }
+        .whale-detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .whale-detail-label { color: var(--povio-gray-500); }
+
+        .whale-actions { display: flex; gap: 8px; margin-top: 16px; }
+        .whale-actions .btn { flex: 1; justify-content: center; }
+
+        .whale-notes { margin-top: 16px; padding: 12px; background: var(--povio-gray-100); border-radius: 8px; font-size: 12px; color: var(--povio-gray-700); line-height: 1.5; }
+        .whale-notes strong { color: var(--povio-gray-900); }
+
+        @media (max-width: 900px) { .whale-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -483,6 +518,69 @@
         const quarters = [
             { name: 'Q1', months: 3 }, { name: 'Q2', months: 3 },
             { name: 'Q3', months: 3 }, { name: 'Q4', months: 3 }
+        ];
+
+        const initialWhales = [
+            {
+                id: 1, name: 'AntonPaar', industry: 'Manufacturing', health: 'healthy',
+                arr: '$420K', ltv: '$1.2M', contractEnd: '2026-11-15', accountManager: 'Vid Lešník',
+                lastQBR: '2025-12-10', nextQBR: '2026-03-15', expansion: 'High', churnRisk: 'Low',
+                notes: 'Strong partnership. Exploring 2 additional products. Executive sponsor engaged.'
+            },
+            {
+                id: 2, name: 'Vyne', industry: 'FinTech', health: 'healthy',
+                arr: '$380K', ltv: '$950K', contractEnd: '2026-08-20', accountManager: 'Durdica',
+                lastQBR: '2025-11-22', nextQBR: '2026-02-28', expansion: 'Medium', churnRisk: 'Low',
+                notes: 'Steady growth. Annual renewal coming up. Need to schedule strategic planning session.'
+            },
+            {
+                id: 3, name: 'TOS', industry: 'Logistics', health: 'warning',
+                arr: '$310K', ltv: '$780K', contractEnd: '2026-05-30', accountManager: 'Žiga',
+                lastQBR: '2025-09-15', nextQBR: '2026-02-01', expansion: 'Low', churnRisk: 'Medium',
+                notes: 'Missed last QBR. New CTO onboarded. Need to rebuild relationship and demonstrate value.'
+            },
+            {
+                id: 4, name: 'Lossdog', industry: 'Insurance', health: 'healthy',
+                arr: '$295K', ltv: '$710K', contractEnd: '2026-10-12', accountManager: 'Jernej',
+                lastQBR: '2026-01-08', nextQBR: '2026-04-10', expansion: 'High', churnRisk: 'Low',
+                notes: 'Just completed successful QBR. Greenlit expansion to 3 new teams. Fast-growing account.'
+            },
+            {
+                id: 5, name: 'Facelift', industry: 'SaaS', health: 'healthy',
+                arr: '$280K', ltv: '$840K', contractEnd: '2026-12-01', accountManager: 'Vid Lešník',
+                lastQBR: '2025-12-18', nextQBR: '2026-03-20', expansion: 'Medium', churnRisk: 'Low',
+                notes: 'Very satisfied with service. Considering enterprise tier upgrade.'
+            },
+            {
+                id: 6, name: 'Pump', industry: 'E-commerce', health: 'warning',
+                arr: '$265K', ltv: '$530K', contractEnd: '2026-04-15', accountManager: 'Durdica',
+                lastQBR: '2025-10-30', nextQBR: 'Overdue', expansion: 'Low', churnRisk: 'High',
+                notes: 'Contract up for renewal in Q2. Budget concerns raised. Need urgent intervention.'
+            },
+            {
+                id: 7, name: 'Partyhat', industry: 'Events', health: 'healthy',
+                arr: '$240K', ltv: '$720K', contractEnd: '2026-09-10', accountManager: 'Žiga',
+                lastQBR: '2026-01-12', nextQBR: '2026-04-15', expansion: 'Medium', churnRisk: 'Low',
+                notes: 'Growing fast. Interested in API access and custom integrations.'
+            },
+            {
+                id: 8, name: 'Tarsadia', industry: 'Real Estate', health: 'critical',
+                arr: '$225K', ltv: '$450K', contractEnd: '2026-03-01', accountManager: 'Jernej',
+                lastQBR: '2025-08-20', nextQBR: 'Overdue', expansion: 'None', churnRisk: 'Critical',
+                notes: 'No engagement for 5 months. Multiple escalations unanswered. At-risk for non-renewal.'
+            },
+            {
+                id: 9, name: 'Medifit', industry: 'Healthcare', health: 'healthy',
+                arr: '$210K', ltv: '$630K', contractEnd: '2026-07-25', accountManager: 'Durdica',
+                lastQBR: '2025-12-05', nextQBR: '2026-03-05', expansion: 'High', churnRisk: 'Low',
+                notes: 'Excellent relationship. Planning to roll out to 5 more locations in Q2.'
+            },
+            {
+                id: 10, name: 'Deduction', industry: 'Legal Tech', health: 'warning',
+                arr: '$195K', ltv: '$585K', contractEnd: '2026-06-18', accountManager: 'Vid Lešník',
+                lastQBR: '2025-11-10', nextQBR: '2026-02-10', expansion: 'Low', churnRisk: 'Medium',
+                notes: 'Usage declining over past quarter. Need to identify blockers and re-engage key stakeholders.'
+            }
         ];
 
         // ==================== COMPONENTS ====================
@@ -747,6 +845,112 @@
             );
         };
 
+        const WhaleView = ({ whales, onUpdate }) => {
+            const [editingWhale, setEditingWhale] = useState(null);
+            const [addingWhale, setAddingWhale] = useState(false);
+
+            const getHealthStats = () => {
+                const healthy = whales.filter(w => w.health === 'healthy').length;
+                const warning = whales.filter(w => w.health === 'warning').length;
+                const critical = whales.filter(w => w.health === 'critical').length;
+                const totalARR = whales.reduce((sum, w) => sum + parseFloat(w.arr.replace(/[$K]/g, '')), 0);
+                return { healthy, warning, critical, totalARR: `$${(totalARR / 1000).toFixed(1)}M` };
+            };
+
+            const stats = getHealthStats();
+
+            const WhaleCard = ({ whale }) => (
+                <div className={`whale-card ${whale.health}`}>
+                    <div className="whale-header">
+                        <div>
+                            <div className="whale-name">{whale.name}</div>
+                            <div className="whale-industry">{whale.industry}</div>
+                        </div>
+                        <span className={`health-badge ${whale.health}`}>
+                            {whale.health === 'healthy' ? '✓ Healthy' : whale.health === 'warning' ? '⚠ At Risk' : '⚠ Critical'}
+                        </span>
+                    </div>
+
+                    <div className="whale-metrics">
+                        <div className="whale-metric">
+                            <div className="whale-metric-label">ARR</div>
+                            <div className="whale-metric-value revenue">{whale.arr}</div>
+                        </div>
+                        <div className="whale-metric">
+                            <div className="whale-metric-label">LTV</div>
+                            <div className="whale-metric-value">{whale.ltv}</div>
+                        </div>
+                        <div className="whale-metric">
+                            <div className="whale-metric-label">Expansion</div>
+                            <div className="whale-metric-value" style={{
+                                fontSize: '14px',
+                                color: whale.expansion === 'High' ? 'var(--povio-success)' : whale.expansion === 'Medium' ? 'var(--povio-warning)' : 'var(--povio-gray-500)'
+                            }}>{whale.expansion}</div>
+                        </div>
+                        <div className="whale-metric">
+                            <div className="whale-metric-label">Churn Risk</div>
+                            <div className="whale-metric-value" style={{
+                                fontSize: '14px',
+                                color: whale.churnRisk === 'Critical' ? 'var(--povio-danger)' : whale.churnRisk === 'High' ? 'var(--povio-danger)' : whale.churnRisk === 'Medium' ? 'var(--povio-warning)' : 'var(--povio-success)'
+                            }}>{whale.churnRisk}</div>
+                        </div>
+                    </div>
+
+                    <div className="whale-details">
+                        <div className="whale-detail-row">
+                            <span className="whale-detail-label">Account Manager:</span>
+                            <span>{whale.accountManager}</span>
+                        </div>
+                        <div className="whale-detail-row">
+                            <span className="whale-detail-label">Contract End:</span>
+                            <span>{formatDateForDisplay(whale.contractEnd)}</span>
+                        </div>
+                        <div className="whale-detail-row">
+                            <span className="whale-detail-label">Last QBR:</span>
+                            <span>{whale.lastQBR !== 'Overdue' ? formatDateForDisplay(whale.lastQBR) : whale.lastQBR}</span>
+                        </div>
+                        <div className="whale-detail-row">
+                            <span className="whale-detail-label">Next QBR:</span>
+                            <span style={{ color: whale.nextQBR === 'Overdue' ? 'var(--povio-danger)' : 'inherit', fontWeight: whale.nextQBR === 'Overdue' ? '600' : 'normal' }}>
+                                {whale.nextQBR !== 'Overdue' ? formatDateForDisplay(whale.nextQBR) : '⚠ Overdue'}
+                            </span>
+                        </div>
+                    </div>
+
+                    {whale.notes && (
+                        <div className="whale-notes">
+                            <strong>Notes:</strong> {whale.notes}
+                        </div>
+                    )}
+
+                    <div className="whale-actions">
+                        <button className="btn btn-primary btn-small" onClick={() => setEditingWhale(whale)}>
+                            Edit Details
+                        </button>
+                        <button className="btn btn-secondary btn-small">
+                            Schedule QBR
+                        </button>
+                    </div>
+                </div>
+            );
+
+            return (
+                <>
+                    <div className="status-legend">
+                        <div className="status-legend-item"><span className="dot on-track"></span> {stats.healthy} Healthy</div>
+                        <div className="status-legend-item"><span className="dot at-risk"></span> {stats.warning} At Risk</div>
+                        <div className="status-legend-item"><span className="dot behind"></span> {stats.critical} Critical</div>
+                        <div className="status-legend-item" style={{ marginLeft: 'auto', fontWeight: '700', color: 'var(--povio-blue)' }}>
+                            Total ARR: {stats.totalARR}
+                        </div>
+                    </div>
+                    <div className="whale-grid">
+                        {whales.map(whale => <WhaleCard key={whale.id} whale={whale} />)}
+                    </div>
+                </>
+            );
+        };
+
         // ==================== MAIN APP ====================
         const App = () => {
             const [view, setView] = useState('goals');
@@ -754,7 +958,12 @@
                 const saved = localStorage.getItem('povio-goals-2026-combined');
                 return saved ? JSON.parse(saved) : initialGoals;
             });
+            const [whales, setWhales] = useState(() => {
+                const saved = localStorage.getItem('povio-whales-2026');
+                return saved ? JSON.parse(saved) : initialWhales;
+            });
             useEffect(() => { localStorage.setItem('povio-goals-2026-combined', JSON.stringify(goals)); }, [goals]);
+            useEffect(() => { localStorage.setItem('povio-whales-2026', JSON.stringify(whales)); }, [whales]);
             const updateGoal = (updatedGoal) => { setGoals(goals.map(g => g.id === updatedGoal.id ? updatedGoal : g)); };
             const deleteGoal = (goalId) => { setGoals(goals.filter(g => g.id !== goalId)); };
             const addGoal = (newGoal) => {
@@ -773,7 +982,7 @@
                 <div className="app-container">
                     <div className="header">
                         <div className="header-brand"><PovioLogo /><div className="header-divider" /><div className="header-title"><h1>2026 Sales Goals</h1><span className="header-subtitle">Vid Lešnik • Head of Sales & Partnerships</span></div></div>
-                        <div className="header-actions"><div className="view-toggle"><button className={`view-btn ${view === 'goals' ? 'active' : ''}`} onClick={() => setView('goals')}>Goals</button><button className={`view-btn ${view === 'roadmap' ? 'active' : ''}`} onClick={() => setView('roadmap')}>Roadmap</button></div></div>
+                        <div className="header-actions"><div className="view-toggle"><button className={`view-btn ${view === 'goals' ? 'active' : ''}`} onClick={() => setView('goals')}>Goals</button><button className={`view-btn ${view === 'roadmap' ? 'active' : ''}`} onClick={() => setView('roadmap')}>Roadmap</button><button className={`view-btn ${view === 'whales' ? 'active' : ''}`} onClick={() => setView('whales')}>Whales</button></div></div>
                     </div>
                     <div className="stats-bar">
                         <div className="stat-card"><h3>Overall Progress</h3><div className="value blue">{overallProgress}%</div></div>
@@ -781,7 +990,9 @@
                         <div className="stat-card"><h3>Goals On Track</h3><div className="value green">{goalsOnTrack}</div></div>
                         <div className="stat-card"><h3>Goals At Risk</h3><div className="value red">{goalsAtRisk}</div></div>
                     </div>
-                    {view === 'goals' ? <GoalsView goals={goals} onUpdate={updateGoal} onDelete={deleteGoal} onAdd={addGoal} /> : <RoadmapView goals={goals} />}
+                    {view === 'goals' && <GoalsView goals={goals} onUpdate={updateGoal} onDelete={deleteGoal} onAdd={addGoal} />}
+                    {view === 'roadmap' && <RoadmapView goals={goals} />}
+                    {view === 'whales' && <WhaleView whales={whales} onUpdate={setWhales} />}
                 </div>
             );
         };
