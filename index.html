@@ -7,6 +7,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -289,6 +290,76 @@
             .whale-summary { grid-template-columns: 2fr 1fr 50px; gap: 12px; padding: 12px 16px; }
             .whale-metric-cell:nth-child(3) { display: none; }
             .whale-expanded-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Login Screen */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--povio-blue) 0%, #1428CC 100%);
+            padding: 24px;
+        }
+        .login-card {
+            background: var(--povio-white);
+            border-radius: 24px;
+            padding: 48px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        .login-logo {
+            margin-bottom: 32px;
+        }
+        .login-logo svg {
+            height: 40px;
+            width: auto;
+        }
+        .login-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--povio-black);
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        .login-subtitle {
+            font-size: 15px;
+            color: var(--povio-gray-500);
+            margin-bottom: 32px;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--povio-blue);
+            color: white;
+            transition: all 0.2s ease;
+        }
+        .login-btn:hover {
+            background: var(--povio-blue-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(31, 53, 255, 0.3);
+        }
+        .logout-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--povio-border);
+            background: var(--povio-white);
+            color: var(--povio-gray-700);
+            transition: all 0.2s ease;
+        }
+        .logout-btn:hover {
+            background: var(--povio-gray-100);
+            border-color: var(--povio-border-hover);
         }
     </style>
 </head>
@@ -1009,8 +1080,75 @@
             );
         };
 
+        // ==================== LOGIN SCREEN ====================
+        const LoginScreen = ({ onLogin }) => {
+            return (
+                <div className="login-container">
+                    <div className="login-card">
+                        <div className="login-logo">
+                            <PovioLogo />
+                        </div>
+                        <h1 className="login-title">Welcome Back</h1>
+                        <p className="login-subtitle">Sign in to access your sales dashboard</p>
+                        <button className="login-btn" onClick={onLogin}>
+                            Sign In with Netlify Identity
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
         // ==================== MAIN APP ====================
         const App = () => {
+            const [user, setUser] = useState(null);
+            const [loading, setLoading] = useState(true);
+
+            // Initialize Netlify Identity
+            useEffect(() => {
+                const netlifyIdentity = window.netlifyIdentity;
+
+                // Initialize the widget
+                netlifyIdentity.on('init', user => {
+                    setUser(user);
+                    setLoading(false);
+                });
+
+                netlifyIdentity.on('login', user => {
+                    setUser(user);
+                    netlifyIdentity.close();
+                });
+
+                netlifyIdentity.on('logout', () => {
+                    setUser(null);
+                });
+
+                // Initialize
+                netlifyIdentity.init();
+            }, []);
+
+            const handleLogin = () => {
+                window.netlifyIdentity.open();
+            };
+
+            const handleLogout = () => {
+                window.netlifyIdentity.logout();
+            };
+
+            // Show loading state
+            if (loading) {
+                return <div className="login-container"><div className="login-card"><p>Loading...</p></div></div>;
+            }
+
+            // Show login screen if not authenticated
+            if (!user) {
+                return <LoginScreen onLogin={handleLogin} />;
+            }
+
+            // Main authenticated app
+            return <AuthenticatedApp user={user} onLogout={handleLogout} />;
+        };
+
+        const AuthenticatedApp = ({ user, onLogout }) => {
             const [view, setView] = useState('goals');
             const [goals, setGoals] = useState(() => {
                 const saved = localStorage.getItem('povio-goals-2026-combined');
@@ -1040,7 +1178,7 @@
                 <div className="app-container">
                     <div className="header">
                         <div className="header-brand"><PovioLogo /><div className="header-divider" /><div className="header-title"><h1>{view === 'whales' ? 'Whale Protection Programme' : '2026 Sales Goals'}</h1><span className="header-subtitle">Vid Lešnik • Head of Sales & Partnerships</span></div></div>
-                        <div className="header-actions"><div className="view-toggle"><button className={`view-btn ${view === 'goals' ? 'active' : ''}`} onClick={() => setView('goals')}>Goals</button><button className={`view-btn ${view === 'roadmap' ? 'active' : ''}`} onClick={() => setView('roadmap')}>Roadmap</button><button className={`view-btn ${view === 'whales' ? 'active' : ''}`} onClick={() => setView('whales')}>Whales</button></div></div>
+                        <div className="header-actions"><div className="view-toggle"><button className={`view-btn ${view === 'goals' ? 'active' : ''}`} onClick={() => setView('goals')}>Goals</button><button className={`view-btn ${view === 'roadmap' ? 'active' : ''}`} onClick={() => setView('roadmap')}>Roadmap</button><button className={`view-btn ${view === 'whales' ? 'active' : ''}`} onClick={() => setView('whales')}>Whales</button></div><button className="logout-btn" onClick={onLogout}>Sign Out</button></div>
                     </div>
                     {view !== 'whales' && (
                         <div className="stats-bar">
