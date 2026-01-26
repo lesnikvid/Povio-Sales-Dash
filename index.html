@@ -1039,15 +1039,17 @@
             return (
                 <div className="app-container">
                     <div className="header">
-                        <div className="header-brand"><PovioLogo /><div className="header-divider" /><div className="header-title"><h1>2026 Sales Goals</h1><span className="header-subtitle">Vid Lešnik • Head of Sales & Partnerships</span></div></div>
+                        <div className="header-brand"><PovioLogo /><div className="header-divider" /><div className="header-title"><h1>{view === 'whales' ? 'Whale Protection Programme' : '2026 Sales Goals'}</h1><span className="header-subtitle">Vid Lešnik • Head of Sales & Partnerships</span></div></div>
                         <div className="header-actions"><div className="view-toggle"><button className={`view-btn ${view === 'goals' ? 'active' : ''}`} onClick={() => setView('goals')}>Goals</button><button className={`view-btn ${view === 'roadmap' ? 'active' : ''}`} onClick={() => setView('roadmap')}>Roadmap</button><button className={`view-btn ${view === 'whales' ? 'active' : ''}`} onClick={() => setView('whales')}>Whales</button></div></div>
                     </div>
-                    <div className="stats-bar">
-                        <div className="stat-card"><h3>Overall Progress</h3><div className="value blue">{overallProgress}%</div></div>
-                        <div className="stat-card"><h3>Milestones Complete</h3><div className="value">{completedMilestones}/{totalMilestones}</div></div>
-                        <div className="stat-card"><h3>Goals On Track</h3><div className="value green">{goalsOnTrack}</div></div>
-                        <div className="stat-card"><h3>Goals At Risk</h3><div className="value red">{goalsAtRisk}</div></div>
-                    </div>
+                    {view !== 'whales' && (
+                        <div className="stats-bar">
+                            <div className="stat-card"><h3>Overall Progress</h3><div className="value blue">{overallProgress}%</div></div>
+                            <div className="stat-card"><h3>Milestones Complete</h3><div className="value">{completedMilestones}/{totalMilestones}</div></div>
+                            <div className="stat-card"><h3>Goals On Track</h3><div className="value green">{goalsOnTrack}</div></div>
+                            <div className="stat-card"><h3>Goals At Risk</h3><div className="value red">{goalsAtRisk}</div></div>
+                        </div>
+                    )}
                     {view === 'goals' && <GoalsView goals={goals} onUpdate={updateGoal} onDelete={deleteGoal} onAdd={addGoal} />}
                     {view === 'roadmap' && <RoadmapView goals={goals} />}
                     {view === 'whales' && <WhaleView whales={whales} onUpdate={setWhales} />}
