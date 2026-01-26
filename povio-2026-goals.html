@@ -7,7 +7,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -1091,7 +1091,7 @@
                         <h1 className="login-title">Welcome Back</h1>
                         <p className="login-subtitle">Sign in to access your sales dashboard</p>
                         <button className="login-btn" onClick={onLogin}>
-                            Sign In with Netlify Identity
+                            Sign In
                         </button>
                     </div>
                 </div>
@@ -1102,36 +1102,54 @@
         const App = () => {
             const [user, setUser] = useState(null);
             const [loading, setLoading] = useState(true);
+            const [auth0Client, setAuth0Client] = useState(null);
 
-            // Initialize Netlify Identity
+            // Initialize Auth0
             useEffect(() => {
-                const netlifyIdentity = window.netlifyIdentity;
+                const initAuth0 = async () => {
+                    const client = await window.auth0.createAuth0Client({
+                        domain: 'dev-2zqxp4yvnoyuv8oj.us.auth0.com',
+                        clientId: '5RG2Mm2HdP6SBsmeyvv3OPwl04CeJwnd',
+                        authorizationParams: {
+                            redirect_uri: window.location.origin
+                        }
+                    });
 
-                // Initialize the widget
-                netlifyIdentity.on('init', user => {
-                    setUser(user);
+                    setAuth0Client(client);
+
+                    // Check if redirected back from Auth0
+                    if (window.location.search.includes('code=') || window.location.search.includes('error=')) {
+                        await client.handleRedirectCallback();
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+
+                    // Check if user is authenticated
+                    const isAuthenticated = await client.isAuthenticated();
+                    if (isAuthenticated) {
+                        const user = await client.getUser();
+                        setUser(user);
+                    }
+
                     setLoading(false);
-                });
+                };
 
-                netlifyIdentity.on('login', user => {
-                    setUser(user);
-                    netlifyIdentity.close();
-                });
-
-                netlifyIdentity.on('logout', () => {
-                    setUser(null);
-                });
-
-                // Initialize
-                netlifyIdentity.init();
+                initAuth0();
             }, []);
 
-            const handleLogin = () => {
-                window.netlifyIdentity.open();
+            const handleLogin = async () => {
+                if (auth0Client) {
+                    await auth0Client.loginWithRedirect();
+                }
             };
 
             const handleLogout = () => {
-                window.netlifyIdentity.logout();
+                if (auth0Client) {
+                    auth0Client.logout({
+                        logoutParams: {
+                            returnTo: window.location.origin
+                        }
+                    });
+                }
             };
 
             // Show loading state
