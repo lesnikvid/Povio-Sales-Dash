@@ -236,40 +236,60 @@
         }
         @media (max-width: 600px) { .stat-card .value { font-size: 28px; } .goal-meta { flex-direction: column; gap: 8px; } }
 
-        /* Whale Tracking Styles */
-        .whale-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px; }
-        .whale-card { background: var(--povio-card); border: 1px solid var(--povio-border); border-radius: 16px; padding: 24px; transition: all 0.2s ease; }
-        .whale-card:hover { border-color: var(--povio-border-hover); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06); transform: translateY(-2px); }
-        .whale-card.healthy { border-left: 4px solid var(--povio-success); }
-        .whale-card.warning { border-left: 4px solid var(--povio-warning); }
-        .whale-card.critical { border-left: 4px solid var(--povio-danger); }
+        /* Whale Tracking Styles - Accordion List */
+        .whale-list { display: flex; flex-direction: column; gap: 8px; }
 
-        .whale-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-        .whale-name { font-size: 18px; font-weight: 700; color: var(--povio-black); margin-bottom: 4px; }
-        .whale-industry { font-size: 12px; color: var(--povio-gray-500); text-transform: uppercase; letter-spacing: 0.5px; }
+        .whale-row { background: var(--povio-card); border: 1px solid var(--povio-border); border-radius: 12px; overflow: hidden; transition: all 0.2s ease; }
+        .whale-row.healthy { border-left: 4px solid var(--povio-success); }
+        .whale-row.warning { border-left: 4px solid var(--povio-warning); }
+        .whale-row.critical { border-left: 4px solid var(--povio-danger); }
+        .whale-row:hover { border-color: var(--povio-border-hover); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
 
-        .health-badge { padding: 6px 12px; border-radius: 100px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .whale-summary { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 140px 50px; gap: 16px; align-items: center; padding: 16px 20px; cursor: pointer; transition: background 0.2s ease; }
+        .whale-summary:hover { background: var(--povio-gray-100); }
+
+        .whale-name-cell { }
+        .whale-name { font-size: 15px; font-weight: 700; color: var(--povio-black); }
+        .whale-industry { font-size: 11px; color: var(--povio-gray-500); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+        .whale-metric-cell { }
+        .whale-metric-label { font-size: 10px; color: var(--povio-gray-500); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+        .whale-metric-value { font-size: 14px; font-weight: 700; color: var(--povio-black); }
+        .whale-metric-value.arr { color: var(--povio-blue); }
+        .whale-metric-value.ltv { color: var(--povio-gray-700); }
+
+        .health-badge { padding: 6px 12px; border-radius: 100px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
         .health-badge.healthy { background: var(--povio-success-subtle); color: var(--povio-success); }
         .health-badge.warning { background: var(--povio-warning-subtle); color: var(--povio-warning); }
         .health-badge.critical { background: var(--povio-danger-subtle); color: var(--povio-danger); }
 
-        .whale-metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 20px 0; padding: 16px 0; border-top: 1px solid var(--povio-border); border-bottom: 1px solid var(--povio-border); }
-        .whale-metric { }
-        .whale-metric-label { font-size: 11px; color: var(--povio-gray-500); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-        .whale-metric-value { font-size: 20px; font-weight: 700; color: var(--povio-black); }
-        .whale-metric-value.revenue { color: var(--povio-blue); }
+        .whale-expand-icon { font-size: 18px; color: var(--povio-gray-400); transition: transform 0.2s ease; text-align: center; }
+        .whale-expand-icon.expanded { transform: rotate(180deg); }
 
-        .whale-details { font-size: 13px; color: var(--povio-gray-700); line-height: 1.6; }
-        .whale-detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .whale-expanded { padding: 20px; background: var(--povio-bg); border-top: 1px solid var(--povio-border); }
+        .whale-expanded-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
+        .whale-detail-section { }
+        .whale-detail-section h4 { font-size: 11px; text-transform: uppercase; color: var(--povio-gray-500); margin-bottom: 12px; letter-spacing: 0.5px; font-weight: 700; }
+        .whale-detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
         .whale-detail-label { color: var(--povio-gray-500); }
+        .whale-detail-value { color: var(--povio-gray-900); font-weight: 500; }
 
-        .whale-actions { display: flex; gap: 8px; margin-top: 16px; }
-        .whale-actions .btn { flex: 1; justify-content: center; }
+        .whale-notes { padding: 16px; background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 8px; font-size: 13px; color: var(--povio-gray-700); line-height: 1.6; margin-bottom: 16px; }
+        .whale-notes strong { color: var(--povio-gray-900); display: block; margin-bottom: 6px; }
 
-        .whale-notes { margin-top: 16px; padding: 12px; background: var(--povio-gray-100); border-radius: 8px; font-size: 12px; color: var(--povio-gray-700); line-height: 1.5; }
-        .whale-notes strong { color: var(--povio-gray-900); }
+        .whale-actions { display: flex; gap: 8px; }
+        .whale-actions .btn { flex: 1; justify-content: center; max-width: 200px; }
 
-        @media (max-width: 900px) { .whale-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 1200px) {
+            .whale-summary { grid-template-columns: 2fr 1fr 1fr 1fr 50px; }
+            .whale-metric-cell:nth-child(4), .whale-metric-cell:nth-child(5) { display: none; }
+            .whale-expanded-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .whale-summary { grid-template-columns: 2fr 1fr 50px; gap: 12px; padding: 12px 16px; }
+            .whale-metric-cell:nth-child(3) { display: none; }
+            .whale-expanded-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -846,8 +866,7 @@
         };
 
         const WhaleView = ({ whales, onUpdate }) => {
-            const [editingWhale, setEditingWhale] = useState(null);
-            const [addingWhale, setAddingWhale] = useState(false);
+            const [expandedId, setExpandedId] = useState(null);
 
             const getHealthStats = () => {
                 const healthy = whales.filter(w => w.health === 'healthy').length;
@@ -859,80 +878,119 @@
 
             const stats = getHealthStats();
 
-            const WhaleCard = ({ whale }) => (
-                <div className={`whale-card ${whale.health}`}>
-                    <div className="whale-header">
-                        <div>
-                            <div className="whale-name">{whale.name}</div>
-                            <div className="whale-industry">{whale.industry}</div>
-                        </div>
-                        <span className={`health-badge ${whale.health}`}>
-                            {whale.health === 'healthy' ? '✓ Healthy' : whale.health === 'warning' ? '⚠ At Risk' : '⚠ Critical'}
-                        </span>
-                    </div>
+            const WhaleRow = ({ whale }) => {
+                const isExpanded = expandedId === whale.id;
+                const toggleExpand = () => setExpandedId(isExpanded ? null : whale.id);
 
-                    <div className="whale-metrics">
-                        <div className="whale-metric">
-                            <div className="whale-metric-label">ARR</div>
-                            <div className="whale-metric-value revenue">{whale.arr}</div>
-                        </div>
-                        <div className="whale-metric">
-                            <div className="whale-metric-label">LTV</div>
-                            <div className="whale-metric-value">{whale.ltv}</div>
-                        </div>
-                        <div className="whale-metric">
-                            <div className="whale-metric-label">Expansion</div>
-                            <div className="whale-metric-value" style={{
-                                fontSize: '14px',
-                                color: whale.expansion === 'High' ? 'var(--povio-success)' : whale.expansion === 'Medium' ? 'var(--povio-warning)' : 'var(--povio-gray-500)'
-                            }}>{whale.expansion}</div>
-                        </div>
-                        <div className="whale-metric">
-                            <div className="whale-metric-label">Churn Risk</div>
-                            <div className="whale-metric-value" style={{
-                                fontSize: '14px',
-                                color: whale.churnRisk === 'Critical' ? 'var(--povio-danger)' : whale.churnRisk === 'High' ? 'var(--povio-danger)' : whale.churnRisk === 'Medium' ? 'var(--povio-warning)' : 'var(--povio-success)'
-                            }}>{whale.churnRisk}</div>
-                        </div>
-                    </div>
-
-                    <div className="whale-details">
-                        <div className="whale-detail-row">
-                            <span className="whale-detail-label">Account Manager:</span>
-                            <span>{whale.accountManager}</span>
-                        </div>
-                        <div className="whale-detail-row">
-                            <span className="whale-detail-label">Contract End:</span>
-                            <span>{formatDateForDisplay(whale.contractEnd)}</span>
-                        </div>
-                        <div className="whale-detail-row">
-                            <span className="whale-detail-label">Last QBR:</span>
-                            <span>{whale.lastQBR !== 'Overdue' ? formatDateForDisplay(whale.lastQBR) : whale.lastQBR}</span>
-                        </div>
-                        <div className="whale-detail-row">
-                            <span className="whale-detail-label">Next QBR:</span>
-                            <span style={{ color: whale.nextQBR === 'Overdue' ? 'var(--povio-danger)' : 'inherit', fontWeight: whale.nextQBR === 'Overdue' ? '600' : 'normal' }}>
-                                {whale.nextQBR !== 'Overdue' ? formatDateForDisplay(whale.nextQBR) : '⚠ Overdue'}
+                return (
+                    <div className={`whale-row ${whale.health}`}>
+                        <div className="whale-summary" onClick={toggleExpand}>
+                            <div className="whale-name-cell">
+                                <div className="whale-name">{whale.name}</div>
+                                <div className="whale-industry">{whale.industry}</div>
+                            </div>
+                            <div className="whale-metric-cell">
+                                <div className="whale-metric-label">ARR</div>
+                                <div className="whale-metric-value arr">{whale.arr}</div>
+                            </div>
+                            <div className="whale-metric-cell">
+                                <div className="whale-metric-label">LTV</div>
+                                <div className="whale-metric-value ltv">{whale.ltv}</div>
+                            </div>
+                            <div className="whale-metric-cell">
+                                <div className="whale-metric-label">Expansion</div>
+                                <div className="whale-metric-value" style={{
+                                    color: whale.expansion === 'High' ? 'var(--povio-success)' : whale.expansion === 'Medium' ? 'var(--povio-warning)' : 'var(--povio-gray-500)'
+                                }}>{whale.expansion}</div>
+                            </div>
+                            <div className="whale-metric-cell">
+                                <div className="whale-metric-label">Churn Risk</div>
+                                <div className="whale-metric-value" style={{
+                                    color: whale.churnRisk === 'Critical' || whale.churnRisk === 'High' ? 'var(--povio-danger)' : whale.churnRisk === 'Medium' ? 'var(--povio-warning)' : 'var(--povio-success)'
+                                }}>{whale.churnRisk}</div>
+                            </div>
+                            <span className={`health-badge ${whale.health}`}>
+                                {whale.health === 'healthy' ? '✓ Healthy' : whale.health === 'warning' ? '⚠ At Risk' : '⚠ Critical'}
                             </span>
+                            <div className={`whale-expand-icon ${isExpanded ? 'expanded' : ''}`}>▼</div>
                         </div>
-                    </div>
 
-                    {whale.notes && (
-                        <div className="whale-notes">
-                            <strong>Notes:</strong> {whale.notes}
-                        </div>
-                    )}
-
-                    <div className="whale-actions">
-                        <button className="btn btn-primary btn-small" onClick={() => setEditingWhale(whale)}>
-                            Edit Details
-                        </button>
-                        <button className="btn btn-secondary btn-small">
-                            Schedule QBR
-                        </button>
+                        {isExpanded && (
+                            <div className="whale-expanded">
+                                {whale.notes && (
+                                    <div className="whale-notes">
+                                        <strong>Notes:</strong> {whale.notes}
+                                    </div>
+                                )}
+                                <div className="whale-expanded-grid">
+                                    <div className="whale-detail-section">
+                                        <h4>Account Details</h4>
+                                        <div className="whale-detail-row">
+                                            <span className="whale-detail-label">Account Manager</span>
+                                            <span className="whale-detail-value">{whale.accountManager}</span>
+                                        </div>
+                                        <div className="whale-detail-row">
+                                            <span className="whale-detail-label">Industry</span>
+                                            <span className="whale-detail-value">{whale.industry}</span>
+                                        </div>
+                                        <div className="whale-detail-row">
+                                            <span className="whale-detail-label">Contract End</span>
+                                            <span className="whale-detail-value">{formatDateForDisplay(whale.contractEnd)}</span>
+                                        </div>
+                                    </div>
+                                    <div className="whale-detail-section">
+                                        <h4>Financial Metrics</h4>
+                                        <div className="whale-detail-row">
+                                            <span className="whale-detail-label">ARR</span>
+                                            <span className="whale-detail-value" style={{ color: 'var(--povio-blue)', fontWeight: '700' }}>{whale.arr}</span>
+                                        </div>
+                                        <div className="whale-detail-row">
+                                            <span className="whale-detail-label">LTV</span>
+                                            <span className="whale-detail-value">{whale.ltv}</span>
+                                        </div>
+                                        <div className="whale-detail-row">
+                                            <span className="whale-detail-label">Expansion Potential</span>
+                                            <span className="whale-detail-value" style={{
+                                                color: whale.expansion === 'High' ? 'var(--povio-success)' : whale.expansion === 'Medium' ? 'var(--povio-warning)' : 'var(--povio-gray-700)'
+                                            }}>{whale.expansion}</span>
+                                        </div>
+                                    </div>
+                                    <div className="whale-detail-section">
+                                        <h4>QBR Schedule</h4>
+                                        <div className="whale-detail-row">
+                                            <span className="whale-detail-label">Last QBR</span>
+                                            <span className="whale-detail-value">{whale.lastQBR !== 'Overdue' ? formatDateForDisplay(whale.lastQBR) : whale.lastQBR}</span>
+                                        </div>
+                                        <div className="whale-detail-row">
+                                            <span className="whale-detail-label">Next QBR</span>
+                                            <span className="whale-detail-value" style={{
+                                                color: whale.nextQBR === 'Overdue' ? 'var(--povio-danger)' : 'inherit',
+                                                fontWeight: whale.nextQBR === 'Overdue' ? '700' : 'normal'
+                                            }}>
+                                                {whale.nextQBR !== 'Overdue' ? formatDateForDisplay(whale.nextQBR) : '⚠ Overdue'}
+                                            </span>
+                                        </div>
+                                        <div className="whale-detail-row">
+                                            <span className="whale-detail-label">Health Status</span>
+                                            <span className="whale-detail-value" style={{
+                                                color: whale.health === 'healthy' ? 'var(--povio-success)' : whale.health === 'warning' ? 'var(--povio-warning)' : 'var(--povio-danger)',
+                                                fontWeight: '600'
+                                            }}>
+                                                {whale.health === 'healthy' ? 'Healthy' : whale.health === 'warning' ? 'At Risk' : 'Critical'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="whale-actions">
+                                    <button className="btn btn-primary btn-small">Edit Details</button>
+                                    <button className="btn btn-secondary btn-small">Schedule QBR</button>
+                                    <button className="btn btn-secondary btn-small">View History</button>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                </div>
-            );
+                );
+            };
 
             return (
                 <>
@@ -944,8 +1002,8 @@
                             Total ARR: {stats.totalARR}
                         </div>
                     </div>
-                    <div className="whale-grid">
-                        {whales.map(whale => <WhaleCard key={whale.id} whale={whale} />)}
+                    <div className="whale-list">
+                        {whales.map(whale => <WhaleRow key={whale.id} whale={whale} />)}
                     </div>
                 </>
             );
