@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -367,6 +368,12 @@
     <div id="root"></div>
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
+
+        // ==================== SUPABASE CLIENT ====================
+        const supabase = supabase.createClient(
+            'https://jiufnsnxuvhqwzozhlwm.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImppdWZuc254dXZocXd6b3pobHdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0NjAyNDQsImV4cCI6MjA4NTAzNjI0NH0.6cwCou-02PLQtjUeU_d61d6bL269TPdO5jLZe12s2-8'
+        );
 
         // ==================== UTILITIES ====================
         const parseDate = (dateStr) => {
@@ -1168,22 +1175,207 @@
 
         const AuthenticatedApp = ({ user, onLogout }) => {
             const [view, setView] = useState('goals');
-            const [goals, setGoals] = useState(() => {
-                const saved = localStorage.getItem('povio-goals-2026-combined');
-                return saved ? JSON.parse(saved) : initialGoals;
-            });
-            const [whales, setWhales] = useState(() => {
-                const saved = localStorage.getItem('povio-whales-2026');
-                return saved ? JSON.parse(saved) : initialWhales;
-            });
-            useEffect(() => { localStorage.setItem('povio-goals-2026-combined', JSON.stringify(goals)); }, [goals]);
-            useEffect(() => { localStorage.setItem('povio-whales-2026', JSON.stringify(whales)); }, [whales]);
-            const updateGoal = (updatedGoal) => { setGoals(goals.map(g => g.id === updatedGoal.id ? updatedGoal : g)); };
-            const deleteGoal = (goalId) => { setGoals(goals.filter(g => g.id !== goalId)); };
-            const addGoal = (newGoal) => {
-                const newId = Math.max(...goals.map(g => g.id), 0) + 1;
-                setGoals([...goals, { ...newGoal, id: newId, number: `Goal ${newId}`, milestones: [] }]);
+            const [goals, setGoals] = useState([]);
+            const [whales, setWhales] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            // Fetch goals from database
+            const fetchGoals = async () => {
+                const { data, error } = await supabase
+                    .from('goals')
+                    .select('*')
+                    .eq('user_id', user.sub)
+                    .order('id', { ascending: true });
+
+                if (error) {
+                    console.error('Error fetching goals:', error);
+                    return;
+                }
+
+                setGoals(data || []);
             };
+
+            // Fetch whales from database
+            const fetchWhales = async () => {
+                const { data, error } = await supabase
+                    .from('whales')
+                    .select('*')
+                    .eq('user_id', user.sub)
+                    .order('id', { ascending: true });
+
+                if (error) {
+                    console.error('Error fetching whales:', error);
+                    return;
+                }
+
+                setWhales(data || []);
+            };
+
+            // Migrate localStorage data to database if needed
+            const migrateData = async () => {
+                // Check if database has data
+                const { data: existingGoals } = await supabase
+                    .from('goals')
+                    .select('id')
+                    .eq('user_id', user.sub)
+                    .limit(1);
+
+                // If database is empty, try to migrate from localStorage or use initial data
+                if (!existingGoals || existingGoals.length === 0) {
+                    let goalsToMigrate = initialGoals;
+                    let whalesToMigrate = initialWhales;
+
+                    // Check localStorage first
+                    const savedGoals = localStorage.getItem('povio-goals-2026-combined');
+                    const savedWhales = localStorage.getItem('povio-whales-2026');
+
+                    if (savedGoals) {
+                        goalsToMigrate = JSON.parse(savedGoals);
+                    }
+                    if (savedWhales) {
+                        whalesToMigrate = JSON.parse(savedWhales);
+                    }
+
+                    // Insert goals
+                    for (const goal of goalsToMigrate) {
+                        await supabase.from('goals').insert([{
+                            user_id: user.sub,
+                            number: goal.number,
+                            title: goal.title,
+                            target: goal.target || goal.successMetric,
+                            deadline: goal.deadline,
+                            category: goal.bucket || goal.category,
+                            milestones: goal.milestones || []
+                        }]);
+                    }
+
+                    // Insert whales
+                    for (const whale of whalesToMigrate) {
+                        await supabase.from('whales').insert([{
+                            user_id: user.sub,
+                            name: whale.name,
+                            industry: whale.industry,
+                            health: whale.health,
+                            arr: whale.arr,
+                            ltv: whale.ltv,
+                            contract_end: whale.contractEnd,
+                            account_manager: whale.accountManager,
+                            last_qbr: whale.lastQBR,
+                            next_qbr: whale.nextQBR,
+                            expansion: whale.expansion,
+                            churn_risk: whale.churnRisk,
+                            notes: whale.notes
+                        }]);
+                    }
+                }
+            };
+
+            // Initial data load
+            useEffect(() => {
+                const loadData = async () => {
+                    await migrateData();
+                    await Promise.all([fetchGoals(), fetchWhales()]);
+                    setLoading(false);
+                };
+                loadData();
+            }, [user]);
+
+            // Update goal in database
+            const updateGoal = async (updatedGoal) => {
+                const { error } = await supabase
+                    .from('goals')
+                    .update({
+                        number: updatedGoal.number,
+                        title: updatedGoal.title,
+                        target: updatedGoal.target,
+                        deadline: updatedGoal.deadline,
+                        category: updatedGoal.category,
+                        milestones: updatedGoal.milestones
+                    })
+                    .eq('id', updatedGoal.id)
+                    .eq('user_id', user.sub);
+
+                if (error) {
+                    console.error('Error updating goal:', error);
+                    return;
+                }
+
+                setGoals(goals.map(g => g.id === updatedGoal.id ? updatedGoal : g));
+            };
+
+            // Delete goal from database
+            const deleteGoal = async (goalId) => {
+                const { error } = await supabase
+                    .from('goals')
+                    .delete()
+                    .eq('id', goalId)
+                    .eq('user_id', user.sub);
+
+                if (error) {
+                    console.error('Error deleting goal:', error);
+                    return;
+                }
+
+                setGoals(goals.filter(g => g.id !== goalId));
+            };
+
+            // Add new goal to database
+            const addGoal = async (newGoal) => {
+                const { data, error } = await supabase
+                    .from('goals')
+                    .insert([{
+                        user_id: user.sub,
+                        number: newGoal.number || `Goal ${goals.length + 1}`,
+                        title: newGoal.title,
+                        target: newGoal.target,
+                        deadline: newGoal.deadline,
+                        category: newGoal.category,
+                        milestones: newGoal.milestones || []
+                    }])
+                    .select()
+                    .single();
+
+                if (error) {
+                    console.error('Error adding goal:', error);
+                    return;
+                }
+
+                setGoals([...goals, data]);
+            };
+
+            // Update whales in database
+            const updateWhales = async (updatedWhales) => {
+                // This is called when WhaleView updates the whales array
+                // We'll need to update each whale individually
+                for (const whale of updatedWhales) {
+                    if (whale.id) {
+                        // Update existing whale
+                        await supabase
+                            .from('whales')
+                            .update({
+                                name: whale.name,
+                                industry: whale.industry,
+                                health: whale.health,
+                                arr: whale.arr,
+                                ltv: whale.ltv,
+                                contract_end: whale.contractEnd,
+                                account_manager: whale.accountManager,
+                                last_qbr: whale.lastQBR,
+                                next_qbr: whale.nextQBR,
+                                expansion: whale.expansion,
+                                churn_risk: whale.churnRisk,
+                                notes: whale.notes
+                            })
+                            .eq('id', whale.id)
+                            .eq('user_id', user.sub);
+                    }
+                }
+                setWhales(updatedWhales);
+            };
+
+            if (loading) {
+                return <div className="login-container"><div className="login-card"><p>Loading your data...</p></div></div>;
+            }
             const allMilestones = goals.flatMap(g => g.milestones);
             const totalMilestones = allMilestones.length;
             const completedMilestones = allMilestones.filter(m => m.status === 'complete').length;
@@ -1208,7 +1400,7 @@
                     )}
                     {view === 'goals' && <GoalsView goals={goals} onUpdate={updateGoal} onDelete={deleteGoal} onAdd={addGoal} />}
                     {view === 'roadmap' && <RoadmapView goals={goals} />}
-                    {view === 'whales' && <WhaleView whales={whales} onUpdate={setWhales} />}
+                    {view === 'whales' && <WhaleView whales={whales} onUpdate={updateWhales} />}
                 </div>
             );
         };
