@@ -947,11 +947,24 @@
             const [expandedId, setExpandedId] = useState(null);
 
             const getHealthStats = () => {
-                const healthy = whales.filter(w => w.health === 'healthy').length;
-                const warning = whales.filter(w => w.health === 'warning').length;
-                const critical = whales.filter(w => w.health === 'critical').length;
-                const totalARR = whales.reduce((sum, w) => sum + parseFloat(w.arr.replace(/[$K]/g, '')), 0);
-                return { healthy, warning, critical, totalARR: `$${(totalARR / 1000).toFixed(1)}M` };
+                const healthyWhales = whales.filter(w => w.health === 'healthy');
+                const warningWhales = whales.filter(w => w.health === 'warning');
+                const criticalWhales = whales.filter(w => w.health === 'critical');
+
+                const healthyARR = healthyWhales.reduce((sum, w) => sum + parseFloat(w.arr.replace(/[$K]/g, '')), 0);
+                const warningARR = warningWhales.reduce((sum, w) => sum + parseFloat(w.arr.replace(/[$K]/g, '')), 0);
+                const criticalARR = criticalWhales.reduce((sum, w) => sum + parseFloat(w.arr.replace(/[$K]/g, '')), 0);
+                const totalARR = healthyARR + warningARR + criticalARR;
+
+                return {
+                    healthy: healthyWhales.length,
+                    healthyARR: `$${(healthyARR / 1000).toFixed(1)}M`,
+                    warning: warningWhales.length,
+                    warningARR: `$${(warningARR / 1000).toFixed(1)}M`,
+                    critical: criticalWhales.length,
+                    criticalARR: `$${(criticalARR / 1000).toFixed(1)}M`,
+                    totalARR: `$${(totalARR / 1000).toFixed(1)}M`
+                };
             };
 
             const stats = getHealthStats();
@@ -1073,9 +1086,18 @@
             return (
                 <>
                     <div className="status-legend">
-                        <div className="status-legend-item"><span className="dot on-track"></span> {stats.healthy} Healthy</div>
-                        <div className="status-legend-item"><span className="dot at-risk"></span> {stats.warning} At Risk</div>
-                        <div className="status-legend-item"><span className="dot behind"></span> {stats.critical} Critical</div>
+                        <div className="status-legend-item">
+                            <span className="dot on-track"></span> {stats.healthy} Healthy
+                            <span style={{ marginLeft: '8px', fontWeight: '600', color: 'var(--povio-success)' }}>({stats.healthyARR})</span>
+                        </div>
+                        <div className="status-legend-item">
+                            <span className="dot at-risk"></span> {stats.warning} At Risk
+                            <span style={{ marginLeft: '8px', fontWeight: '600', color: 'var(--povio-warning)' }}>({stats.warningARR})</span>
+                        </div>
+                        <div className="status-legend-item">
+                            <span className="dot behind"></span> {stats.critical} Critical
+                            <span style={{ marginLeft: '8px', fontWeight: '600', color: 'var(--povio-danger)' }}>({stats.criticalARR})</span>
+                        </div>
                         <div className="status-legend-item" style={{ marginLeft: 'auto', fontWeight: '700', color: 'var(--povio-blue)' }}>
                             Total ARR: {stats.totalARR}
                         </div>
