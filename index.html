@@ -400,6 +400,30 @@
             return '';
         };
 
+        // Currency formatting utilities
+        const formatCurrency = (value) => {
+            // value is in thousands (e.g., 500 = $500K, 2500 = $2.5M)
+            if (!value || value === 0) return '$0';
+            if (value >= 1000) {
+                return `$${(value / 1000).toFixed(1)}M`;
+            }
+            return `$${value}K`;
+        };
+
+        const parseCurrencyInput = (inputStr) => {
+            // Parse user input like "500", "500K", "2.5M" to thousands
+            if (!inputStr) return 0;
+            const str = inputStr.toString().toUpperCase().replace(/[$,]/g, '').trim();
+
+            if (str.endsWith('M')) {
+                return parseFloat(str.replace('M', '')) * 1000;
+            } else if (str.endsWith('K')) {
+                return parseFloat(str.replace('K', ''));
+            }
+            // Assume input is in thousands if no suffix
+            return parseFloat(str) || 0;
+        };
+
         const getDaysUntilDue = (dateStr) => {
             const date = parseDate(dateStr);
             if (!date) return null;
@@ -948,8 +972,8 @@
             const [industry, setIndustry] = useState(whale.industry || '');
             const [accountManager, setAccountManager] = useState(whale.accountManager || '');
             const [contractEnd, setContractEnd] = useState(formatDateForInput(whale.contractEnd));
-            const [arr, setArr] = useState(whale.arr || '');
-            const [ltv, setLtv] = useState(whale.ltv || '');
+            const [arr, setArr] = useState(whale.arr ? whale.arr.toString() : '');
+            const [ltv, setLtv] = useState(whale.ltv ? whale.ltv.toString() : '');
             const [expansion, setExpansion] = useState(whale.expansion || 'Low');
             const [churnRisk, setChurnRisk] = useState(whale.churnRisk || 'Low');
             const [lastQBR, setLastQBR] = useState(formatDateForInput(whale.lastQBR));
@@ -963,8 +987,8 @@
                     industry,
                     accountManager,
                     contractEnd,
-                    arr,
-                    ltv,
+                    arr: parseCurrencyInput(arr),
+                    ltv: parseCurrencyInput(ltv),
                     expansion,
                     churnRisk,
                     lastQBR,
@@ -993,12 +1017,14 @@
                             <input type="date" value={contractEnd} onChange={e => setContractEnd(e.target.value)} />
                         </div>
                         <div className="form-group">
-                            <label>ARR (e.g., $500K)</label>
-                            <input type="text" value={arr} onChange={e => setArr(e.target.value)} placeholder="$500K" />
+                            <label>ARR (Annual Recurring Revenue)</label>
+                            <input type="text" value={arr} onChange={e => setArr(e.target.value)} placeholder="500 or 500K or 2.5M" />
+                            <small style={{ fontSize: '12px', color: 'var(--povio-gray-600)' }}>Enter in thousands (e.g., 500 = $500K, 2500 = $2.5M)</small>
                         </div>
                         <div className="form-group">
-                            <label>LTV (e.g., $2.5M)</label>
-                            <input type="text" value={ltv} onChange={e => setLtv(e.target.value)} placeholder="$2.5M" />
+                            <label>LTV (Lifetime Value)</label>
+                            <input type="text" value={ltv} onChange={e => setLtv(e.target.value)} placeholder="2500 or 2.5M" />
+                            <small style={{ fontSize: '12px', color: 'var(--povio-gray-600)' }}>Enter in thousands (e.g., 2500 = $2.5M)</small>
                         </div>
                         <div className="form-group">
                             <label>Expansion Potential</label>
@@ -1182,8 +1208,8 @@
             const [whaleNotes, setWhaleNotes] = useState({});
 
             // Fetch notes for a specific whale
-            const fetchWhaleNotes = async (whaleId) => {
-                if (whaleNotes[whaleId]) return whaleNotes[whaleId]; // Use cached notes
+            const fetchWhaleNotes = async (whaleId, forceRefresh = false) => {
+                if (!forceRefresh && whaleNotes[whaleId]) return whaleNotes[whaleId]; // Use cached notes
 
                 const { data, error } = await supabase
                     .from('whale_notes')
@@ -1243,7 +1269,7 @@
 
             // Handle view history
             const handleViewHistory = async (whale) => {
-                await fetchWhaleNotes(whale.id);
+                await fetchWhaleNotes(whale.id, true); // Force refresh to get latest notes
                 setViewingHistory(whale);
             };
 
@@ -1255,11 +1281,14 @@
 
             const handleSaveNote = async (noteData, userId, userName) => {
                 if (addingNote) {
-                    await addWhaleNote(addingNote.id, noteData, userId, userName);
+                    const newNote = await addWhaleNote(addingNote.id, noteData, userId, userName);
                     setAddingNote(null);
-                    // Refresh history if it was open
-                    await fetchWhaleNotes(addingNote.id);
-                    setViewingHistory(addingNote);
+
+                    // Force refresh notes from database and show history
+                    if (newNote) {
+                        await fetchWhaleNotes(addingNote.id, true);
+                        setViewingHistory(addingNote);
+                    }
                 }
             };
 
@@ -1268,19 +1297,20 @@
                 const warningWhales = whales.filter(w => w.health === 'warning');
                 const criticalWhales = whales.filter(w => w.health === 'critical');
 
-                const healthyARR = healthyWhales.reduce((sum, w) => sum + parseFloat(w.arr.replace(/[$K]/g, '')), 0);
-                const warningARR = warningWhales.reduce((sum, w) => sum + parseFloat(w.arr.replace(/[$K]/g, '')), 0);
-                const criticalARR = criticalWhales.reduce((sum, w) => sum + parseFloat(w.arr.replace(/[$K]/g, '')), 0);
+                // ARR is now stored as numeric in thousands
+                const healthyARR = healthyWhales.reduce((sum, w) => sum + parseFloat(w.arr || 0), 0);
+                const warningARR = warningWhales.reduce((sum, w) => sum + parseFloat(w.arr || 0), 0);
+                const criticalARR = criticalWhales.reduce((sum, w) => sum + parseFloat(w.arr || 0), 0);
                 const totalARR = healthyARR + warningARR + criticalARR;
 
                 return {
                     healthy: healthyWhales.length,
-                    healthyARR: `$${(healthyARR / 1000).toFixed(1)}M`,
+                    healthyARR: formatCurrency(healthyARR),
                     warning: warningWhales.length,
-                    warningARR: `$${(warningARR / 1000).toFixed(1)}M`,
+                    warningARR: formatCurrency(warningARR),
                     critical: criticalWhales.length,
-                    criticalARR: `$${(criticalARR / 1000).toFixed(1)}M`,
-                    totalARR: `$${(totalARR / 1000).toFixed(1)}M`
+                    criticalARR: formatCurrency(criticalARR),
+                    totalARR: formatCurrency(totalARR)
                 };
             };
 
@@ -1299,11 +1329,11 @@
                             </div>
                             <div className="whale-metric-cell">
                                 <div className="whale-metric-label">ARR</div>
-                                <div className="whale-metric-value arr">{whale.arr}</div>
+                                <div className="whale-metric-value arr">{formatCurrency(whale.arr)}</div>
                             </div>
                             <div className="whale-metric-cell">
                                 <div className="whale-metric-label">LTV</div>
-                                <div className="whale-metric-value ltv">{whale.ltv}</div>
+                                <div className="whale-metric-value ltv">{formatCurrency(whale.ltv)}</div>
                             </div>
                             <div className="whale-metric-cell">
                                 <div className="whale-metric-label">Expansion</div>
@@ -1350,11 +1380,11 @@
                                         <h4>Financial Metrics</h4>
                                         <div className="whale-detail-row">
                                             <span className="whale-detail-label">ARR</span>
-                                            <span className="whale-detail-value" style={{ color: 'var(--povio-blue)', fontWeight: '700' }}>{whale.arr}</span>
+                                            <span className="whale-detail-value" style={{ color: 'var(--povio-blue)', fontWeight: '700' }}>{formatCurrency(whale.arr)}</span>
                                         </div>
                                         <div className="whale-detail-row">
                                             <span className="whale-detail-label">LTV</span>
-                                            <span className="whale-detail-value">{whale.ltv}</span>
+                                            <span className="whale-detail-value">{formatCurrency(whale.ltv)}</span>
                                         </div>
                                         <div className="whale-detail-row">
                                             <span className="whale-detail-label">Expansion Potential</span>
