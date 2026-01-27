@@ -1234,6 +1234,59 @@
             const [viewingHistory, setViewingHistory] = useState(null);
             const [addingNote, setAddingNote] = useState(null);
             const [whaleNotes, setWhaleNotes] = useState({});
+            const [latestNotes, setLatestNotes] = useState({}); // Store latest note per whale
+
+            // Load latest notes for all whales on mount
+            useEffect(() => {
+                const loadLatestNotes = async () => {
+                    for (const whale of whales) {
+                        const { data, error } = await supabase
+                            .from('whale_notes')
+                            .select('*')
+                            .eq('whale_id', whale.id)
+                            .order('created_at', { ascending: false })
+                            .limit(1);
+
+                        if (!error && data && data.length > 0) {
+                            setLatestNotes(prev => ({ ...prev, [whale.id]: data[0] }));
+                        }
+                    }
+                };
+
+                if (whales.length > 0) {
+                    loadLatestNotes();
+                }
+            }, [whales]);
+
+            // Helper function to get note icon
+            const getNoteIcon = (type) => {
+                switch(type) {
+                    case 'meeting': return '📅';
+                    case 'update': return '📝';
+                    case 'action': return '✓';
+                    default: return '💬';
+                }
+            };
+
+            // Helper function to format relative timestamp
+            const formatRelativeTime = (timestamp) => {
+                const date = new Date(timestamp);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+
+                if (diffMins < 60) {
+                    return diffMins === 0 ? 'Just now' : `${diffMins}m ago`;
+                } else if (diffHours < 24) {
+                    return `${diffHours}h ago`;
+                } else if (diffDays < 7) {
+                    return `${diffDays}d ago`;
+                } else {
+                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                }
+            };
 
             // Fetch notes for a specific whale
             const fetchWhaleNotes = async (whaleId, forceRefresh = false) => {
@@ -1285,6 +1338,12 @@
                 setWhaleNotes(prev => ({
                     ...prev,
                     [whaleId]: [data, ...(prev[whaleId] || [])]
+                }));
+
+                // Update latest note for this whale
+                setLatestNotes(prev => ({
+                    ...prev,
+                    [whaleId]: data
                 }));
 
                 return data;
@@ -1391,7 +1450,22 @@
 
                         {isExpanded && (
                             <div className="whale-expanded">
-                                {whale.notes && (
+                                {latestNotes[whale.id] && (
+                                    <div className="whale-notes">
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                            <span style={{ fontSize: '16px' }}>{getNoteIcon(latestNotes[whale.id].note_type)}</span>
+                                            <strong style={{ textTransform: 'capitalize' }}>{latestNotes[whale.id].note_type}</strong>
+                                            <span style={{ color: 'var(--povio-gray-500)', fontSize: '13px' }}>•</span>
+                                            <span style={{ color: 'var(--povio-gray-600)', fontSize: '13px' }}>{formatRelativeTime(latestNotes[whale.id].created_at)}</span>
+                                            <span style={{ color: 'var(--povio-gray-500)', fontSize: '13px' }}>•</span>
+                                            <span style={{ color: 'var(--povio-gray-600)', fontSize: '13px' }}>{latestNotes[whale.id].created_by}</span>
+                                        </div>
+                                        <div style={{ color: 'var(--povio-gray-700)' }}>
+                                            {latestNotes[whale.id].content}
+                                        </div>
+                                    </div>
+                                )}
+                                {!latestNotes[whale.id] && whale.notes && (
                                     <div className="whale-notes">
                                         <strong>Notes:</strong> {whale.notes}
                                     </div>
