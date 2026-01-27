@@ -35,9 +35,22 @@ CREATE TABLE whales (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Whale Notes Table (for timestamped history)
+CREATE TABLE whale_notes (
+    id SERIAL PRIMARY KEY,
+    whale_id INTEGER NOT NULL REFERENCES whales(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL,
+    note_type TEXT NOT NULL DEFAULT 'general', -- 'general', 'meeting', 'update', etc.
+    content TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_by TEXT NOT NULL
+);
+
 -- Indexes for performance
 CREATE INDEX idx_goals_user_id ON goals(user_id);
 CREATE INDEX idx_whales_user_id ON whales(user_id);
+CREATE INDEX idx_whale_notes_whale_id ON whale_notes(whale_id);
+CREATE INDEX idx_whale_notes_created_at ON whale_notes(created_at DESC);
 
 -- Updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
