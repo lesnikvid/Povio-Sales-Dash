@@ -430,6 +430,28 @@
             return parseFloat(str) || 0;
         };
 
+        const parseARRValue = (value) => {
+            // Parse ARR/LTV value to numeric (in thousands)
+            // Handles both TEXT format ("$500K", "$2.5M") and NUMERIC format (500, 2500)
+            if (!value) return 0;
+
+            // If already a number, return it
+            if (typeof value === 'number') return value;
+
+            // If string, parse it
+            const str = value.toString().toUpperCase().replace(/[$,]/g, '').trim();
+
+            if (str.endsWith('M')) {
+                return parseFloat(str.replace('M', '')) * 1000;
+            } else if (str.endsWith('K')) {
+                return parseFloat(str.replace('K', ''));
+            }
+
+            // Try to parse as plain number
+            const num = parseFloat(str);
+            return isNaN(num) ? 0 : num;
+        };
+
         const getDaysUntilDue = (dateStr) => {
             const date = parseDate(dateStr);
             if (!date) return null;
@@ -1311,10 +1333,10 @@
                 const warningWhales = whales.filter(w => w.health === 'warning');
                 const criticalWhales = whales.filter(w => w.health === 'critical');
 
-                // ARR is now stored as numeric in thousands
-                const healthyARR = healthyWhales.reduce((sum, w) => sum + parseFloat(w.arr || 0), 0);
-                const warningARR = warningWhales.reduce((sum, w) => sum + parseFloat(w.arr || 0), 0);
-                const criticalARR = criticalWhales.reduce((sum, w) => sum + parseFloat(w.arr || 0), 0);
+                // ARR can be stored as TEXT ("$500K") or NUMERIC (500)
+                const healthyARR = healthyWhales.reduce((sum, w) => sum + parseARRValue(w.arr), 0);
+                const warningARR = warningWhales.reduce((sum, w) => sum + parseARRValue(w.arr), 0);
+                const criticalARR = criticalWhales.reduce((sum, w) => sum + parseARRValue(w.arr), 0);
                 const totalARR = healthyARR + warningARR + criticalARR;
 
                 return {
