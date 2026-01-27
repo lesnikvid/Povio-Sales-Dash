@@ -943,8 +943,325 @@
             );
         };
 
-        const WhaleView = ({ whales, onUpdate }) => {
+        const WhaleEditForm = ({ whale, onSave, onCancel }) => {
+            const [name, setName] = useState(whale.name || '');
+            const [industry, setIndustry] = useState(whale.industry || '');
+            const [accountManager, setAccountManager] = useState(whale.accountManager || '');
+            const [contractEnd, setContractEnd] = useState(formatDateForInput(whale.contractEnd));
+            const [arr, setArr] = useState(whale.arr || '');
+            const [ltv, setLtv] = useState(whale.ltv || '');
+            const [expansion, setExpansion] = useState(whale.expansion || 'Low');
+            const [churnRisk, setChurnRisk] = useState(whale.churnRisk || 'Low');
+            const [lastQBR, setLastQBR] = useState(formatDateForInput(whale.lastQBR));
+            const [nextQBR, setNextQBR] = useState(formatDateForInput(whale.nextQBR));
+            const [health, setHealth] = useState(whale.health || 'healthy');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onSave({
+                    name,
+                    industry,
+                    accountManager,
+                    contractEnd,
+                    arr,
+                    ltv,
+                    expansion,
+                    churnRisk,
+                    lastQBR,
+                    nextQBR,
+                    health
+                });
+            };
+
+            return (
+                <form onSubmit={handleSubmit}>
+                    <div className="modal-body">
+                        <div className="form-group">
+                            <label>Account Name</label>
+                            <input type="text" value={name} onChange={e => setName(e.target.value)} required />
+                        </div>
+                        <div className="form-group">
+                            <label>Industry</label>
+                            <input type="text" value={industry} onChange={e => setIndustry(e.target.value)} required />
+                        </div>
+                        <div className="form-group">
+                            <label>Account Manager</label>
+                            <input type="text" value={accountManager} onChange={e => setAccountManager(e.target.value)} />
+                        </div>
+                        <div className="form-group">
+                            <label>Contract End Date</label>
+                            <input type="date" value={contractEnd} onChange={e => setContractEnd(e.target.value)} />
+                        </div>
+                        <div className="form-group">
+                            <label>ARR (e.g., $500K)</label>
+                            <input type="text" value={arr} onChange={e => setArr(e.target.value)} placeholder="$500K" />
+                        </div>
+                        <div className="form-group">
+                            <label>LTV (e.g., $2.5M)</label>
+                            <input type="text" value={ltv} onChange={e => setLtv(e.target.value)} placeholder="$2.5M" />
+                        </div>
+                        <div className="form-group">
+                            <label>Expansion Potential</label>
+                            <select value={expansion} onChange={e => setExpansion(e.target.value)}>
+                                <option value="High">High</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Low">Low</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>Churn Risk</label>
+                            <select value={churnRisk} onChange={e => setChurnRisk(e.target.value)}>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                                <option value="Critical">Critical</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>Last QBR Date</label>
+                            <input type="date" value={lastQBR} onChange={e => setLastQBR(e.target.value)} />
+                        </div>
+                        <div className="form-group">
+                            <label>Next QBR Date</label>
+                            <input type="date" value={nextQBR} onChange={e => setNextQBR(e.target.value)} />
+                        </div>
+                        <div className="form-group">
+                            <label>Health Status</label>
+                            <select value={health} onChange={e => setHealth(e.target.value)}>
+                                <option value="healthy">Healthy</option>
+                                <option value="warning">At Risk</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="modal-footer">
+                        <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+                        <button type="submit" className="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            );
+        };
+
+        const AddNoteForm = ({ onSave, onCancel }) => {
+            const [noteType, setNoteType] = useState('general');
+            const [content, setContent] = useState('');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (content.trim()) {
+                    onSave({ noteType, content: content.trim() });
+                }
+            };
+
+            return (
+                <form onSubmit={handleSubmit}>
+                    <div className="modal-body">
+                        <div className="form-group">
+                            <label>Note Type</label>
+                            <select value={noteType} onChange={e => setNoteType(e.target.value)}>
+                                <option value="general">General Note</option>
+                                <option value="meeting">Meeting Notes</option>
+                                <option value="update">Status Update</option>
+                                <option value="action">Action Item</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>Note Content</label>
+                            <textarea
+                                value={content}
+                                onChange={e => setContent(e.target.value)}
+                                required
+                                placeholder="Enter your note here..."
+                                rows="6"
+                            />
+                        </div>
+                    </div>
+                    <div className="modal-footer">
+                        <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+                        <button type="submit" className="btn btn-primary">Add Note</button>
+                    </div>
+                </form>
+            );
+        };
+
+        const NotesHistoryModal = ({ notes, onClose, onAddNote }) => {
+            const sortedNotes = [...notes].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            const getNoteIcon = (type) => {
+                switch(type) {
+                    case 'meeting': return '📅';
+                    case 'update': return '📝';
+                    case 'action': return '✓';
+                    default: return '💬';
+                }
+            };
+
+            const formatTimestamp = (timestamp) => {
+                const date = new Date(timestamp);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+
+                if (diffMins < 60) {
+                    return diffMins === 0 ? 'Just now' : `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+                } else if (diffHours < 24) {
+                    return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+                } else if (diffDays < 7) {
+                    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+                } else {
+                    return date.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+                    });
+                }
+            };
+
+            return (
+                <div className="modal-body" style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                    <div style={{ marginBottom: '16px' }}>
+                        <button className="btn btn-primary" onClick={onAddNote}>+ Add New Note</button>
+                    </div>
+                    {sortedNotes.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '32px', color: 'var(--povio-gray-500)' }}>
+                            No notes yet. Add your first note to start tracking account history.
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            {sortedNotes.map(note => (
+                                <div key={note.id} style={{
+                                    padding: '16px',
+                                    background: 'var(--povio-white)',
+                                    border: '1px solid var(--povio-border)',
+                                    borderRadius: '8px'
+                                }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        marginBottom: '8px',
+                                        fontSize: '13px',
+                                        color: 'var(--povio-gray-600)'
+                                    }}>
+                                        <span>{getNoteIcon(note.note_type)}</span>
+                                        <span style={{
+                                            fontWeight: '600',
+                                            textTransform: 'capitalize',
+                                            color: 'var(--povio-gray-700)'
+                                        }}>
+                                            {note.note_type}
+                                        </span>
+                                        <span>•</span>
+                                        <span>{formatTimestamp(note.created_at)}</span>
+                                        <span>•</span>
+                                        <span>{note.created_by}</span>
+                                    </div>
+                                    <div style={{
+                                        fontSize: '14px',
+                                        lineHeight: '1.6',
+                                        color: 'var(--povio-gray-800)',
+                                        whiteSpace: 'pre-wrap'
+                                    }}>
+                                        {note.content}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const WhaleView = ({ whales, onUpdate, user }) => {
             const [expandedId, setExpandedId] = useState(null);
+            const [editingWhale, setEditingWhale] = useState(null);
+            const [viewingHistory, setViewingHistory] = useState(null);
+            const [addingNote, setAddingNote] = useState(null);
+            const [whaleNotes, setWhaleNotes] = useState({});
+
+            // Fetch notes for a specific whale
+            const fetchWhaleNotes = async (whaleId) => {
+                if (whaleNotes[whaleId]) return whaleNotes[whaleId]; // Use cached notes
+
+                const { data, error } = await supabase
+                    .from('whale_notes')
+                    .select('*')
+                    .eq('whale_id', whaleId)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('Error fetching whale notes:', error);
+                    return [];
+                }
+
+                setWhaleNotes(prev => ({ ...prev, [whaleId]: data || [] }));
+                return data || [];
+            };
+
+            // Add a new note
+            const addWhaleNote = async (whaleId, noteData, userId, userName) => {
+                const { data, error } = await supabase
+                    .from('whale_notes')
+                    .insert([{
+                        whale_id: whaleId,
+                        user_id: userId,
+                        note_type: noteData.noteType,
+                        content: noteData.content,
+                        created_by: userName
+                    }])
+                    .select()
+                    .single();
+
+                if (error) {
+                    console.error('Error adding whale note:', error);
+                    return;
+                }
+
+                // Update local cache
+                setWhaleNotes(prev => ({
+                    ...prev,
+                    [whaleId]: [data, ...(prev[whaleId] || [])]
+                }));
+
+                return data;
+            };
+
+            // Handle whale edit
+            const handleEditWhale = (whale) => {
+                setEditingWhale(whale);
+            };
+
+            const handleSaveWhale = (updates) => {
+                const updatedWhales = whales.map(w =>
+                    w.id === editingWhale.id ? { ...w, ...updates } : w
+                );
+                onUpdate(updatedWhales);
+                setEditingWhale(null);
+            };
+
+            // Handle view history
+            const handleViewHistory = async (whale) => {
+                await fetchWhaleNotes(whale.id);
+                setViewingHistory(whale);
+            };
+
+            // Handle add note
+            const handleAddNoteClick = (whale) => {
+                setViewingHistory(null);
+                setAddingNote(whale);
+            };
+
+            const handleSaveNote = async (noteData, userId, userName) => {
+                if (addingNote) {
+                    await addWhaleNote(addingNote.id, noteData, userId, userName);
+                    setAddingNote(null);
+                    // Refresh history if it was open
+                    await fetchWhaleNotes(addingNote.id);
+                    setViewingHistory(addingNote);
+                }
+            };
 
             const getHealthStats = () => {
                 const healthyWhales = whales.filter(w => w.health === 'healthy');
@@ -1073,9 +1390,9 @@
                                     </div>
                                 </div>
                                 <div className="whale-actions">
-                                    <button className="btn btn-primary btn-small">Edit Details</button>
-                                    <button className="btn btn-secondary btn-small">Schedule QBR</button>
-                                    <button className="btn btn-secondary btn-small">View History</button>
+                                    <button className="btn btn-primary btn-small" onClick={() => handleEditWhale(whale)}>Edit Details</button>
+                                    <button className="btn btn-secondary btn-small" onClick={() => handleAddNoteClick(whale)}>+ Add Note</button>
+                                    <button className="btn btn-secondary btn-small" onClick={() => handleViewHistory(whale)}>View History</button>
                                 </div>
                             </div>
                         )}
@@ -1105,6 +1422,50 @@
                     <div className="whale-list">
                         {whales.map(whale => <WhaleRow key={whale.id} whale={whale} />)}
                     </div>
+
+                    {/* Edit Whale Modal */}
+                    <Modal
+                        isOpen={!!editingWhale}
+                        onClose={() => setEditingWhale(null)}
+                        title="Edit Whale Account"
+                    >
+                        {editingWhale && (
+                            <WhaleEditForm
+                                whale={editingWhale}
+                                onSave={handleSaveWhale}
+                                onCancel={() => setEditingWhale(null)}
+                            />
+                        )}
+                    </Modal>
+
+                    {/* Add Note Modal */}
+                    <Modal
+                        isOpen={!!addingNote}
+                        onClose={() => setAddingNote(null)}
+                        title="Add Note"
+                    >
+                        {addingNote && (
+                            <AddNoteForm
+                                onSave={(noteData) => handleSaveNote(noteData, user.sub, user.name || user.email)}
+                                onCancel={() => setAddingNote(null)}
+                            />
+                        )}
+                    </Modal>
+
+                    {/* View History Modal */}
+                    <Modal
+                        isOpen={!!viewingHistory}
+                        onClose={() => setViewingHistory(null)}
+                        title={`Account History - ${viewingHistory?.name || ''}`}
+                    >
+                        {viewingHistory && (
+                            <NotesHistoryModal
+                                notes={whaleNotes[viewingHistory.id] || []}
+                                onClose={() => setViewingHistory(null)}
+                                onAddNote={() => handleAddNoteClick(viewingHistory)}
+                            />
+                        )}
+                    </Modal>
                 </>
             );
         };
@@ -1455,7 +1816,7 @@
                     )}
                     {view === 'goals' && <GoalsView goals={goals} onUpdate={updateGoal} onDelete={deleteGoal} onAdd={addGoal} />}
                     {view === 'roadmap' && <RoadmapView goals={goals} />}
-                    {view === 'whales' && <WhaleView whales={whales} onUpdate={updateWhales} />}
+                    {view === 'whales' && <WhaleView whales={whales} onUpdate={updateWhales} user={user} />}
                 </div>
             );
         };
