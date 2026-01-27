@@ -369,6 +369,12 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
+        // ==================== HTTPS ENFORCEMENT ====================
+        // Redirect to HTTPS in production (but allow localhost for development)
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+            location.href = 'https:' + window.location.href.substring(window.location.protocol.length);
+        }
+
         // ==================== SUPABASE CLIENT ====================
         const supabase = supabase.createClient(
             'https://jiufnsnxuvhqwzozhlwm.supabase.co',
@@ -1236,26 +1242,38 @@
             const [whaleNotes, setWhaleNotes] = useState({});
             const [latestNotes, setLatestNotes] = useState({}); // Store latest note per whale
 
-            // Load latest notes for all whales on mount
+            // Load latest notes for all whales on mount (OPTIMIZED - Single Query)
             useEffect(() => {
                 const loadLatestNotes = async () => {
-                    for (const whale of whales) {
-                        const { data, error } = await supabase
-                            .from('whale_notes')
-                            .select('*')
-                            .eq('whale_id', whale.id)
-                            .order('created_at', { ascending: false })
-                            .limit(1);
+                    if (whales.length === 0) return;
 
-                        if (!error && data && data.length > 0) {
-                            setLatestNotes(prev => ({ ...prev, [whale.id]: data[0] }));
+                    // Get all whale IDs
+                    const whaleIds = whales.map(w => w.id);
+
+                    // Fetch ALL notes for ALL whales in ONE query (10-50x faster!)
+                    const { data: allNotes, error } = await supabase
+                        .from('whale_notes')
+                        .select('*')
+                        .in('whale_id', whaleIds)
+                        .order('created_at', { ascending: false });
+
+                    if (error) {
+                        console.error('Error fetching latest notes:', error);
+                        return;
+                    }
+
+                    // Group by whale_id and keep only the latest per whale
+                    const latestByWhale = {};
+                    for (const note of allNotes) {
+                        if (!latestByWhale[note.whale_id]) {
+                            latestByWhale[note.whale_id] = note;
                         }
                     }
+
+                    setLatestNotes(latestByWhale);
                 };
 
-                if (whales.length > 0) {
-                    loadLatestNotes();
-                }
+                loadLatestNotes();
             }, [whales]);
 
             // Helper function to get note icon
@@ -1628,6 +1646,64 @@
             );
         };
 
+        // ==================== ERROR BOUNDARY ====================
+        class ErrorBoundary extends React.Component {
+            constructor(props) {
+                super(props);
+                this.state = { hasError: false, error: null };
+            }
+
+            static getDerivedStateFromError(error) {
+                return { hasError: true, error };
+            }
+
+            componentDidCatch(error, errorInfo) {
+                console.error('❌ Error caught by boundary:', error, errorInfo);
+            }
+
+            render() {
+                if (this.state.hasError) {
+                    return (
+                        <div className="login-container">
+                            <div className="login-card" style={{ textAlign: 'center', padding: '40px' }}>
+                                <h2 style={{ color: 'var(--povio-danger)', marginBottom: '16px' }}>
+                                    ⚠️ Something went wrong
+                                </h2>
+                                <p style={{ color: 'var(--povio-gray-700)', marginBottom: '24px' }}>
+                                    An error occurred while loading the application.
+                                </p>
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={() => window.location.reload()}
+                                >
+                                    Reload Page
+                                </button>
+                                {this.state.error && (
+                                    <details style={{ marginTop: '24px', textAlign: 'left' }}>
+                                        <summary style={{ cursor: 'pointer', color: 'var(--povio-gray-600)' }}>
+                                            Error details
+                                        </summary>
+                                        <pre style={{
+                                            marginTop: '8px',
+                                            padding: '12px',
+                                            background: 'var(--povio-gray-100)',
+                                            borderRadius: '4px',
+                                            fontSize: '12px',
+                                            overflow: 'auto'
+                                        }}>
+                                            {this.state.error.toString()}
+                                        </pre>
+                                    </details>
+                                )}
+                            </div>
+                        </div>
+                    );
+                }
+
+                return this.props.children;
+            }
+        }
+
         // ==================== MAIN APP ====================
         const App = () => {
             const [user, setUser] = useState(null);
@@ -1693,14 +1769,33 @@
             }
 
             // Main authenticated app
-            return <AuthenticatedApp user={user} onLogout={handleLogout} />;
+            return <AuthenticatedApp user={user} auth0Client={auth0Client} onLogout={handleLogout} />;
         };
 
-        const AuthenticatedApp = ({ user, onLogout }) => {
+        const AuthenticatedApp = ({ user, auth0Client, onLogout }) => {
             const [view, setView] = useState('goals');
             const [goals, setGoals] = useState([]);
             const [whales, setWhales] = useState([]);
             const [loading, setLoading] = useState(true);
+
+            // Configure Supabase to use Auth0 JWT token
+            const configureSupabaseAuth = async () => {
+                if (!auth0Client) return;
+
+                try {
+                    const token = await auth0Client.getTokenSilently();
+
+                    // Set the JWT token for Supabase auth
+                    await supabase.auth.setSession({
+                        access_token: token,
+                        refresh_token: token
+                    });
+
+                    console.log('✅ Supabase configured with Auth0 JWT');
+                } catch (error) {
+                    console.error('❌ Error configuring Supabase auth:', error);
+                }
+            };
 
             // Fetch goals from database
             const fetchGoals = async () => {
@@ -1811,15 +1906,19 @@
                 }
             };
 
-            // Initial data load
+            // Initial data load (configure auth first, then load data)
             useEffect(() => {
                 const loadData = async () => {
+                    await configureSupabaseAuth();  // Configure JWT token first
                     await migrateData();
                     await Promise.all([fetchGoals(), fetchWhales()]);
                     setLoading(false);
                 };
-                loadData();
-            }, [user]);
+
+                if (user && auth0Client) {
+                    loadData();
+                }
+            }, [user, auth0Client]);
 
             // Update goal in database
             const updateGoal = async (updatedGoal) => {
@@ -1961,7 +2060,11 @@
             );
         };
 
-        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+        ReactDOM.createRoot(document.getElementById('root')).render(
+            <ErrorBoundary>
+                <App />
+            </ErrorBoundary>
+        );
     </script>
 </body>
 </html>
