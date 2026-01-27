@@ -11,23 +11,23 @@ ALTER TABLE whale_notes ENABLE ROW LEVEL SECURITY;
 
 -- Step 2: Create RLS Policies (allow users to access only their own data)
 
--- Goals Policies
-CREATE POLICY "Users can view their own goals" ON goals FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert their own goals" ON goals FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update their own goals" ON goals FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can delete their own goals" ON goals FOR DELETE USING (auth.uid() = user_id);
+-- Goals Policies (with UUID to TEXT casting)
+CREATE POLICY "Users can view their own goals" ON goals FOR SELECT USING (auth.uid()::text = user_id);
+CREATE POLICY "Users can insert their own goals" ON goals FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+CREATE POLICY "Users can update their own goals" ON goals FOR UPDATE USING (auth.uid()::text = user_id) WITH CHECK (auth.uid()::text = user_id);
+CREATE POLICY "Users can delete their own goals" ON goals FOR DELETE USING (auth.uid()::text = user_id);
 
--- Whales Policies
-CREATE POLICY "Users can view their own whales" ON whales FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert their own whales" ON whales FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update their own whales" ON whales FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can delete their own whales" ON whales FOR DELETE USING (auth.uid() = user_id);
+-- Whales Policies (with UUID to TEXT casting)
+CREATE POLICY "Users can view their own whales" ON whales FOR SELECT USING (auth.uid()::text = user_id);
+CREATE POLICY "Users can insert their own whales" ON whales FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+CREATE POLICY "Users can update their own whales" ON whales FOR UPDATE USING (auth.uid()::text = user_id) WITH CHECK (auth.uid()::text = user_id);
+CREATE POLICY "Users can delete their own whales" ON whales FOR DELETE USING (auth.uid()::text = user_id);
 
--- Whale Notes Policies
-CREATE POLICY "Users can view notes for their whales" ON whale_notes FOR SELECT USING (EXISTS (SELECT 1 FROM whales WHERE whales.id = whale_notes.whale_id AND whales.user_id = auth.uid()));
-CREATE POLICY "Users can insert notes for their whales" ON whale_notes FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM whales WHERE whales.id = whale_notes.whale_id AND whales.user_id = auth.uid()) AND auth.uid() = user_id);
-CREATE POLICY "Users can update their own notes" ON whale_notes FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can delete their own notes" ON whale_notes FOR DELETE USING (auth.uid() = user_id);
+-- Whale Notes Policies (with UUID to TEXT casting)
+CREATE POLICY "Users can view notes for their whales" ON whale_notes FOR SELECT USING (EXISTS (SELECT 1 FROM whales WHERE whales.id = whale_notes.whale_id AND whales.user_id = auth.uid()::text));
+CREATE POLICY "Users can insert notes for their whales" ON whale_notes FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM whales WHERE whales.id = whale_notes.whale_id AND whales.user_id = auth.uid()::text) AND auth.uid()::text = user_id);
+CREATE POLICY "Users can update their own notes" ON whale_notes FOR UPDATE USING (auth.uid()::text = user_id) WITH CHECK (auth.uid()::text = user_id);
+CREATE POLICY "Users can delete their own notes" ON whale_notes FOR DELETE USING (auth.uid()::text = user_id);
 
 -- Step 3: Add Performance Indexes
 CREATE INDEX IF NOT EXISTS idx_whale_notes_user_id ON whale_notes(user_id);
