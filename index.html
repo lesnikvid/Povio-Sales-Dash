@@ -402,12 +402,18 @@
 
         // Currency formatting utilities
         const formatCurrency = (value) => {
-            // value is in thousands (e.g., 500 = $500K, 2500 = $2.5M)
-            if (!value || value === 0) return '$0';
-            if (value >= 1000) {
-                return `$${(value / 1000).toFixed(1)}M`;
+            // Handle if value is already formatted as string (for backwards compatibility)
+            if (typeof value === 'string' && value.includes('$')) {
+                return value;
             }
-            return `$${value}K`;
+
+            // value is in thousands (e.g., 500 = $500K, 2500 = $2.5M)
+            const numValue = parseFloat(value);
+            if (!numValue || numValue === 0) return '$0';
+            if (numValue >= 1000) {
+                return `$${(numValue / 1000).toFixed(1)}M`;
+            }
+            return `$${numValue}K`;
         };
 
         const parseCurrencyInput = (inputStr) => {
@@ -1219,6 +1225,9 @@
 
                 if (error) {
                     console.error('Error fetching whale notes:', error);
+                    if (error.code === '42P01') {
+                        console.warn('whale_notes table does not exist. Please run the database schema.');
+                    }
                     return [];
                 }
 
@@ -1242,6 +1251,11 @@
 
                 if (error) {
                     console.error('Error adding whale note:', error);
+                    if (error.code === '42P01') {
+                        alert('The whale_notes table does not exist. Please run the database schema SQL in Supabase SQL Editor to create it.');
+                    } else {
+                        alert(`Error saving note: ${error.message}`);
+                    }
                     return;
                 }
 
