@@ -1347,7 +1347,7 @@
                     const whaleIds = whales.map(w => w.id);
 
                     // Fetch ALL notes for ALL whales in ONE query (10-50x faster!)
-                    const { data: allNotes, error } = await supabase
+                    const { data: allNotes, error } = await supabaseClient
                         .from('whale_notes')
                         .select('*')
                         .in('whale_id', whaleIds)
@@ -1406,7 +1406,7 @@
             const fetchWhaleNotes = async (whaleId, forceRefresh = false) => {
                 if (!forceRefresh && whaleNotes[whaleId]) return whaleNotes[whaleId]; // Use cached notes
 
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('whale_notes')
                     .select('*')
                     .eq('whale_id', whaleId)
@@ -1426,7 +1426,7 @@
 
             // Add a new note
             const addWhaleNote = async (whaleId, noteData, userId, userName) => {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('whale_notes')
                     .insert([{
                         whale_id: whaleId,
@@ -1916,7 +1916,7 @@
 
             // Fetch goals from database
             const fetchGoals = async () => {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('goals')
                     .select('*')
                     .eq('user_id', user.id)
@@ -1940,7 +1940,7 @@
 
             // Fetch whales from database
             const fetchWhales = async () => {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('whales')
                     .select('*')
                     .eq('user_id', user.id)
@@ -1967,7 +1967,7 @@
             // Migrate localStorage data to database if needed
             const migrateData = async () => {
                 // Check if database has data
-                const { data: existingGoals } = await supabase
+                const { data: existingGoals } = await supabaseClient
                     .from('goals')
                     .select('id')
                     .eq('user_id', user.id)
@@ -2038,7 +2038,7 @@
 
             // Update goal in database
             const updateGoal = async (updatedGoal) => {
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('goals')
                     .update({
                         number: updatedGoal.number,
@@ -2068,7 +2068,7 @@
 
             // Delete goal from database
             const deleteGoal = async (goalId) => {
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('goals')
                     .delete()
                     .eq('id', goalId)
@@ -2084,7 +2084,7 @@
 
             // Add new goal to database
             const addGoal = async (newGoal) => {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('goals')
                     .insert([{
                         user_id: user.id,
