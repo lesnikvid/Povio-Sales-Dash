@@ -7,7 +7,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -1604,7 +1603,7 @@
                     >
                         {addingNote && (
                             <AddNoteForm
-                                onSave={(noteData) => handleSaveNote(noteData, user.sub, user.name || user.email)}
+                                onSave={(noteData) => handleSaveNote(noteData, user.id, user.name || user.email)}
                                 onCancel={() => setAddingNote(null)}
                             />
                         )}
@@ -1639,7 +1638,7 @@
                         <h1 className="login-title">Welcome Back</h1>
                         <p className="login-subtitle">Sign in to access your sales dashboard</p>
                         <button className="login-btn" onClick={onLogin}>
-                            Sign In
+                            Sign in with GitHub
                         </button>
                     </div>
                 </div>
@@ -1708,54 +1707,45 @@
         const App = () => {
             const [user, setUser] = useState(null);
             const [loading, setLoading] = useState(true);
-            const [auth0Client, setAuth0Client] = useState(null);
 
-            // Initialize Auth0
+            // Initialize Supabase Auth
             useEffect(() => {
-                const initAuth0 = async () => {
-                    const client = await window.auth0.createAuth0Client({
-                        domain: 'dev-2zqxp4yvnoyuv8oj.us.auth0.com',
-                        clientId: '5RG2Mm2HdP6SBsmeyvv3OPwl04CeJwnd',
-                        authorizationParams: {
-                            redirect_uri: window.location.origin
-                        }
-                    });
-
-                    setAuth0Client(client);
-
-                    // Check if redirected back from Auth0
-                    if (window.location.search.includes('code=') || window.location.search.includes('error=')) {
-                        await client.handleRedirectCallback();
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                    }
-
+                const initAuth = async () => {
                     // Check if user is authenticated
-                    const isAuthenticated = await client.isAuthenticated();
-                    if (isAuthenticated) {
-                        const user = await client.getUser();
-                        setUser(user);
+                    const { data: { session } } = await supabase.auth.getSession();
+
+                    if (session?.user) {
+                        setUser(session.user);
                     }
 
                     setLoading(false);
                 };
 
-                initAuth0();
+                initAuth();
+
+                // Listen for auth changes
+                const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+                    setUser(session?.user ?? null);
+                });
+
+                return () => subscription.unsubscribe();
             }, []);
 
             const handleLogin = async () => {
-                if (auth0Client) {
-                    await auth0Client.loginWithRedirect();
+                const { error } = await supabase.auth.signInWithOAuth({
+                    provider: 'github',
+                    options: {
+                        redirectTo: window.location.origin
+                    }
+                });
+
+                if (error) {
+                    console.error('Error logging in:', error);
                 }
             };
 
-            const handleLogout = () => {
-                if (auth0Client) {
-                    auth0Client.logout({
-                        logoutParams: {
-                            returnTo: window.location.origin
-                        }
-                    });
-                }
+            const handleLogout = async () => {
+                await supabase.auth.signOut();
             };
 
             // Show loading state
@@ -1769,40 +1759,21 @@
             }
 
             // Main authenticated app
-            return <AuthenticatedApp user={user} auth0Client={auth0Client} onLogout={handleLogout} />;
+            return <AuthenticatedApp user={user} onLogout={handleLogout} />;
         };
 
-        const AuthenticatedApp = ({ user, auth0Client, onLogout }) => {
+        const AuthenticatedApp = ({ user, onLogout }) => {
             const [view, setView] = useState('goals');
             const [goals, setGoals] = useState([]);
             const [whales, setWhales] = useState([]);
             const [loading, setLoading] = useState(true);
-
-            // Configure Supabase to use Auth0 JWT token
-            const configureSupabaseAuth = async () => {
-                if (!auth0Client) return;
-
-                try {
-                    const token = await auth0Client.getTokenSilently();
-
-                    // Set the JWT token for Supabase auth
-                    await supabase.auth.setSession({
-                        access_token: token,
-                        refresh_token: token
-                    });
-
-                    console.log('✅ Supabase configured with Auth0 JWT');
-                } catch (error) {
-                    console.error('❌ Error configuring Supabase auth:', error);
-                }
-            };
 
             // Fetch goals from database
             const fetchGoals = async () => {
                 const { data, error } = await supabase
                     .from('goals')
                     .select('*')
-                    .eq('user_id', user.sub)
+                    .eq('user_id', user.id)
                     .order('id', { ascending: true });
 
                 if (error) {
@@ -1826,7 +1797,7 @@
                 const { data, error } = await supabase
                     .from('whales')
                     .select('*')
-                    .eq('user_id', user.sub)
+                    .eq('user_id', user.id)
                     .order('id', { ascending: true });
 
                 if (error) {
@@ -1853,7 +1824,7 @@
                 const { data: existingGoals } = await supabase
                     .from('goals')
                     .select('id')
-                    .eq('user_id', user.sub)
+                    .eq('user_id', user.id)
                     .limit(1);
 
                 // If database is empty, try to migrate from localStorage or use initial data
@@ -1875,7 +1846,7 @@
                     // Insert goals
                     for (const goal of goalsToMigrate) {
                         await supabase.from('goals').insert([{
-                            user_id: user.sub,
+                            user_id: user.id,
                             number: goal.number,
                             title: goal.title,
                             target: goal.target || goal.successMetric,
@@ -1888,7 +1859,7 @@
                     // Insert whales
                     for (const whale of whalesToMigrate) {
                         await supabase.from('whales').insert([{
-                            user_id: user.sub,
+                            user_id: user.id,
                             name: whale.name,
                             industry: whale.industry,
                             health: whale.health,
@@ -1906,19 +1877,18 @@
                 }
             };
 
-            // Initial data load (configure auth first, then load data)
+            // Initial data load
             useEffect(() => {
                 const loadData = async () => {
-                    await configureSupabaseAuth();  // Configure JWT token first
                     await migrateData();
                     await Promise.all([fetchGoals(), fetchWhales()]);
                     setLoading(false);
                 };
 
-                if (user && auth0Client) {
+                if (user) {
                     loadData();
                 }
-            }, [user, auth0Client]);
+            }, [user]);
 
             // Update goal in database
             const updateGoal = async (updatedGoal) => {
@@ -1933,7 +1903,7 @@
                         milestones: updatedGoal.milestones
                     })
                     .eq('id', updatedGoal.id)
-                    .eq('user_id', user.sub);
+                    .eq('user_id', user.id);
 
                 if (error) {
                     console.error('Error updating goal:', error);
@@ -1956,7 +1926,7 @@
                     .from('goals')
                     .delete()
                     .eq('id', goalId)
-                    .eq('user_id', user.sub);
+                    .eq('user_id', user.id);
 
                 if (error) {
                     console.error('Error deleting goal:', error);
@@ -1971,7 +1941,7 @@
                 const { data, error } = await supabase
                     .from('goals')
                     .insert([{
-                        user_id: user.sub,
+                        user_id: user.id,
                         number: newGoal.number || `Goal ${goals.length + 1}`,
                         title: newGoal.title,
                         target: newGoal.target || newGoal.successMetric,
@@ -2022,7 +1992,7 @@
                                 notes: whale.notes
                             })
                             .eq('id', whale.id)
-                            .eq('user_id', user.sub);
+                            .eq('user_id', user.id);
                     }
                 }
                 setWhales(updatedWhales);
