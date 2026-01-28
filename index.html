@@ -375,7 +375,8 @@
         }
 
         // ==================== SUPABASE CLIENT ====================
-        const supabase = supabase.createClient(
+        const { createClient } = window.supabase;
+        const supabaseClient = createClient(
             'https://jiufnsnxuvhqwzozhlwm.supabase.co',
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImppdWZuc254dXZocXd6b3pobHdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0NjAyNDQsImV4cCI6MjA4NTAzNjI0NH0.6cwCou-02PLQtjUeU_d61d6bL269TPdO5jLZe12s2-8'
         );
@@ -1712,7 +1713,7 @@
             useEffect(() => {
                 const initAuth = async () => {
                     // Check if user is authenticated
-                    const { data: { session } } = await supabase.auth.getSession();
+                    const { data: { session } } = await supabaseClient.auth.getSession();
 
                     if (session?.user) {
                         setUser(session.user);
@@ -1724,7 +1725,7 @@
                 initAuth();
 
                 // Listen for auth changes
-                const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+                const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, session) => {
                     setUser(session?.user ?? null);
                 });
 
@@ -1732,7 +1733,7 @@
             }, []);
 
             const handleLogin = async () => {
-                const { error } = await supabase.auth.signInWithOAuth({
+                const { error } = await supabaseClient.auth.signInWithOAuth({
                     provider: 'github',
                     options: {
                         redirectTo: window.location.href.split('#')[0].split('?')[0]
@@ -1745,7 +1746,7 @@
             };
 
             const handleLogout = async () => {
-                await supabase.auth.signOut();
+                await supabaseClient.auth.signOut();
             };
 
             // Show loading state
@@ -1845,7 +1846,7 @@
 
                     // Insert goals
                     for (const goal of goalsToMigrate) {
-                        await supabase.from('goals').insert([{
+                        await supabaseClient.from('goals').insert([{
                             user_id: user.id,
                             number: goal.number,
                             title: goal.title,
@@ -1858,7 +1859,7 @@
 
                     // Insert whales
                     for (const whale of whalesToMigrate) {
-                        await supabase.from('whales').insert([{
+                        await supabaseClient.from('whales').insert([{
                             user_id: user.id,
                             name: whale.name,
                             industry: whale.industry,
