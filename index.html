@@ -93,7 +93,7 @@
         .status-legend-item .dot.complete { background: var(--povio-blue); }
 
         .goals-grid { display: flex; flex-wrap: wrap; gap: 20px; }
-        .goal-card { background: var(--povio-card); border: 1px solid var(--povio-border); border-radius: 16px; overflow: hidden; transition: all 0.2s ease; width: calc(50% - 10px); flex-shrink: 0; }
+        .goal-card { background: var(--povio-card); border: 1px solid var(--povio-border); border-radius: 16px; overflow: hidden; transition: all 0.2s ease; width: calc(50% - 10px); flex-shrink: 0; cursor: pointer; }
         .goal-card:hover { border-color: var(--povio-border-hover); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06); transform: translateY(-2px); }
         .goal-header { padding: 24px; display: flex; justify-content: space-between; align-items: flex-start; cursor: pointer; }
         .goal-title-section { flex: 1; }
@@ -235,7 +235,16 @@
             .header { flex-direction: column; gap: 16px; align-items: flex-start; }
             .header-actions { width: 100%; justify-content: space-between; }
         }
-        @media (max-width: 600px) { .stat-card .value { font-size: 28px; } .goal-meta { flex-direction: column; gap: 8px; } }
+        @media (max-width: 600px) {
+            .stat-card .value { font-size: 28px; }
+            .goal-meta { flex-direction: column; gap: 8px; }
+            .stats-bar { grid-template-columns: 1fr; }
+            .view-toggle { width: 100%; justify-content: space-between; }
+            .view-btn { flex: 1; padding: 8px 12px; font-size: 12px; }
+            .logout-btn { width: 100%; margin-top: 8px; }
+            .header-title h1 { font-size: 20px; }
+            .header-subtitle { font-size: 12px; }
+        }
 
         /* Whale Tracking Styles - Accordion List */
         .whale-list { display: flex; flex-direction: column; gap: 8px; }
@@ -1920,7 +1929,7 @@
                     .from('goals')
                     .select('*')
                     .eq('user_id', user.id)
-                    .order('id', { ascending: true });
+                    .order('number', { ascending: true });
 
                 if (error) {
                     console.error('Error fetching goals:', error);
