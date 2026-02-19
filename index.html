@@ -988,6 +988,30 @@
             const goalsByBucket = buckets.map(bucket => ({ name: bucket, goals: goals.filter(g => g.bucket === bucket) }));
             return (
                 <>
+                    <div style={{ padding: '0 24px 12px' }}>
+                        <a
+                            href="https://lesnikvid.github.io/sales-roadmap-2026/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '10px 18px',
+                                background: 'var(--povio-blue)',
+                                color: '#fff',
+                                borderRadius: '8px',
+                                fontSize: '13px',
+                                fontWeight: '600',
+                                textDecoration: 'none',
+                                transition: 'opacity 0.2s ease'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                        >
+                            View Visual Presentation ↗
+                        </a>
+                    </div>
                     <div className="status-legend">
                         <div className="status-legend-item"><span className="dot complete"></span> Complete</div>
                         <div className="status-legend-item"><span className="dot on-track"></span> On Track</div>
