@@ -1395,21 +1395,30 @@
         };
 
         // Person node (Vid, Žiga)
-        const PersonNode = ({ name, title, primary }) => (
-            <div style={{
-                borderRadius: '12px',
-                padding: primary ? '18px 28px' : '12px 20px',
-                textAlign: 'center',
-                background: primary ? 'linear-gradient(135deg, var(--povio-blue), #4338ca)' : 'var(--povio-white)',
-                color: primary ? '#fff' : 'var(--povio-gray-900)',
-                border: primary ? 'none' : '2px solid var(--povio-blue)',
-                boxShadow: primary ? '0 4px 20px rgba(37,99,235,0.25)' : '0 1px 4px rgba(0,0,0,0.06)',
-                whiteSpace: 'nowrap'
-            }}>
-                <div style={{ fontSize: primary ? '18px' : '15px', fontWeight: '700' }}>{name}</div>
-                <div style={{ fontSize: '12px', marginTop: '3px', opacity: 0.75 }}>{title}</div>
-            </div>
-        );
+        const PersonNode = ({ name, title, primary }) => {
+            const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('');
+            return (
+                <div style={{
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    background: 'var(--povio-white)',
+                    border: primary ? '2px solid var(--povio-blue)' : '1px solid var(--povio-border)',
+                    borderRadius: '12px', padding: '10px 16px',
+                    boxShadow: primary ? '0 4px 16px rgba(31,53,255,0.15)' : '0 1px 4px rgba(0,0,0,0.06)',
+                    whiteSpace: 'nowrap'
+                }}>
+                    <div style={{
+                        width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
+                        background: primary ? 'linear-gradient(135deg, var(--povio-blue), #4338ca)' : 'var(--povio-blue)',
+                        color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '13px', fontWeight: '700'
+                    }}>{initials}</div>
+                    <div>
+                        <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--povio-gray-900)' }}>{name}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--povio-gray-500)', marginTop: '1px' }}>{title}</div>
+                    </div>
+                </div>
+            );
+        };
 
         // Department leaf node for the tree
         const DeptNode = ({ dept }) => (
