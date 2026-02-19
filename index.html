@@ -1364,56 +1364,87 @@
         };
 
         // ==================== SALES TEAM VIEW ====================
-        const DeptCard = ({ dept }) => (
+        // Vertical connector line
+        const VLine = ({ h = 24 }) => (
+            <div style={{ width: '2px', height: `${h}px`, background: '#d1d5db', margin: '0 auto', flexShrink: 0 }} />
+        );
+
+        // Renders children horizontally with tree connector lines
+        const TreeChildren = ({ children }) => {
+            const items = React.Children.toArray(children);
+            return (
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    {items.map((child, i) => (
+                        <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '1 1 0', minWidth: 0 }}>
+                            <div style={{ position: 'relative', width: '100%', height: '24px' }}>
+                                {items.length > 1 && <div style={{
+                                    position: 'absolute', top: 0, height: '2px', background: '#d1d5db',
+                                    ...(i === 0 ? { left: '50%', right: 0 } :
+                                        i === items.length - 1 ? { left: 0, right: '50%' } :
+                                        { left: 0, right: 0 })
+                                }} />}
+                                <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '2px', height: '100%', background: '#d1d5db' }} />
+                            </div>
+                            {child}
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        // Person node (Vid, Žiga)
+        const PersonNode = ({ name, title, primary }) => (
+            <div style={{
+                borderRadius: '12px',
+                padding: primary ? '18px 28px' : '12px 20px',
+                textAlign: 'center',
+                background: primary ? 'linear-gradient(135deg, var(--povio-blue), #4338ca)' : 'var(--povio-white)',
+                color: primary ? '#fff' : 'var(--povio-gray-900)',
+                border: primary ? 'none' : '2px solid var(--povio-blue)',
+                boxShadow: primary ? '0 4px 20px rgba(37,99,235,0.25)' : '0 1px 4px rgba(0,0,0,0.06)',
+                whiteSpace: 'nowrap'
+            }}>
+                <div style={{ fontSize: primary ? '18px' : '15px', fontWeight: '700' }}>{name}</div>
+                <div style={{ fontSize: '12px', marginTop: '3px', opacity: 0.75 }}>{title}</div>
+            </div>
+        );
+
+        // Department leaf node for the tree
+        const DeptNode = ({ dept }) => (
             <div style={{
                 background: 'var(--povio-white)',
-                borderRadius: '12px',
+                borderRadius: '10px',
                 border: '1px solid var(--povio-border)',
                 overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column'
+                width: '100%',
+                maxWidth: '210px',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.05)'
             }}>
-                <div style={{ background: dept.color, color: '#fff', padding: '14px 18px', fontSize: '14px', fontWeight: '700' }}>
+                <div style={{ background: dept.color, color: '#fff', padding: '10px 14px', fontSize: '13px', fontWeight: '700', textAlign: 'center' }}>
                     {dept.name}
                 </div>
-                <div style={{ padding: '16px 18px', flex: 1, display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    {dept.lead && (
-                        <div>
-                            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--povio-gray-500)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Lead</div>
-                            <div style={{ fontSize: '13px', color: 'var(--povio-gray-700)' }}>{dept.lead}</div>
-                        </div>
-                    )}
+                <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
                     {dept.owner && (
-                        <div>
-                            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--povio-gray-500)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Owner</div>
-                            <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--povio-gray-900)' }}>{dept.owner}</div>
-                        </div>
+                        <div><span style={{ color: 'var(--povio-gray-500)' }}>Owner: </span><span style={{ fontWeight: '600', color: 'var(--povio-gray-900)' }}>{dept.owner}</span></div>
                     )}
-                    {dept.segments && dept.segments.length > 0 && (
-                        <div>
-                            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--povio-gray-500)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Segments</div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                {dept.segments.map((seg, i) => (
-                                    <div key={i} style={{ fontSize: '13px', color: 'var(--povio-gray-700)', padding: '4px 8px', background: 'var(--povio-gray-100)', borderRadius: '6px' }}>
-                                        {seg.label}{seg.owner ? ` — ${seg.owner}` : ''}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                    {dept.lead && (
+                        <div style={{ color: 'var(--povio-gray-600)', fontStyle: 'italic' }}>{dept.lead}</div>
                     )}
+                    {dept.segments && dept.segments.map((seg, i) => (
+                        <div key={i} style={{ color: 'var(--povio-gray-700)', padding: '3px 8px', background: 'var(--povio-gray-100)', borderRadius: '4px' }}>
+                            {seg.label}{seg.owner ? ` — ${seg.owner}` : ''}
+                        </div>
+                    ))}
                     {dept.vacancy && (
-                        <div style={{ fontSize: '13px', color: '#d97706', fontStyle: 'italic', padding: '6px 10px', background: '#fffbeb', borderRadius: '6px', border: '1px dashed #fbbf24' }}>
+                        <div style={{ color: '#d97706', fontStyle: 'italic', padding: '3px 8px', background: '#fffbeb', borderRadius: '4px', border: '1px dashed #fbbf24' }}>
                             {dept.vacancy}
                         </div>
                     )}
                     {dept.team && dept.team.length > 0 && (
-                        <div style={{ marginTop: 'auto' }}>
-                            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--povio-gray-500)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Team</div>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                                {dept.team.map((member, i) => (
-                                    <span key={i} style={{ fontSize: '12px', fontWeight: '500', color: 'var(--povio-gray-700)', background: 'var(--povio-gray-100)', padding: '4px 10px', borderRadius: '20px' }}>{member}</span>
-                                ))}
-                            </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginTop: '2px' }}>
+                            {dept.team.map((m, i) => (
+                                <span key={i} style={{ fontSize: '11px', color: 'var(--povio-gray-600)', background: 'var(--povio-gray-100)', padding: '2px 7px', borderRadius: '10px' }}>{m}</span>
+                            ))}
                         </div>
                     )}
                 </div>
@@ -1421,68 +1452,29 @@
         );
 
         const TeamView = () => {
-            const vidDirect = [
-                { name: 'Inbound Marketing', color: '#6366f1', lead: 'Inbound Marketing Lead', owner: 'Daša', team: ['Eva'] },
-                { name: 'Outbound', color: '#f59e0b', lead: 'Outbound Lead', owner: 'Jerry', team: ['Gregor', 'Sara', 'Alja'] },
-                { name: 'Partnerships', color: '#ec4899', owner: 'Vid', vacancy: 'New person???' }
-            ];
-
-            const zigaDepts = [
-                { name: 'New Sales', color: '#10b981', lead: 'Sales Team Lead + Ops', segments: [{ label: 'ES', owner: 'Jernej' }, { label: 'Mid', owner: 'Žiga' }, { label: 'Enterprise + Tenders', owner: 'Durdica' }], team: ['Žiga', 'Daša', 'Jerry', 'Durdica'] },
-                { name: 'AM / CS', color: '#3b82f6', owner: 'Vid', segments: [{ label: 'Whale Protection Program' }], team: ['Žiga', 'Daša', 'Vid', 'Jerry', 'Edvin', 'Durdica'] }
-            ];
-
-            const groupBox = { background: 'var(--povio-gray-50)', borderRadius: '16px', border: '1px solid var(--povio-border)', padding: '20px' };
-            const groupTitle = { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' };
-            const avatarStyle = (bg) => ({ width: '40px', height: '40px', borderRadius: '50%', background: bg, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: '700', flexShrink: 0 });
-
             return (
-                <div style={{ padding: '0 24px 24px' }}>
-                    {/* Vid — top-level card */}
-                    <div style={{
-                        background: 'linear-gradient(135deg, var(--povio-blue), #4338ca)',
-                        color: '#fff',
-                        borderRadius: '14px',
-                        padding: '22px 28px',
-                        textAlign: 'center',
-                        boxShadow: '0 4px 20px rgba(37,99,235,0.25)',
-                        marginBottom: '24px'
-                    }}>
-                        <div style={{ fontSize: '20px', fontWeight: '700' }}>Vid Lešnik</div>
-                        <div style={{ fontSize: '14px', opacity: 0.85, marginTop: '4px' }}>Head of Sales & Partnerships</div>
-                    </div>
+                <div style={{ padding: '0 24px 24px', overflowX: 'auto' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '750px' }}>
+                        {/* Level 0: Vid */}
+                        <PersonNode name="Vid Lešnik" title="Head of Sales & Partnerships" primary />
+                        <VLine h={28} />
 
-                    {/* Two reporting groups side by side */}
-                    <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                        {/* Level 1: Vid's 3 direct depts + Žiga subtree */}
+                        <TreeChildren>
+                            <DeptNode dept={{ name: 'Inbound Marketing', color: '#6366f1', lead: 'Inbound Marketing Lead', owner: 'Daša', team: ['Eva'] }} />
+                            <DeptNode dept={{ name: 'Outbound', color: '#f59e0b', lead: 'Outbound Lead', owner: 'Jerry', team: ['Gregor', 'Sara', 'Alja'] }} />
+                            <DeptNode dept={{ name: 'Partnerships', color: '#ec4899', owner: 'Vid', vacancy: 'New person???' }} />
 
-                        {/* LEFT — Vid's direct departments */}
-                        <div style={{ ...groupBox, flex: 1, minWidth: '300px' }}>
-                            <div style={groupTitle}>
-                                <div style={avatarStyle('linear-gradient(135deg, var(--povio-blue), #4338ca)')}>V</div>
-                                <div>
-                                    <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--povio-gray-900)' }}>Managed by Vid</div>
-                                    <div style={{ fontSize: '12px', color: 'var(--povio-gray-500)' }}>Reports directly to Head of Sales</div>
-                                </div>
+                            {/* Žiga subtree — person node with its own children */}
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <PersonNode name="Žiga" title="Sales Manager" />
+                                <VLine h={28} />
+                                <TreeChildren>
+                                    <DeptNode dept={{ name: 'New Sales', color: '#10b981', lead: 'Sales Team Lead + Ops', segments: [{ label: 'ES', owner: 'Jernej' }, { label: 'Mid', owner: 'Žiga' }, { label: 'Enterprise + Tenders', owner: 'Durdica' }], team: ['Žiga', 'Daša', 'Jerry', 'Durdica'] }} />
+                                    <DeptNode dept={{ name: 'AM / CS', color: '#3b82f6', owner: 'Vid', segments: [{ label: 'Whale Protection Program' }], team: ['Žiga', 'Daša', 'Vid', 'Jerry', 'Edvin', 'Durdica'] }} />
+                                </TreeChildren>
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                                {vidDirect.map(dept => <DeptCard key={dept.name} dept={dept} />)}
-                            </div>
-                        </div>
-
-                        {/* RIGHT — Žiga's departments */}
-                        <div style={{ ...groupBox, flex: 1, minWidth: '300px' }}>
-                            <div style={groupTitle}>
-                                <div style={avatarStyle('#2563eb')}>Ž</div>
-                                <div>
-                                    <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--povio-gray-900)' }}>Managed by Žiga</div>
-                                    <div style={{ fontSize: '12px', color: 'var(--povio-gray-500)' }}>Sales Manager, reports to Vid</div>
-                                </div>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                                {zigaDepts.map(dept => <DeptCard key={dept.name} dept={dept} />)}
-                            </div>
-                        </div>
-
+                        </TreeChildren>
                     </div>
                 </div>
             );
