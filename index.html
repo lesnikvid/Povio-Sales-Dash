@@ -1919,6 +1919,22 @@
                     return;
                 }
 
+                // Preflight: verify Supabase is reachable before doing a hard redirect.
+                // signInWithOAuth navigates the whole page away, so if the domain is down
+                // (project paused, DNS failure, etc.) the user ends up on the dinosaur page.
+                try {
+                    const controller = new AbortController();
+                    const tid = setTimeout(() => controller.abort(), 5000);
+                    await fetch('https://jiufnsnxuvhqwzozhlwm.supabase.co/auth/v1/health', {
+                        signal: controller.signal,
+                        mode: 'no-cors'
+                    });
+                    clearTimeout(tid);
+                } catch (err) {
+                    setLoginError('Cannot reach the authentication server. The Supabase project may be paused — please visit supabase.com to resume it, then try again.');
+                    return;
+                }
+
                 try {
                     const { error } = await supabaseClient.auth.signInWithOAuth({
                         provider: 'github',
