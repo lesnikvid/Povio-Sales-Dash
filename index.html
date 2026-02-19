@@ -1471,18 +1471,6 @@
                             {dept.vacancy}
                         </div>
                     )}
-                    {dept.team && dept.team.length > 0 && (
-                        <div style={{ borderTop: '1px solid var(--povio-border)', paddingTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                            {dept.team.map((m, i) => (
-                                <div key={i} title={m} style={{
-                                    width: '26px', height: '26px', borderRadius: '50%',
-                                    background: 'var(--povio-blue)', color: '#fff',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontSize: '10px', fontWeight: '700'
-                                }}>{m.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}</div>
-                            ))}
-                        </div>
-                    )}
                 </div>
             </div>
         );
@@ -1497,8 +1485,8 @@
 
                         {/* Level 1: Vid's 3 direct depts + Žiga subtree */}
                         <TreeChildren>
-                            <DeptNode dept={{ name: 'Inbound Marketing', color: '#6366f1', subtitle: 'Daša (Inbound Marketing Lead)', team: ['Eva'] }} />
-                            <DeptNode dept={{ name: 'Outbound', color: '#f59e0b', subtitle: 'Jerry (Outbound Lead)', team: ['Gregor', 'Sara', 'Alja'] }} />
+                            <DeptNode dept={{ name: 'Inbound Marketing', color: '#6366f1', subtitle: 'Daša (Inbound Marketing Lead)' }} />
+                            <DeptNode dept={{ name: 'Outbound', color: '#f59e0b', subtitle: 'Jerry (Outbound Lead)' }} />
                             <DeptNode dept={{ name: 'Partnerships', color: '#ec4899', owner: 'Vid', vacancy: 'New person???' }} />
 
                             {/* Žiga subtree — person node with its own children */}
@@ -1506,8 +1494,8 @@
                                 <PersonNode name="Žiga" title="Sales Manager" />
                                 <VLine h={28} />
                                 <TreeChildren>
-                                    <DeptNode dept={{ name: 'New Sales', color: '#10b981', segments: [{ label: 'Early Stage', owner: 'Jerry' }, { label: 'Mid Market', owner: 'Žiga' }, { label: 'Enterprise', owner: 'Durdica' }], team: ['Žiga', 'Daša', 'Jerry', 'Durdica'] }} />
-                                    <DeptNode dept={{ name: 'AM / CS', color: '#3b82f6', owner: 'Vid', segments: [{ label: 'Key Account Management' }, { label: 'Account Management' }], team: ['Žiga', 'Daša', 'Vid', 'Jerry', 'Edvin', 'Durdica'] }} />
+                                    <DeptNode dept={{ name: 'New Sales', color: '#10b981', segments: [{ label: 'Early Stage', owner: 'Jerry' }, { label: 'Mid Market', owner: 'Žiga' }, { label: 'Enterprise', owner: 'Durdica' }] }} />
+                                    <DeptNode dept={{ name: 'AM / CS', color: '#3b82f6', owner: 'Vid', segments: [{ label: 'Key Account Management' }, { label: 'Account Management' }] }} />
                                 </TreeChildren>
                             </div>
                         </TreeChildren>
