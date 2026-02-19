@@ -1432,75 +1432,57 @@
                 { name: 'AM / CS', color: '#3b82f6', owner: 'Vid', segments: [{ label: 'Whale Protection Program' }], team: ['Žiga', 'Daša', 'Vid', 'Jerry', 'Edvin', 'Durdica'] }
             ];
 
-            const personBox = (name, title, style) => (
-                <div style={{
-                    borderRadius: '14px',
-                    padding: '16px 32px',
-                    textAlign: 'center',
-                    minWidth: '200px',
-                    ...style
-                }}>
-                    <div style={{ fontSize: style.fontSize || '16px', fontWeight: '700', color: style.color || 'var(--povio-gray-900)' }}>{name}</div>
-                    <div style={{ fontSize: '13px', color: style.subtitleColor || 'var(--povio-gray-600)', marginTop: '4px', opacity: style.subtitleOpacity || 1 }}>{title}</div>
-                </div>
-            );
-
-            const connector = (h = 24) => <div style={{ width: '2px', height: `${h}px`, background: 'var(--povio-border)' }} />;
-
-            const sectionLabel = (text) => (
-                <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--povio-gray-400)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>{text}</div>
-            );
+            const groupBox = { background: 'var(--povio-gray-50)', borderRadius: '16px', border: '1px solid var(--povio-border)', padding: '20px' };
+            const groupTitle = { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' };
+            const avatarStyle = (bg) => ({ width: '40px', height: '40px', borderRadius: '50%', background: bg, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: '700', flexShrink: 0 });
 
             return (
                 <div style={{ padding: '0 24px 24px' }}>
-                    {/* Vid at the top */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '12px' }}>
-                        {personBox('Vid Lešnik', 'Head of Sales & Partnerships', {
-                            background: 'linear-gradient(135deg, var(--povio-blue), #4338ca)',
-                            color: '#fff',
-                            subtitleColor: '#fff',
-                            subtitleOpacity: 0.85,
-                            fontSize: '18px',
-                            boxShadow: '0 4px 20px rgba(37,99,235,0.25)'
-                        })}
-                        {connector(28)}
-                        {/* Split into two branches */}
-                        <div style={{ display: 'flex', width: '100%', maxWidth: '1000px', position: 'relative', justifyContent: 'center' }}>
-                            {/* Horizontal bar spanning both branches */}
-                            <div style={{ position: 'absolute', top: 0, left: '25%', right: '25%', height: '2px', background: 'var(--povio-border)' }} />
-                            {/* Left branch — Vid's direct reports */}
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                {connector(24)}
-                                <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--povio-gray-500)', marginBottom: '8px' }}>Direct reports</div>
-                            </div>
-                            {/* Right branch — via Žiga */}
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                {connector(24)}
-                                {personBox('Žiga', 'Sales Manager', {
-                                    background: 'var(--povio-white)',
-                                    border: '2px solid var(--povio-blue)',
-                                    color: 'var(--povio-gray-900)'
-                                })}
-                            </div>
-                        </div>
+                    {/* Vid — top-level card */}
+                    <div style={{
+                        background: 'linear-gradient(135deg, var(--povio-blue), #4338ca)',
+                        color: '#fff',
+                        borderRadius: '14px',
+                        padding: '22px 28px',
+                        textAlign: 'center',
+                        boxShadow: '0 4px 20px rgba(37,99,235,0.25)',
+                        marginBottom: '24px'
+                    }}>
+                        <div style={{ fontSize: '20px', fontWeight: '700' }}>Vid Lešnik</div>
+                        <div style={{ fontSize: '14px', opacity: 0.85, marginTop: '4px' }}>Head of Sales & Partnerships</div>
                     </div>
 
-                    {/* Two-column layout */}
-                    <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-                        {/* Left column — Vid's direct departments */}
-                        <div style={{ flex: 1, minWidth: '280px' }}>
-                            {sectionLabel("Vid's Direct Reports")}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {/* Two reporting groups side by side */}
+                    <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+
+                        {/* LEFT — Vid's direct departments */}
+                        <div style={{ ...groupBox, flex: 1, minWidth: '300px' }}>
+                            <div style={groupTitle}>
+                                <div style={avatarStyle('linear-gradient(135deg, var(--povio-blue), #4338ca)')}>V</div>
+                                <div>
+                                    <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--povio-gray-900)' }}>Managed by Vid</div>
+                                    <div style={{ fontSize: '12px', color: 'var(--povio-gray-500)' }}>Reports directly to Head of Sales</div>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                                 {vidDirect.map(dept => <DeptCard key={dept.name} dept={dept} />)}
                             </div>
                         </div>
-                        {/* Right column — Žiga's departments */}
-                        <div style={{ flex: 1, minWidth: '280px' }}>
-                            {sectionLabel("Žiga's Departments")}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+                        {/* RIGHT — Žiga's departments */}
+                        <div style={{ ...groupBox, flex: 1, minWidth: '300px' }}>
+                            <div style={groupTitle}>
+                                <div style={avatarStyle('#2563eb')}>Ž</div>
+                                <div>
+                                    <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--povio-gray-900)' }}>Managed by Žiga</div>
+                                    <div style={{ fontSize: '12px', color: 'var(--povio-gray-500)' }}>Sales Manager, reports to Vid</div>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                                 {zigaDepts.map(dept => <DeptCard key={dept.name} dept={dept} />)}
                             </div>
                         </div>
+
                     </div>
                 </div>
             );
