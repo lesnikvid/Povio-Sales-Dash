@@ -1420,6 +1420,25 @@
             );
         };
 
+        // Small avatar chip used throughout the tree
+        const Avatar = ({ name, sub }) => {
+            const initials = name.split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+            return (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{
+                        width: '26px', height: '26px', borderRadius: '50%', flexShrink: 0,
+                        background: 'var(--povio-blue)', color: '#fff',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '10px', fontWeight: '700'
+                    }}>{initials}</div>
+                    <div>
+                        <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--povio-gray-900)', lineHeight: 1.2 }}>{name}</div>
+                        {sub && <div style={{ fontSize: '10px', color: 'var(--povio-gray-500)', lineHeight: 1.2 }}>{sub}</div>}
+                    </div>
+                </div>
+            );
+        };
+
         // Department leaf node for the tree
         const DeptNode = ({ dept }) => (
             <div style={{
@@ -1428,36 +1447,39 @@
                 border: '1px solid var(--povio-border)',
                 overflow: 'hidden',
                 width: '100%',
-                maxWidth: '210px',
+                maxWidth: '220px',
                 boxShadow: '0 1px 4px rgba(0,0,0,0.05)'
             }}>
                 <div style={{ background: dept.color, color: '#fff', padding: '10px 14px', fontSize: '13px', fontWeight: '700', textAlign: 'center' }}>
                     {dept.name}
                 </div>
-                <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
+                <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
                     {dept.subtitle && (
-                        <div style={{ fontWeight: '600', color: 'var(--povio-gray-900)' }}>{dept.subtitle}</div>
+                        <Avatar name={dept.subtitle.split(' (')[0]} sub={dept.subtitle.match(/\(([^)]+)\)/)?.[1]} />
                     )}
                     {dept.owner && (
-                        <div><span style={{ color: 'var(--povio-gray-500)' }}>Owner: </span><span style={{ fontWeight: '600', color: 'var(--povio-gray-900)' }}>{dept.owner}</span></div>
-                    )}
-                    {dept.lead && (
-                        <div style={{ color: 'var(--povio-gray-600)', fontStyle: 'italic' }}>{dept.lead}</div>
+                        <Avatar name={dept.owner} sub="Owner" />
                     )}
                     {dept.segments && dept.segments.map((seg, i) => (
-                        <div key={i} style={{ color: 'var(--povio-gray-700)', padding: '3px 8px', background: 'var(--povio-gray-100)', borderRadius: '4px' }}>
-                            {seg.label}{seg.owner ? ` — ${seg.owner}` : ''}
+                        <div key={i} style={{ padding: '4px 8px', background: 'var(--povio-gray-100)', borderRadius: '4px' }}>
+                            <div style={{ fontSize: '10px', color: 'var(--povio-gray-500)', marginBottom: '4px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.3px' }}>{seg.label}</div>
+                            {seg.owner && <Avatar name={seg.owner} />}
                         </div>
                     ))}
                     {dept.vacancy && (
-                        <div style={{ color: '#d97706', fontStyle: 'italic', padding: '3px 8px', background: '#fffbeb', borderRadius: '4px', border: '1px dashed #fbbf24' }}>
+                        <div style={{ color: '#d97706', fontStyle: 'italic', padding: '3px 8px', background: '#fffbeb', borderRadius: '4px', border: '1px dashed #fbbf24', fontSize: '11px' }}>
                             {dept.vacancy}
                         </div>
                     )}
                     {dept.team && dept.team.length > 0 && (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginTop: '2px' }}>
+                        <div style={{ borderTop: '1px solid var(--povio-border)', paddingTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                             {dept.team.map((m, i) => (
-                                <span key={i} style={{ fontSize: '11px', color: 'var(--povio-gray-600)', background: 'var(--povio-gray-100)', padding: '2px 7px', borderRadius: '10px' }}>{m}</span>
+                                <div key={i} title={m} style={{
+                                    width: '26px', height: '26px', borderRadius: '50%',
+                                    background: 'var(--povio-blue)', color: '#fff',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '10px', fontWeight: '700'
+                                }}>{m.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}</div>
                             ))}
                         </div>
                     )}
