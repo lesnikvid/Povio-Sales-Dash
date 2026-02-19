@@ -1479,6 +1479,56 @@
                             </div>
                         </TreeChildren>
                     </div>
+
+                    {/* People Directory */}
+                    <div style={{ marginTop: '36px' }}>
+                        <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--povio-gray-900)', marginBottom: '16px' }}>Team Directory</h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '10px' }}>
+                            {[
+                                { name: 'Vid Lešnik', title: 'Head of Sales & Partnerships', roles: ['AE', 'KAM'] },
+                                { name: 'Žiga Triller', title: 'Sales Manager', roles: ['AE', 'KAM'] },
+                                { name: 'Daša Ravter', title: 'Inbound Marketing Lead', roles: ['AE', 'KAM'] },
+                                { name: 'Jernej Lešnik', title: 'Outbound Lead', roles: ['AE', 'AM'] },
+                                { name: 'Durdica Strunjaš Kurt', roles: ['AE', 'AM'] },
+                                { name: 'Edvin Lovic', roles: ['KAM', 'Collections'] },
+                                { name: 'Alja Drovenik', roles: ['SDR'] },
+                                { name: 'Sara Petrič', roles: ['SDR'] },
+                                { name: 'Eva Težak', title: 'Inbound Marketing Assistant', roles: [] },
+                                { name: 'Gregor Špan', roles: ['SDR', 'AM'] }
+                            ].map((p, i) => {
+                                const roleColors = { AE: '#3b82f6', KAM: '#10b981', AM: '#8b5cf6', SDR: '#f59e0b', Collections: '#64748b' };
+                                return (
+                                    <div key={i} style={{
+                                        display: 'flex', alignItems: 'center', gap: '12px',
+                                        background: 'var(--povio-white)', border: '1px solid var(--povio-border)',
+                                        borderRadius: '10px', padding: '12px 14px'
+                                    }}>
+                                        <div style={{
+                                            width: '36px', height: '36px', borderRadius: '50%',
+                                            background: 'var(--povio-blue)', color: '#fff',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            fontSize: '14px', fontWeight: '700', flexShrink: 0
+                                        }}>{p.name.split(' ').map(w => w[0]).slice(0, 2).join('')}</div>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--povio-gray-900)' }}>{p.name}</div>
+                                            {p.title && <div style={{ fontSize: '11px', color: 'var(--povio-gray-500)', marginTop: '1px' }}>{p.title}</div>}
+                                            {p.roles && p.roles.length > 0 && (
+                                                <div style={{ display: 'flex', gap: '4px', marginTop: '5px', flexWrap: 'wrap' }}>
+                                                    {p.roles.map((r, j) => (
+                                                        <span key={j} style={{
+                                                            fontSize: '10px', fontWeight: '700', letterSpacing: '0.3px',
+                                                            color: '#fff', background: roleColors[r] || '#6b7280',
+                                                            padding: '2px 7px', borderRadius: '4px'
+                                                        }}>{r}</span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
             );
         };
