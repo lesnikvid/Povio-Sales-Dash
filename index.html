@@ -1866,24 +1866,36 @@
             // Initialize Supabase Auth
             useEffect(() => {
                 const initAuth = async () => {
-                    // Check if user is authenticated
-                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    try {
+                        // Check if user is authenticated
+                        const { data: { session } } = await supabaseClient.auth.getSession();
 
-                    if (session?.user) {
-                        setUser(session.user);
+                        if (session?.user) {
+                            setUser(session.user);
+                        }
+                    } catch (err) {
+                        console.error('Failed to initialize auth (network error?):', err);
+                    } finally {
+                        setLoading(false);
                     }
-
-                    setLoading(false);
                 };
 
                 initAuth();
 
                 // Listen for auth changes
-                const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, session) => {
-                    setUser(session?.user ?? null);
-                });
+                let subscription = null;
+                try {
+                    const { data } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+                        setUser(session?.user ?? null);
+                    });
+                    subscription = data?.subscription;
+                } catch (err) {
+                    console.error('Failed to subscribe to auth changes:', err);
+                }
 
-                return () => subscription.unsubscribe();
+                return () => {
+                    if (subscription) subscription.unsubscribe();
+                };
             }, []);
 
             const handleLogin = async () => {
