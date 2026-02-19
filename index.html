@@ -2272,7 +2272,23 @@
         };
 
         const AuthenticatedApp = ({ user, onLogout }) => {
-            const [view, setView] = useState('goals');
+            const VIEWS = ['goals', 'roadmap', 'whales', 'team'];
+            const getViewFromHash = () => {
+                const h = window.location.hash.replace('#', '');
+                return VIEWS.includes(h) ? h : 'goals';
+            };
+
+            const [view, setView] = useState(getViewFromHash);
+
+            // Keep URL hash in sync when view changes
+            useEffect(() => { window.location.hash = view; }, [view]);
+
+            // Respect browser back / forward
+            useEffect(() => {
+                const onHash = () => setView(getViewFromHash());
+                window.addEventListener('hashchange', onHash);
+                return () => window.removeEventListener('hashchange', onHash);
+            }, []);
             const [goals, setGoals] = useState([]);
             const [whales, setWhales] = useState([]);
             const [loading, setLoading] = useState(true);
