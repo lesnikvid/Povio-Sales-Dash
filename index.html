@@ -1364,184 +1364,143 @@
         };
 
         // ==================== SALES TEAM VIEW ====================
+        const DeptCard = ({ dept }) => (
+            <div style={{
+                background: 'var(--povio-white)',
+                borderRadius: '12px',
+                border: '1px solid var(--povio-border)',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column'
+            }}>
+                <div style={{ background: dept.color, color: '#fff', padding: '14px 18px', fontSize: '14px', fontWeight: '700' }}>
+                    {dept.name}
+                </div>
+                <div style={{ padding: '16px 18px', flex: 1, display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    {dept.lead && (
+                        <div>
+                            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--povio-gray-500)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Lead</div>
+                            <div style={{ fontSize: '13px', color: 'var(--povio-gray-700)' }}>{dept.lead}</div>
+                        </div>
+                    )}
+                    {dept.owner && (
+                        <div>
+                            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--povio-gray-500)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Owner</div>
+                            <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--povio-gray-900)' }}>{dept.owner}</div>
+                        </div>
+                    )}
+                    {dept.segments && dept.segments.length > 0 && (
+                        <div>
+                            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--povio-gray-500)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Segments</div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                {dept.segments.map((seg, i) => (
+                                    <div key={i} style={{ fontSize: '13px', color: 'var(--povio-gray-700)', padding: '4px 8px', background: 'var(--povio-gray-100)', borderRadius: '6px' }}>
+                                        {seg.label}{seg.owner ? ` — ${seg.owner}` : ''}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {dept.vacancy && (
+                        <div style={{ fontSize: '13px', color: '#d97706', fontStyle: 'italic', padding: '6px 10px', background: '#fffbeb', borderRadius: '6px', border: '1px dashed #fbbf24' }}>
+                            {dept.vacancy}
+                        </div>
+                    )}
+                    {dept.team && dept.team.length > 0 && (
+                        <div style={{ marginTop: 'auto' }}>
+                            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--povio-gray-500)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Team</div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                {dept.team.map((member, i) => (
+                                    <span key={i} style={{ fontSize: '12px', fontWeight: '500', color: 'var(--povio-gray-700)', background: 'var(--povio-gray-100)', padding: '4px 10px', borderRadius: '20px' }}>{member}</span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+
         const TeamView = () => {
-            const departments = [
-                {
-                    name: 'Inbound Marketing',
-                    color: '#6366f1',
-                    lead: 'Inbound Marketing Lead',
-                    owner: 'Daša',
-                    segments: [],
-                    team: ['Eva']
-                },
-                {
-                    name: 'Outbound',
-                    color: '#f59e0b',
-                    lead: 'Outbound Lead',
-                    owner: 'Jerry',
-                    segments: [],
-                    team: ['Gregor', 'Sara', 'Alja']
-                },
-                {
-                    name: 'New Sales',
-                    color: '#10b981',
-                    lead: 'Sales Team Lead + Ops',
-                    owner: null,
-                    segments: [
-                        { label: 'ES', owner: 'Jernej' },
-                        { label: 'Mid', owner: 'Žiga' },
-                        { label: 'Enterprise + Tenders', owner: 'Durdica' }
-                    ],
-                    team: ['Žiga', 'Daša', 'Jerry', 'Durdica']
-                },
-                {
-                    name: 'AM / CS',
-                    color: '#3b82f6',
-                    lead: null,
-                    owner: 'Vid',
-                    segments: [
-                        { label: 'Whale Protection Program', owner: null }
-                    ],
-                    team: ['Žiga', 'Daša', 'Vid', 'Jerry', 'Edvin', 'Durdica']
-                },
-                {
-                    name: 'Partnerships',
-                    color: '#ec4899',
-                    lead: null,
-                    owner: 'Vid',
-                    segments: [],
-                    team: [],
-                    vacancy: 'New person???'
-                }
+            const vidDirect = [
+                { name: 'Inbound Marketing', color: '#6366f1', lead: 'Inbound Marketing Lead', owner: 'Daša', team: ['Eva'] },
+                { name: 'Outbound', color: '#f59e0b', lead: 'Outbound Lead', owner: 'Jerry', team: ['Gregor', 'Sara', 'Alja'] },
+                { name: 'Partnerships', color: '#ec4899', owner: 'Vid', vacancy: 'New person???' }
             ];
+
+            const zigaDepts = [
+                { name: 'New Sales', color: '#10b981', lead: 'Sales Team Lead + Ops', segments: [{ label: 'ES', owner: 'Jernej' }, { label: 'Mid', owner: 'Žiga' }, { label: 'Enterprise + Tenders', owner: 'Durdica' }], team: ['Žiga', 'Daša', 'Jerry', 'Durdica'] },
+                { name: 'AM / CS', color: '#3b82f6', owner: 'Vid', segments: [{ label: 'Whale Protection Program' }], team: ['Žiga', 'Daša', 'Vid', 'Jerry', 'Edvin', 'Durdica'] }
+            ];
+
+            const personBox = (name, title, style) => (
+                <div style={{
+                    borderRadius: '14px',
+                    padding: '16px 32px',
+                    textAlign: 'center',
+                    minWidth: '200px',
+                    ...style
+                }}>
+                    <div style={{ fontSize: style.fontSize || '16px', fontWeight: '700', color: style.color || 'var(--povio-gray-900)' }}>{name}</div>
+                    <div style={{ fontSize: '13px', color: style.subtitleColor || 'var(--povio-gray-600)', marginTop: '4px', opacity: style.subtitleOpacity || 1 }}>{title}</div>
+                </div>
+            );
+
+            const connector = (h = 24) => <div style={{ width: '2px', height: `${h}px`, background: 'var(--povio-border)' }} />;
+
+            const sectionLabel = (text) => (
+                <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--povio-gray-400)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>{text}</div>
+            );
 
             return (
                 <div style={{ padding: '0 24px 24px' }}>
-                    {/* Org chart top */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '32px' }}>
-                        <div style={{
+                    {/* Vid at the top */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '12px' }}>
+                        {personBox('Vid Lešnik', 'Head of Sales & Partnerships', {
                             background: 'linear-gradient(135deg, var(--povio-blue), #4338ca)',
                             color: '#fff',
-                            borderRadius: '14px',
-                            padding: '20px 36px',
-                            textAlign: 'center',
-                            boxShadow: '0 4px 20px rgba(37,99,235,0.25)',
-                            minWidth: '240px'
-                        }}>
-                            <div style={{ fontSize: '18px', fontWeight: '700' }}>Vid Lešnik</div>
-                            <div style={{ fontSize: '13px', opacity: 0.85, marginTop: '4px' }}>Head of Sales & Partnerships</div>
+                            subtitleColor: '#fff',
+                            subtitleOpacity: 0.85,
+                            fontSize: '18px',
+                            boxShadow: '0 4px 20px rgba(37,99,235,0.25)'
+                        })}
+                        {connector(28)}
+                        {/* Split into two branches */}
+                        <div style={{ display: 'flex', width: '100%', maxWidth: '1000px', position: 'relative', justifyContent: 'center' }}>
+                            {/* Horizontal bar spanning both branches */}
+                            <div style={{ position: 'absolute', top: 0, left: '25%', right: '25%', height: '2px', background: 'var(--povio-border)' }} />
+                            {/* Left branch — Vid's direct reports */}
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                {connector(24)}
+                                <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--povio-gray-500)', marginBottom: '8px' }}>Direct reports</div>
+                            </div>
+                            {/* Right branch — via Žiga */}
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                {connector(24)}
+                                {personBox('Žiga', 'Sales Manager', {
+                                    background: 'var(--povio-white)',
+                                    border: '2px solid var(--povio-blue)',
+                                    color: 'var(--povio-gray-900)'
+                                })}
+                            </div>
                         </div>
-                        <div style={{ width: '2px', height: '28px', background: 'var(--povio-border)' }} />
-                        <div style={{
-                            background: 'var(--povio-white)',
-                            border: '2px solid var(--povio-blue)',
-                            borderRadius: '14px',
-                            padding: '16px 32px',
-                            textAlign: 'center',
-                            minWidth: '200px'
-                        }}>
-                            <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--povio-gray-900)' }}>Žiga</div>
-                            <div style={{ fontSize: '13px', color: 'var(--povio-gray-600)', marginTop: '2px' }}>Sales Manager</div>
-                        </div>
-                        <div style={{ width: '2px', height: '28px', background: 'var(--povio-border)' }} />
-                        {/* Horizontal connector */}
-                        <div style={{ width: '80%', maxWidth: '900px', height: '2px', background: 'var(--povio-border)' }} />
                     </div>
 
-                    {/* Department cards */}
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                        gap: '16px'
-                    }}>
-                        {departments.map(dept => (
-                            <div key={dept.name} style={{
-                                background: 'var(--povio-white)',
-                                borderRadius: '12px',
-                                border: '1px solid var(--povio-border)',
-                                overflow: 'hidden',
-                                display: 'flex',
-                                flexDirection: 'column'
-                            }}>
-                                {/* Department header */}
-                                <div style={{
-                                    background: dept.color,
-                                    color: '#fff',
-                                    padding: '14px 18px',
-                                    fontSize: '14px',
-                                    fontWeight: '700'
-                                }}>
-                                    {dept.name}
-                                </div>
-                                <div style={{ padding: '16px 18px', flex: 1, display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                                    {/* Lead */}
-                                    {dept.lead && (
-                                        <div>
-                                            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--povio-gray-500)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Lead</div>
-                                            <div style={{ fontSize: '13px', color: 'var(--povio-gray-700)' }}>{dept.lead}</div>
-                                        </div>
-                                    )}
-                                    {/* Owner */}
-                                    {dept.owner && (
-                                        <div>
-                                            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--povio-gray-500)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Owner</div>
-                                            <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--povio-gray-900)' }}>{dept.owner}</div>
-                                        </div>
-                                    )}
-                                    {/* Segments */}
-                                    {dept.segments.length > 0 && (
-                                        <div>
-                                            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--povio-gray-500)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Segments</div>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                {dept.segments.map((seg, i) => (
-                                                    <div key={i} style={{
-                                                        fontSize: '13px',
-                                                        color: 'var(--povio-gray-700)',
-                                                        padding: '4px 8px',
-                                                        background: 'var(--povio-gray-100)',
-                                                        borderRadius: '6px'
-                                                    }}>
-                                                        {seg.label}{seg.owner ? ` — ${seg.owner}` : ''}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                    {/* Vacancy */}
-                                    {dept.vacancy && (
-                                        <div style={{
-                                            fontSize: '13px',
-                                            color: '#d97706',
-                                            fontStyle: 'italic',
-                                            padding: '6px 10px',
-                                            background: '#fffbeb',
-                                            borderRadius: '6px',
-                                            border: '1px dashed #fbbf24'
-                                        }}>
-                                            {dept.vacancy}
-                                        </div>
-                                    )}
-                                    {/* Team */}
-                                    {dept.team.length > 0 && (
-                                        <div style={{ marginTop: 'auto' }}>
-                                            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--povio-gray-500)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Team</div>
-                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                                                {dept.team.map((member, i) => (
-                                                    <span key={i} style={{
-                                                        fontSize: '12px',
-                                                        fontWeight: '500',
-                                                        color: 'var(--povio-gray-700)',
-                                                        background: 'var(--povio-gray-100)',
-                                                        padding: '4px 10px',
-                                                        borderRadius: '20px'
-                                                    }}>{member}</span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
+                    {/* Two-column layout */}
+                    <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                        {/* Left column — Vid's direct departments */}
+                        <div style={{ flex: 1, minWidth: '280px' }}>
+                            {sectionLabel("Vid's Direct Reports")}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                {vidDirect.map(dept => <DeptCard key={dept.name} dept={dept} />)}
                             </div>
-                        ))}
+                        </div>
+                        {/* Right column — Žiga's departments */}
+                        <div style={{ flex: 1, minWidth: '280px' }}>
+                            {sectionLabel("Žiga's Departments")}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                {zigaDepts.map(dept => <DeptCard key={dept.name} dept={dept} />)}
+                            </div>
+                        </div>
                     </div>
                 </div>
             );
