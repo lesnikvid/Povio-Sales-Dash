@@ -2006,16 +2006,33 @@
                 const { data, error } = await supabaseClient
                     .from('goals')
                     .select('*')
-                    .eq('user_id', user.id)
-                    .order('number', { ascending: true });
+                    .eq('user_id', user.id);
 
                 if (error) {
                     console.error('Error fetching goals:', error);
                     return;
                 }
 
+                // Deduplicate by `number` field, keeping the most recently created row
+                const seen = new Map();
+                for (const goal of (data || [])) {
+                    const key = goal.number;
+                    const existing = seen.get(key);
+                    if (!existing || goal.id > existing.id) {
+                        seen.set(key, goal);
+                    }
+                }
+                const unique = Array.from(seen.values());
+
+                // Sort numerically by the digit in "Goal N"
+                unique.sort((a, b) => {
+                    const numA = parseInt((a.number || '').replace(/\D/g, ''), 10) || 0;
+                    const numB = parseInt((b.number || '').replace(/\D/g, ''), 10) || 0;
+                    return numA - numB;
+                });
+
                 // Map database fields to component fields
-                const mappedGoals = (data || []).map(goal => ({
+                const mappedGoals = unique.map(goal => ({
                     ...goal,
                     bucket: goal.category,  // RoadmapView expects 'bucket'
                     successMetric: goal.target,  // Some components expect 'successMetric'
@@ -2054,14 +2071,20 @@
             // Migrate localStorage data to database if needed
             const migrateData = async () => {
                 // Check if database has data
-                const { data: existingGoals } = await supabaseClient
+                const { data: existingGoals, error } = await supabaseClient
                     .from('goals')
                     .select('id')
                     .eq('user_id', user.id)
                     .limit(1);
 
+                // If the query failed, bail out — do NOT assume the DB is empty
+                if (error) {
+                    console.error('Migration check failed, skipping migration:', error);
+                    return;
+                }
+
                 // If database is empty, try to migrate from localStorage or use initial data
-                if (!existingGoals || existingGoals.length === 0) {
+                if (existingGoals.length === 0) {
                     let goalsToMigrate = initialGoals;
                     let whalesToMigrate = initialWhales;
 
