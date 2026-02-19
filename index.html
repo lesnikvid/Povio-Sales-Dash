@@ -1424,6 +1424,9 @@
                     {dept.name}
                 </div>
                 <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
+                    {dept.subtitle && (
+                        <div style={{ fontWeight: '600', color: 'var(--povio-gray-900)' }}>{dept.subtitle}</div>
+                    )}
                     {dept.owner && (
                         <div><span style={{ color: 'var(--povio-gray-500)' }}>Owner: </span><span style={{ fontWeight: '600', color: 'var(--povio-gray-900)' }}>{dept.owner}</span></div>
                     )}
@@ -1461,8 +1464,8 @@
 
                         {/* Level 1: Vid's 3 direct depts + Žiga subtree */}
                         <TreeChildren>
-                            <DeptNode dept={{ name: 'Inbound Marketing', color: '#6366f1', lead: 'Inbound Marketing Lead', owner: 'Daša', team: ['Eva'] }} />
-                            <DeptNode dept={{ name: 'Outbound', color: '#f59e0b', lead: 'Outbound Lead', owner: 'Jerry', team: ['Gregor', 'Sara', 'Alja'] }} />
+                            <DeptNode dept={{ name: 'Inbound Marketing', color: '#6366f1', subtitle: 'Daša (Inbound Marketing Lead)', team: ['Eva'] }} />
+                            <DeptNode dept={{ name: 'Outbound', color: '#f59e0b', subtitle: 'Jerry (Outbound Lead)', team: ['Gregor', 'Sara', 'Alja'] }} />
                             <DeptNode dept={{ name: 'Partnerships', color: '#ec4899', owner: 'Vid', vacancy: 'New person???' }} />
 
                             {/* Žiga subtree — person node with its own children */}
