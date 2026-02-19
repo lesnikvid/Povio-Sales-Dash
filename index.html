@@ -277,12 +277,13 @@
         .whale-expand-icon { font-size: 18px; color: var(--povio-gray-400); transition: transform 0.2s ease; text-align: center; }
         .whale-expand-icon.expanded { transform: rotate(180deg); }
 
-        .whale-expanded { padding: 20px; background: var(--povio-bg); border-top: 1px solid var(--povio-border); }
+        .whale-expanded { padding: 20px 24px 24px; background: var(--povio-bg); border-top: 1px solid var(--povio-border); animation: whaleExpand 0.18s ease; }
+        @keyframes whaleExpand { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
         .whale-expanded-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
         .whale-detail-section { }
         .whale-detail-section h4 { font-size: 11px; text-transform: uppercase; color: var(--povio-gray-500); margin-bottom: 12px; letter-spacing: 0.5px; font-weight: 700; }
-        .whale-detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
-        .whale-detail-label { color: var(--povio-gray-500); }
+        .whale-detail-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; gap: 12px; }
+        .whale-detail-label { color: var(--povio-gray-500); flex-shrink: 0; }
         .whale-detail-value { color: var(--povio-gray-900); font-weight: 500; }
 
         .whale-notes { padding: 16px; background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 8px; font-size: 13px; color: var(--povio-gray-700); line-height: 1.6; margin-bottom: 16px; }
@@ -376,7 +377,7 @@
 <body>
     <div id="root"></div>
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useEffect, useMemo, useRef } = React;
 
         // ==================== HTTPS ENFORCEMENT ====================
         // Redirect to HTTPS in production (but allow localhost for development)
@@ -1534,6 +1535,64 @@
             );
         };
 
+        // Inline-editable field — click to edit, Enter/blur to save, Esc to cancel
+        const InlineEdit = ({ value, display, onSave, type = 'text', options }) => {
+            const [editing, setEditing] = useState(false);
+            const [draft, setDraft] = useState(value);
+            const [hovered, setHovered] = useState(false);
+            const inputRef = useRef(null);
+
+            useEffect(() => { if (editing && inputRef.current) inputRef.current.focus(); }, [editing]);
+
+            const startEdit = () => { setDraft(value); setEditing(true); };
+            const commit = () => {
+                setEditing(false);
+                if (String(draft) !== String(value)) onSave(draft);
+            };
+            const cancel = () => { setEditing(false); setDraft(value); };
+
+            const inputStyle = {
+                border: '1.5px solid var(--povio-blue)', borderRadius: '4px',
+                padding: '2px 6px', fontSize: '13px', fontWeight: '500',
+                color: 'var(--povio-gray-900)', background: 'var(--povio-white)',
+                outline: 'none', minWidth: '80px', maxWidth: '160px'
+            };
+
+            if (editing) {
+                if (options) {
+                    return (
+                        <select ref={inputRef} value={draft} onChange={e => setDraft(e.target.value)}
+                            onBlur={commit} style={{ ...inputStyle, maxWidth: '180px' }}>
+                            {options.map(o => <option key={o.value ?? o} value={o.value ?? o}>{o.label ?? o}</option>)}
+                        </select>
+                    );
+                }
+                return (
+                    <input ref={inputRef} type={type} value={draft}
+                        onChange={e => setDraft(e.target.value)}
+                        onBlur={commit}
+                        onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') cancel(); }}
+                        style={inputStyle}
+                    />
+                );
+            }
+            return (
+                <span onClick={startEdit}
+                    onMouseEnter={() => setHovered(true)}
+                    onMouseLeave={() => setHovered(false)}
+                    title="Click to edit"
+                    style={{
+                        cursor: 'pointer', borderRadius: '4px', padding: '2px 5px', margin: '-2px -5px',
+                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        background: hovered ? 'rgba(31,53,255,0.06)' : 'transparent',
+                        transition: 'background 0.15s ease', textAlign: 'right'
+                    }}>
+                    {display ?? value ?? <span style={{ color: 'var(--povio-gray-400)' }}>—</span>}
+                    <span style={{ fontSize: '10px', color: 'var(--povio-gray-400)', opacity: hovered ? 1 : 0, transition: 'opacity 0.15s ease' }}>✎</span>
+                </span>
+            );
+        };
+
         const WhaleView = ({ whales, onUpdate, user }) => {
             const [expandedId, setExpandedId] = useState(null);
             const [editingWhale, setEditingWhale] = useState(null);
@@ -1680,6 +1739,14 @@
                 setEditingWhale(null);
             };
 
+            // Save a single field inline without opening the modal
+            const handleFieldSave = (whaleId, field, value) => {
+                const updatedWhales = whales.map(w =>
+                    w.id === whaleId ? { ...w, [field]: value } : w
+                );
+                onUpdate(updatedWhales);
+            };
+
             // Handle view history
             const handleViewHistory = async (whale) => {
                 await fetchWhaleNotes(whale.id, true); // Force refresh to get latest notes
@@ -1793,57 +1860,89 @@
                                         <h4>Account Details</h4>
                                         <div className="whale-detail-row">
                                             <span className="whale-detail-label">Account Manager</span>
-                                            <span className="whale-detail-value">{whale.accountManager}</span>
+                                            <InlineEdit value={whale.accountManager} onSave={v => handleFieldSave(whale.id, 'accountManager', v)} />
                                         </div>
                                         <div className="whale-detail-row">
                                             <span className="whale-detail-label">Industry</span>
-                                            <span className="whale-detail-value">{whale.industry}</span>
+                                            <InlineEdit value={whale.industry} onSave={v => handleFieldSave(whale.id, 'industry', v)} />
                                         </div>
                                         <div className="whale-detail-row">
                                             <span className="whale-detail-label">Contract End</span>
-                                            <span className="whale-detail-value">{formatDateForDisplay(whale.contractEnd)}</span>
+                                            <InlineEdit
+                                                value={formatDateForInput(whale.contractEnd)}
+                                                display={formatDateForDisplay(whale.contractEnd)}
+                                                type="date"
+                                                onSave={v => handleFieldSave(whale.id, 'contractEnd', v)}
+                                            />
+                                        </div>
+                                        <div className="whale-detail-row">
+                                            <span className="whale-detail-label">Churn Risk</span>
+                                            <InlineEdit
+                                                value={whale.churnRisk}
+                                                display={<span style={{ color: whale.churnRisk === 'Critical' || whale.churnRisk === 'High' ? 'var(--povio-danger)' : whale.churnRisk === 'Medium' ? 'var(--povio-warning)' : 'var(--povio-success)', fontWeight: '600' }}>{whale.churnRisk}</span>}
+                                                options={['Low', 'Medium', 'High', 'Critical']}
+                                                onSave={v => handleFieldSave(whale.id, 'churnRisk', v)}
+                                            />
                                         </div>
                                     </div>
                                     <div className="whale-detail-section">
                                         <h4>Financial Metrics</h4>
                                         <div className="whale-detail-row">
                                             <span className="whale-detail-label">ARR</span>
-                                            <span className="whale-detail-value" style={{ color: 'var(--povio-blue)', fontWeight: '700' }}>{formatCurrency(whale.arr)}</span>
+                                            <InlineEdit
+                                                value={whale.arr}
+                                                display={<span style={{ color: 'var(--povio-blue)', fontWeight: '700' }}>{formatCurrency(whale.arr)}</span>}
+                                                type="number"
+                                                onSave={v => handleFieldSave(whale.id, 'arr', parseFloat(v))}
+                                            />
                                         </div>
                                         <div className="whale-detail-row">
                                             <span className="whale-detail-label">LTV</span>
-                                            <span className="whale-detail-value">{formatCurrency(whale.ltv)}</span>
+                                            <InlineEdit
+                                                value={whale.ltv}
+                                                display={formatCurrency(whale.ltv)}
+                                                type="number"
+                                                onSave={v => handleFieldSave(whale.id, 'ltv', parseFloat(v))}
+                                            />
                                         </div>
                                         <div className="whale-detail-row">
-                                            <span className="whale-detail-label">Expansion Potential</span>
-                                            <span className="whale-detail-value" style={{
-                                                color: whale.expansion === 'High' ? 'var(--povio-success)' : whale.expansion === 'Medium' ? 'var(--povio-warning)' : 'var(--povio-gray-700)'
-                                            }}>{whale.expansion}</span>
+                                            <span className="whale-detail-label">Expansion</span>
+                                            <InlineEdit
+                                                value={whale.expansion}
+                                                display={<span style={{ color: whale.expansion === 'High' ? 'var(--povio-success)' : whale.expansion === 'Medium' ? 'var(--povio-warning)' : 'var(--povio-gray-700)' }}>{whale.expansion}</span>}
+                                                options={['Low', 'Medium', 'High']}
+                                                onSave={v => handleFieldSave(whale.id, 'expansion', v)}
+                                            />
                                         </div>
                                     </div>
                                     <div className="whale-detail-section">
                                         <h4>QBR Schedule</h4>
                                         <div className="whale-detail-row">
                                             <span className="whale-detail-label">Last QBR</span>
-                                            <span className="whale-detail-value">{whale.lastQBR !== 'Overdue' ? formatDateForDisplay(whale.lastQBR) : whale.lastQBR}</span>
+                                            <InlineEdit
+                                                value={formatDateForInput(whale.lastQBR)}
+                                                display={formatDateForDisplay(whale.lastQBR)}
+                                                type="date"
+                                                onSave={v => handleFieldSave(whale.id, 'lastQBR', v)}
+                                            />
                                         </div>
                                         <div className="whale-detail-row">
                                             <span className="whale-detail-label">Next QBR</span>
-                                            <span className="whale-detail-value" style={{
-                                                color: whale.nextQBR === 'Overdue' ? 'var(--povio-danger)' : 'inherit',
-                                                fontWeight: whale.nextQBR === 'Overdue' ? '700' : 'normal'
-                                            }}>
-                                                {whale.nextQBR !== 'Overdue' ? formatDateForDisplay(whale.nextQBR) : '⚠ Overdue'}
-                                            </span>
+                                            <InlineEdit
+                                                value={formatDateForInput(whale.nextQBR)}
+                                                display={<span style={{ color: whale.nextQBR === 'Overdue' ? 'var(--povio-danger)' : 'inherit', fontWeight: whale.nextQBR === 'Overdue' ? '700' : 'normal' }}>{whale.nextQBR !== 'Overdue' ? formatDateForDisplay(whale.nextQBR) : '⚠ Overdue'}</span>}
+                                                type="date"
+                                                onSave={v => handleFieldSave(whale.id, 'nextQBR', v)}
+                                            />
                                         </div>
                                         <div className="whale-detail-row">
                                             <span className="whale-detail-label">Health Status</span>
-                                            <span className="whale-detail-value" style={{
-                                                color: whale.health === 'healthy' ? 'var(--povio-success)' : whale.health === 'warning' ? 'var(--povio-warning)' : 'var(--povio-danger)',
-                                                fontWeight: '600'
-                                            }}>
-                                                {whale.health === 'healthy' ? 'Healthy' : whale.health === 'warning' ? 'At Risk' : 'Critical'}
-                                            </span>
+                                            <InlineEdit
+                                                value={whale.health}
+                                                display={<span style={{ color: whale.health === 'healthy' ? 'var(--povio-success)' : whale.health === 'warning' ? 'var(--povio-warning)' : 'var(--povio-danger)', fontWeight: '600' }}>{whale.health === 'healthy' ? 'Healthy' : whale.health === 'warning' ? 'At Risk' : 'Critical'}</span>}
+                                                options={[{ value: 'healthy', label: 'Healthy' }, { value: 'warning', label: 'At Risk' }, { value: 'critical', label: 'Critical' }]}
+                                                onSave={v => handleFieldSave(whale.id, 'health', v)}
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -1896,10 +1995,10 @@
                                         </div>
                                     </div>
                                 )}
-                                <div className="whale-actions">
-                                    <button className="btn btn-primary btn-small" onClick={() => handleEditWhale(whale)}>Edit Details</button>
+                                <div className="whale-actions" style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--povio-border)' }}>
                                     <button className="btn btn-secondary btn-small" onClick={() => handleAddNoteClick(whale)}>+ Add Note</button>
                                     <button className="btn btn-secondary btn-small" onClick={() => handleViewHistory(whale)}>View History</button>
+                                    <button className="btn btn-secondary btn-small" onClick={() => handleEditWhale(whale)}>Edit All Fields</button>
                                 </div>
                             </div>
                         )}
