@@ -95,49 +95,79 @@ ALTER TABLE goals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE whales ENABLE ROW LEVEL SECURITY;
 ALTER TABLE whale_notes ENABLE ROW LEVEL SECURITY;
 
--- Goals Policies (with UUID to TEXT casting)
+-- ============================================================================
+-- USER ALLOWLIST (only these emails can access the dashboard)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS allowed_users (
+    email TEXT PRIMARY KEY,
+    added_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    added_by TEXT,
+    notes TEXT
+);
+
+-- Seed with owner email — EDIT THIS if running on a fresh DB
+INSERT INTO allowed_users (email, notes) VALUES
+    ('lesnik.vid@gmail.com', 'Owner (GitHub account)')
+ON CONFLICT (email) DO NOTHING;
+
+-- Helper function: returns true only if the authenticated user's email is in allowed_users
+CREATE OR REPLACE FUNCTION is_user_allowed()
+RETURNS BOOLEAN
+LANGUAGE SQL
+STABLE
+SECURITY DEFINER
+AS $$
+    SELECT EXISTS (
+        SELECT 1
+        FROM allowed_users
+        WHERE email = (auth.jwt() ->> 'email')
+    );
+$$;
+
+-- Goals Policies (user_id match + allowlist check)
 DROP POLICY IF EXISTS "Users can view their own goals" ON goals;
 CREATE POLICY "Users can view their own goals"
     ON goals FOR SELECT
-    USING (auth.uid()::text = user_id);
+    USING (auth.uid()::text = user_id AND is_user_allowed());
 
 DROP POLICY IF EXISTS "Users can insert their own goals" ON goals;
 CREATE POLICY "Users can insert their own goals"
     ON goals FOR INSERT
-    WITH CHECK (auth.uid()::text = user_id);
+    WITH CHECK (auth.uid()::text = user_id AND is_user_allowed());
 
 DROP POLICY IF EXISTS "Users can update their own goals" ON goals;
 CREATE POLICY "Users can update their own goals"
     ON goals FOR UPDATE
-    USING (auth.uid()::text = user_id)
-    WITH CHECK (auth.uid()::text = user_id);
+    USING (auth.uid()::text = user_id AND is_user_allowed())
+    WITH CHECK (auth.uid()::text = user_id AND is_user_allowed());
 
 DROP POLICY IF EXISTS "Users can delete their own goals" ON goals;
 CREATE POLICY "Users can delete their own goals"
     ON goals FOR DELETE
-    USING (auth.uid()::text = user_id);
+    USING (auth.uid()::text = user_id AND is_user_allowed());
 
--- Whales Policies (with UUID to TEXT casting)
+-- Whales Policies (user_id match + allowlist check)
 DROP POLICY IF EXISTS "Users can view their own whales" ON whales;
 CREATE POLICY "Users can view their own whales"
     ON whales FOR SELECT
-    USING (auth.uid()::text = user_id);
+    USING (auth.uid()::text = user_id AND is_user_allowed());
 
 DROP POLICY IF EXISTS "Users can insert their own whales" ON whales;
 CREATE POLICY "Users can insert their own whales"
     ON whales FOR INSERT
-    WITH CHECK (auth.uid()::text = user_id);
+    WITH CHECK (auth.uid()::text = user_id AND is_user_allowed());
 
 DROP POLICY IF EXISTS "Users can update their own whales" ON whales;
 CREATE POLICY "Users can update their own whales"
     ON whales FOR UPDATE
-    USING (auth.uid()::text = user_id)
-    WITH CHECK (auth.uid()::text = user_id);
+    USING (auth.uid()::text = user_id AND is_user_allowed())
+    WITH CHECK (auth.uid()::text = user_id AND is_user_allowed());
 
 DROP POLICY IF EXISTS "Users can delete their own whales" ON whales;
 CREATE POLICY "Users can delete their own whales"
     ON whales FOR DELETE
-    USING (auth.uid()::text = user_id);
+    USING (auth.uid()::text = user_id AND is_user_allowed());
 
 -- Whale Notes Policies (with UUID to TEXT casting)
 DROP POLICY IF EXISTS "Users can view notes for their whales" ON whale_notes;
@@ -149,6 +179,7 @@ CREATE POLICY "Users can view notes for their whales"
             WHERE whales.id = whale_notes.whale_id
             AND whales.user_id = auth.uid()::text
         )
+        AND is_user_allowed()
     );
 
 DROP POLICY IF EXISTS "Users can insert notes for their whales" ON whale_notes;
@@ -161,18 +192,19 @@ CREATE POLICY "Users can insert notes for their whales"
             AND whales.user_id = auth.uid()::text
         )
         AND auth.uid()::text = user_id
+        AND is_user_allowed()
     );
 
 DROP POLICY IF EXISTS "Users can update their own notes" ON whale_notes;
 CREATE POLICY "Users can update their own notes"
     ON whale_notes FOR UPDATE
-    USING (auth.uid()::text = user_id)
-    WITH CHECK (auth.uid()::text = user_id);
+    USING (auth.uid()::text = user_id AND is_user_allowed())
+    WITH CHECK (auth.uid()::text = user_id AND is_user_allowed());
 
 DROP POLICY IF EXISTS "Users can delete their own notes" ON whale_notes;
 CREATE POLICY "Users can delete their own notes"
     ON whale_notes FOR DELETE
-    USING (auth.uid()::text = user_id);
+    USING (auth.uid()::text = user_id AND is_user_allowed());
 
 -- ============================================================================
 -- VERIFICATION QUERIES (run these to confirm)

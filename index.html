@@ -2368,76 +2368,9 @@
                 setWhales(mappedWhales);
             };
 
-            // Migrate localStorage data to database if needed
-            const migrateData = async () => {
-                // Check if database has data
-                const { data: existingGoals, error } = await supabaseClient
-                    .from('goals')
-                    .select('id')
-                    .eq('user_id', user.id)
-                    .limit(1);
-
-                // If the query failed, bail out — do NOT assume the DB is empty
-                if (error) {
-                    console.error('Migration check failed, skipping migration:', error);
-                    return;
-                }
-
-                // If database is empty, try to migrate from localStorage or use initial data
-                if (existingGoals.length === 0) {
-                    let goalsToMigrate = initialGoals;
-                    let whalesToMigrate = initialWhales;
-
-                    // Check localStorage first
-                    const savedGoals = localStorage.getItem('povio-goals-2026-combined');
-                    const savedWhales = localStorage.getItem('povio-whales-2026');
-
-                    if (savedGoals) {
-                        goalsToMigrate = JSON.parse(savedGoals);
-                    }
-                    if (savedWhales) {
-                        whalesToMigrate = JSON.parse(savedWhales);
-                    }
-
-                    // Insert goals
-                    for (const goal of goalsToMigrate) {
-                        await supabaseClient.from('goals').insert([{
-                            user_id: user.id,
-                            number: goal.number,
-                            title: goal.title,
-                            target: goal.target || goal.successMetric,
-                            deadline: goal.deadline,
-                            category: goal.bucket || goal.category,
-                            milestones: goal.milestones || []
-                        }]);
-                    }
-
-                    // Insert whales
-                    for (const whale of whalesToMigrate) {
-                        await supabaseClient.from('whales').insert([{
-                            user_id: user.id,
-                            name: whale.name,
-                            industry: whale.industry,
-                            health: whale.health,
-                            arr: whale.arr,
-                            ltv: whale.ltv,
-                            contract_end: whale.contractEnd,
-                            account_manager: whale.accountManager,
-                            last_qbr: whale.lastQBR,
-                            next_qbr: whale.nextQBR,
-                            expansion: whale.expansion,
-                            churn_risk: whale.churnRisk,
-                            notes: whale.notes
-                        }]);
-                    }
-                }
-            };
-
             // Initial data load
             useEffect(() => {
                 const loadData = async () => {
-                    // migrateData() disabled for security - no auto-seeding of sample data
-                    // await migrateData();
                     await Promise.all([fetchGoals(), fetchWhales()]);
                     setLoading(false);
                 };

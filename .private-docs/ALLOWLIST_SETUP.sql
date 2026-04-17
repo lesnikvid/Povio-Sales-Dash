@@ -11,10 +11,10 @@ CREATE TABLE IF NOT EXISTS allowed_users (
     notes TEXT
 );
 
--- Step 2: Add YOUR email(s) - EDIT THIS LIST!
+-- Step 2: Add YOUR email(s) - EDIT THIS LIST if adding more users
+-- Email must match the GitHub account's primary email
 INSERT INTO allowed_users (email, notes) VALUES
-    ('vid@povio.com', 'Owner'),
-    ('your-email@example.com', 'Team member')
+    ('lesnik.vid@gmail.com', 'Owner (GitHub account)')
 ON CONFLICT (email) DO NOTHING;
 
 -- Step 3: Create helper function to check if user is allowed
