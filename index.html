@@ -1427,33 +1427,73 @@
         };
 
         const ROLE_COLORS = { AE: '#3b82f6', KAM: '#10b981', AM: '#8b5cf6', SDR: '#f59e0b', Collections: '#64748b' };
+        const ALL_ROLES = ['AE', 'KAM', 'AM', 'SDR', 'Collections'];
+        const DEPT_COLOR_OPTIONS = ['#6366f1', '#f59e0b', '#ec4899', '#10b981', '#3b82f6', '#ef4444', '#14b8a6', '#8b5cf6', '#64748b'];
 
-        const PEOPLE = [
-            { name: 'Vid Lešnik',          title: 'Head of Sales & Partnerships', roles: ['AE', 'KAM'] },
-            { name: 'Žiga Triller',         title: 'Sales Manager',                roles: ['AE', 'KAM'] },
-            { name: 'Daša Ravter',          title: 'Inbound Marketing Lead',       roles: ['AE', 'KAM'] },
-            { name: 'Jernej Lešnik',        title: 'Outbound Lead',                roles: ['AE', 'AM']  },
-            { name: 'Durdica Strunjaš Kurt',title: '',                             roles: ['AE', 'AM']  },
-            { name: 'Edvin Lovic',          title: '',                             roles: ['KAM', 'Collections'] },
-            { name: 'Alja Drovenik',        title: '',                             roles: ['SDR'] },
-            { name: 'Sara Petrič',          title: '',                             roles: ['SDR'] },
-            { name: 'Eva Težak',            title: 'Inbound Marketing Assistant',  roles: [] },
-            { name: 'Gregor Špan',          title: '',                             roles: ['SDR', 'AM'] },
-        ];
+        const genTeamId = (prefix = 'id') => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+
+        // Default org structure — seeded on first load when no team_data row exists
+        const DEFAULT_TEAM_STRUCTURE = {
+            members: {
+                'vid':     { id: 'vid',     name: 'Vid Lešnik',           title: 'Head of Sales & Partnerships', roles: ['AE', 'KAM'] },
+                'ziga':    { id: 'ziga',    name: 'Žiga Triller',         title: 'Sales Manager',                roles: ['AE', 'KAM'] },
+                'dasa':    { id: 'dasa',    name: 'Daša Ravter',          title: 'Inbound Marketing Lead',       roles: ['AE', 'KAM'] },
+                'jerry':   { id: 'jerry',   name: 'Jernej Lešnik',        title: 'Outbound Lead',                roles: ['AE', 'AM']  },
+                'durdica': { id: 'durdica', name: 'Durdica Strunjaš Kurt',title: '',                             roles: ['AE', 'AM']  },
+                'edvin':   { id: 'edvin',   name: 'Edvin Lovic',          title: '',                             roles: ['KAM', 'Collections'] },
+                'alja':    { id: 'alja',    name: 'Alja Drovenik',        title: '',                             roles: ['SDR'] },
+                'sara':    { id: 'sara',    name: 'Sara Petrič',          title: '',                             roles: ['SDR'] },
+                'eva':     { id: 'eva',     name: 'Eva Težak',            title: 'Inbound Marketing Assistant',  roles: [] },
+                'gregor':  { id: 'gregor',  name: 'Gregor Špan',          title: '',                             roles: ['SDR', 'AM'] }
+            },
+            root: 'vid',
+            reports: { 'vid': ['ziga'], 'ziga': [] },
+            departments: [
+                { id: 'd1', name: 'Inbound Marketing', color: '#6366f1', managerId: 'vid',  leadMemberId: 'dasa',  leadLabel: 'Inbound Marketing Lead', memberIds: ['eva'], segments: [], vacancy: null },
+                { id: 'd2', name: 'Outbound',          color: '#f59e0b', managerId: 'vid',  leadMemberId: 'jerry', leadLabel: 'Outbound Lead',          memberIds: ['alja', 'sara'], segments: [], vacancy: null },
+                { id: 'd3', name: 'Partnerships',      color: '#ec4899', managerId: 'vid',  leadMemberId: 'vid',   leadLabel: 'Owner',                  memberIds: [], segments: [], vacancy: 'New person???' },
+                { id: 'd4', name: 'New Sales',         color: '#10b981', managerId: 'ziga', leadMemberId: null,    leadLabel: null,                     memberIds: [], segments: [{ label: 'Early Stage', memberId: 'jerry' }, { label: 'Mid Market', memberId: 'ziga' }, { label: 'Enterprise', memberId: 'durdica' }], vacancy: null },
+                { id: 'd5', name: 'Client Success',    color: '#3b82f6', managerId: 'ziga', leadMemberId: null,    leadLabel: null,                     memberIds: ['edvin', 'gregor'], segments: [], vacancy: null }
+            ]
+        };
+
+        const normalizeTeamStructure = (s) => {
+            if (!s || !s.members || !s.root) return DEFAULT_TEAM_STRUCTURE;
+            return {
+                members: s.members || {},
+                root: s.root,
+                reports: s.reports || {},
+                departments: (s.departments || []).map(d => ({
+                    id: d.id || genTeamId('d'),
+                    name: d.name || 'Untitled',
+                    color: d.color || '#64748b',
+                    managerId: d.managerId || null,
+                    leadMemberId: d.leadMemberId || null,
+                    leadLabel: d.leadLabel || null,
+                    memberIds: d.memberIds || [],
+                    segments: d.segments || [],
+                    vacancy: d.vacancy || null
+                }))
+            };
+        };
 
         // Small avatar chip used throughout the tree
-        const Avatar = ({ name, sub, roles }) => {
-            const initials = name.split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+        const Avatar = ({ name, sub, roles, onEdit, onRemove }) => {
+            const initials = (name || '?').split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
             return (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{
-                        width: '26px', height: '26px', borderRadius: '50%', flexShrink: 0,
-                        background: 'var(--povio-blue)', color: '#fff',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '10px', fontWeight: '700'
-                    }}>{initials}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--povio-gray-900)', lineHeight: 1.3 }}>{name}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative' }}>
+                    <div
+                        onClick={onEdit}
+                        title={onEdit ? 'Click to edit' : undefined}
+                        style={{
+                            width: '26px', height: '26px', borderRadius: '50%', flexShrink: 0,
+                            background: 'var(--povio-blue)', color: '#fff',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '10px', fontWeight: '700',
+                            cursor: onEdit ? 'pointer' : 'default'
+                        }}>{initials}</div>
+                    <div style={{ flex: 1, minWidth: 0, cursor: onEdit ? 'pointer' : 'default' }} onClick={onEdit}>
+                        <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--povio-gray-900)', lineHeight: 1.3 }}>{name || <em style={{ color: 'var(--povio-gray-400)' }}>Unknown</em>}</div>
                         {sub && <div style={{ fontSize: '10px', color: 'var(--povio-gray-500)', lineHeight: 1.2 }}>{sub}</div>}
                         {roles && roles.length > 0 && (
                             <div style={{ display: 'flex', gap: '3px', marginTop: '3px', flexWrap: 'wrap' }}>
@@ -1463,86 +1503,592 @@
                             </div>
                         )}
                     </div>
+                    {onRemove && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                            title="Remove"
+                            style={{
+                                width: '18px', height: '18px', borderRadius: '50%',
+                                background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5',
+                                fontSize: '11px', fontWeight: '700', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                flexShrink: 0, padding: 0, lineHeight: 1
+                            }}>×</button>
+                    )}
                 </div>
             );
         };
 
-        // Department leaf node for the tree
-        const DeptNode = ({ dept }) => (
-            <div style={{
-                background: 'var(--povio-white)',
-                borderRadius: '10px',
-                border: '1px solid var(--povio-border)',
-                overflow: 'hidden',
-                width: '100%',
-                maxWidth: '220px',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.05)'
-            }}>
-                <div style={{ background: dept.color, color: '#fff', padding: '10px 14px', fontSize: '13px', fontWeight: '700', textAlign: 'center' }}>
-                    {dept.name}
+        // Department node — data-driven, renders from a dept object + member lookup
+        const DeptNode = ({ dept, membersMap, editMode, onEditDept, onEditMember, onRemoveMemberFromDept, onAddMember }) => {
+            const resolve = (id) => id ? membersMap[id] : null;
+            const lead = resolve(dept.leadMemberId);
+            return (
+                <div style={{
+                    background: 'var(--povio-white)',
+                    borderRadius: '10px',
+                    border: editMode ? '1.5px solid var(--povio-blue)' : '1px solid var(--povio-border)',
+                    overflow: 'hidden',
+                    width: '100%',
+                    maxWidth: '220px',
+                    boxShadow: editMode ? '0 2px 8px rgba(31,53,255,0.15)' : '0 1px 4px rgba(0,0,0,0.05)'
+                }}>
+                    <div
+                        onClick={editMode ? onEditDept : undefined}
+                        title={editMode ? 'Click to edit department' : undefined}
+                        style={{
+                            background: dept.color, color: '#fff', padding: '10px 14px',
+                            fontSize: '13px', fontWeight: '700', textAlign: 'center',
+                            cursor: editMode ? 'pointer' : 'default',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
+                        }}>
+                        <span>{dept.name}</span>
+                        {editMode && <span style={{ fontSize: '10px', opacity: 0.8 }}>✎</span>}
+                    </div>
+                    <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
+                        {lead && (
+                            <Avatar
+                                name={lead.name}
+                                sub={dept.leadLabel || null}
+                                onEdit={editMode ? () => onEditMember(lead.id) : undefined}
+                            />
+                        )}
+                        {dept.segments && dept.segments.map((seg, i) => {
+                            const segOwner = resolve(seg.memberId);
+                            return (
+                                <div key={i} style={{ padding: '4px 8px', background: 'var(--povio-gray-100)', borderRadius: '4px' }}>
+                                    <div style={{ fontSize: '10px', color: 'var(--povio-gray-500)', marginBottom: '4px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.3px' }}>{seg.label}</div>
+                                    {segOwner && (
+                                        <Avatar
+                                            name={segOwner.name}
+                                            onEdit={editMode ? () => onEditMember(segOwner.id) : undefined}
+                                        />
+                                    )}
+                                </div>
+                            );
+                        })}
+                        {dept.vacancy && (
+                            <div style={{ color: '#d97706', fontStyle: 'italic', padding: '3px 8px', background: '#fffbeb', borderRadius: '4px', border: '1px dashed #fbbf24', fontSize: '11px' }}>
+                                {dept.vacancy}
+                            </div>
+                        )}
+                        {dept.memberIds && dept.memberIds.length > 0 && (
+                            <div style={{ borderTop: '1px solid var(--povio-border)', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                                {dept.memberIds.map((mid) => {
+                                    const m = resolve(mid);
+                                    if (!m) return null;
+                                    return (
+                                        <Avatar
+                                            key={mid}
+                                            name={m.name}
+                                            sub={m.title || null}
+                                            roles={m.roles}
+                                            onEdit={editMode ? () => onEditMember(m.id) : undefined}
+                                            onRemove={editMode ? () => onRemoveMemberFromDept(dept.id, m.id) : undefined}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        )}
+                        {editMode && (
+                            <button
+                                onClick={() => onAddMember(dept.id)}
+                                style={{
+                                    marginTop: '4px', padding: '6px 8px',
+                                    background: 'var(--povio-gray-100)', color: 'var(--povio-blue)',
+                                    border: '1px dashed var(--povio-blue)', borderRadius: '4px',
+                                    fontSize: '11px', fontWeight: '600', cursor: 'pointer'
+                                }}>+ Add member</button>
+                        )}
+                    </div>
                 </div>
-                <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
-                    {dept.subtitle && (
-                        <Avatar name={dept.subtitle.split(' (')[0]} sub={dept.subtitle.match(/\(([^)]+)\)/)?.[1]} />
-                    )}
-                    {dept.owner && (
-                        <Avatar name={dept.owner} sub="Owner" />
-                    )}
-                    {dept.segments && dept.segments.map((seg, i) => (
-                        <div key={i} style={{ padding: '4px 8px', background: 'var(--povio-gray-100)', borderRadius: '4px' }}>
-                            <div style={{ fontSize: '10px', color: 'var(--povio-gray-500)', marginBottom: '4px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.3px' }}>{seg.label}</div>
-                            {seg.owner && <Avatar name={seg.owner} />}
-                        </div>
-                    ))}
-                    {dept.vacancy && (
-                        <div style={{ color: '#d97706', fontStyle: 'italic', padding: '3px 8px', background: '#fffbeb', borderRadius: '4px', border: '1px dashed #fbbf24', fontSize: '11px' }}>
-                            {dept.vacancy}
-                        </div>
-                    )}
-                    {dept.members && dept.members.length > 0 && (
-                        <div style={{ borderTop: '1px solid var(--povio-border)', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '7px' }}>
-                            {dept.members.map((m, i) => (
-                                <Avatar key={i} name={m.name} sub={m.title || null} roles={m.roles} />
-                            ))}
-                        </div>
-                    )}
+            );
+        };
+
+        // Shared modal shell
+        const TeamModal = ({ title, children, onClose }) => (
+            <div onClick={onClose} style={{
+                position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 1000, padding: '20px'
+            }}>
+                <div onClick={e => e.stopPropagation()} style={{
+                    background: '#fff', borderRadius: '12px', width: '100%', maxWidth: '440px',
+                    maxHeight: '90vh', overflow: 'auto', boxShadow: '0 20px 50px rgba(0,0,0,0.25)'
+                }}>
+                    <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--povio-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--povio-gray-900)' }}>{title}</h3>
+                        <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '22px', cursor: 'pointer', color: 'var(--povio-gray-500)', padding: 0, lineHeight: 1 }}>×</button>
+                    </div>
+                    <div style={{ padding: '20px' }}>{children}</div>
                 </div>
             </div>
         );
 
-        const TeamView = () => {
-            // Segment owners shown explicitly — don't duplicate in members list
-            const newSalesSegOwners = new Set(['Žiga Triller', 'Jernej Lešnik', 'Durdica Strunjaš Kurt']);
+        const formLabelStyle = { display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--povio-gray-500)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' };
+        const formInputStyle = { width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid var(--povio-border)', borderRadius: '6px', boxSizing: 'border-box', background: '#fff' };
 
-            const inboundMembers    = PEOPLE.filter(p => p.title === 'Inbound Marketing Assistant');
-            const outboundMembers   = PEOPLE.filter(p => p.roles.includes('SDR'));
-            const newSalesMembers   = PEOPLE.filter(p => p.roles.includes('AE') && !newSalesSegOwners.has(p.name));
-            const clientSuccessMembers = PEOPLE.filter(p => p.roles.includes('AM') || p.roles.includes('KAM'));
+        // Modal for editing an individual team member
+        const EditPersonModal = ({ member, departments, currentDeptId, onSave, onDelete, onClose }) => {
+            const [name, setName] = useState(member.name || '');
+            const [title, setTitle] = useState(member.title || '');
+            const [roles, setRoles] = useState(member.roles || []);
+            const toggleRole = (r) => setRoles(roles.includes(r) ? roles.filter(x => x !== r) : [...roles, r]);
+            const save = () => { if (!name.trim()) return; onSave({ ...member, name: name.trim(), title: title.trim(), roles }); onClose(); };
+            return (
+                <TeamModal title="Edit Team Member" onClose={onClose}>
+                    <div style={{ marginBottom: '16px' }}>
+                        <label style={formLabelStyle}>Name</label>
+                        <input value={name} onChange={e => setName(e.target.value)} style={formInputStyle} autoFocus />
+                    </div>
+                    <div style={{ marginBottom: '16px' }}>
+                        <label style={formLabelStyle}>Title</label>
+                        <input value={title} onChange={e => setTitle(e.target.value)} style={formInputStyle} placeholder="e.g. Sales Manager" />
+                    </div>
+                    <div style={{ marginBottom: '20px' }}>
+                        <label style={formLabelStyle}>Roles</label>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                            {ALL_ROLES.map(r => {
+                                const on = roles.includes(r);
+                                return (
+                                    <button key={r} onClick={() => toggleRole(r)} style={{
+                                        padding: '4px 10px', fontSize: '11px', fontWeight: '700',
+                                        color: on ? '#fff' : 'var(--povio-gray-700)',
+                                        background: on ? ROLE_COLORS[r] : 'var(--povio-gray-100)',
+                                        border: on ? 'none' : '1px solid var(--povio-border)',
+                                        borderRadius: '4px', cursor: 'pointer'
+                                    }}>{r}</button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <button onClick={() => { if (confirm(`Delete ${member.name}? This removes them from the team entirely.`)) { onDelete(member.id); onClose(); } }}
+                            style={{ padding: '8px 12px', background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
+                            Delete member
+                        </button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <button onClick={onClose} style={{ padding: '8px 14px', background: 'var(--povio-gray-100)', color: 'var(--povio-gray-700)', border: '1px solid var(--povio-border)', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>Cancel</button>
+                            <button onClick={save} disabled={!name.trim()} style={{ padding: '8px 14px', background: 'var(--povio-blue)', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: name.trim() ? 'pointer' : 'not-allowed', opacity: name.trim() ? 1 : 0.5 }}>Save</button>
+                        </div>
+                    </div>
+                </TeamModal>
+            );
+        };
+
+        // Modal for editing a department (name, color, lead, vacancy, segments)
+        const EditDeptModal = ({ dept, members, onSave, onDelete, onClose }) => {
+            const [name, setName] = useState(dept.name || '');
+            const [color, setColor] = useState(dept.color || '#64748b');
+            const [leadMemberId, setLeadMemberId] = useState(dept.leadMemberId || '');
+            const [leadLabel, setLeadLabel] = useState(dept.leadLabel || '');
+            const [vacancy, setVacancy] = useState(dept.vacancy || '');
+            const [segments, setSegments] = useState(dept.segments || []);
+            const memberOptions = Object.values(members).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            const updateSeg = (i, key, val) => setSegments(segments.map((s, idx) => idx === i ? { ...s, [key]: val } : s));
+            const addSeg = () => setSegments([...segments, { label: 'New Segment', memberId: null }]);
+            const removeSeg = (i) => setSegments(segments.filter((_, idx) => idx !== i));
+            const save = () => {
+                if (!name.trim()) return;
+                onSave({
+                    ...dept,
+                    name: name.trim(),
+                    color,
+                    leadMemberId: leadMemberId || null,
+                    leadLabel: leadLabel.trim() || null,
+                    vacancy: vacancy.trim() || null,
+                    segments: segments.filter(s => (s.label || '').trim()).map(s => ({ label: s.label.trim(), memberId: s.memberId || null }))
+                });
+                onClose();
+            };
+            return (
+                <TeamModal title="Edit Department" onClose={onClose}>
+                    <div style={{ marginBottom: '14px' }}>
+                        <label style={formLabelStyle}>Name</label>
+                        <input value={name} onChange={e => setName(e.target.value)} style={formInputStyle} autoFocus />
+                    </div>
+                    <div style={{ marginBottom: '14px' }}>
+                        <label style={formLabelStyle}>Color</label>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                            {DEPT_COLOR_OPTIONS.map(c => (
+                                <button key={c} onClick={() => setColor(c)} style={{
+                                    width: '28px', height: '28px', borderRadius: '6px',
+                                    background: c, cursor: 'pointer',
+                                    border: color === c ? '2.5px solid var(--povio-gray-900)' : '1px solid var(--povio-border)'
+                                }} />
+                            ))}
+                        </div>
+                    </div>
+                    <div style={{ marginBottom: '14px' }}>
+                        <label style={formLabelStyle}>Lead / Owner (optional)</label>
+                        <select value={leadMemberId} onChange={e => setLeadMemberId(e.target.value)} style={formInputStyle}>
+                            <option value="">— None —</option>
+                            {memberOptions.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                        </select>
+                    </div>
+                    {leadMemberId && (
+                        <div style={{ marginBottom: '14px' }}>
+                            <label style={formLabelStyle}>Lead label (e.g. "Owner", "Lead")</label>
+                            <input value={leadLabel} onChange={e => setLeadLabel(e.target.value)} style={formInputStyle} placeholder="e.g. Outbound Lead" />
+                        </div>
+                    )}
+                    <div style={{ marginBottom: '14px' }}>
+                        <label style={formLabelStyle}>Vacancy note (optional)</label>
+                        <input value={vacancy} onChange={e => setVacancy(e.target.value)} style={formInputStyle} placeholder="e.g. Hiring new person..." />
+                    </div>
+                    <div style={{ marginBottom: '20px' }}>
+                        <label style={formLabelStyle}>Segments (optional)</label>
+                        {segments.map((seg, i) => (
+                            <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '6px', alignItems: 'center' }}>
+                                <input value={seg.label || ''} onChange={e => updateSeg(i, 'label', e.target.value)} placeholder="Label" style={{ ...formInputStyle, flex: '1 1 120px' }} />
+                                <select value={seg.memberId || ''} onChange={e => updateSeg(i, 'memberId', e.target.value || null)} style={{ ...formInputStyle, flex: '1 1 120px' }}>
+                                    <option value="">— Owner —</option>
+                                    {memberOptions.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                                </select>
+                                <button onClick={() => removeSeg(i)} style={{ padding: '6px 10px', background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}>×</button>
+                            </div>
+                        ))}
+                        <button onClick={addSeg} style={{ marginTop: '4px', padding: '6px 10px', background: 'var(--povio-gray-100)', color: 'var(--povio-blue)', border: '1px dashed var(--povio-blue)', borderRadius: '4px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>+ Add segment</button>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <button onClick={() => { if (confirm(`Delete department "${dept.name}"? Members will be preserved but unassigned.`)) { onDelete(dept.id); onClose(); } }}
+                            style={{ padding: '8px 12px', background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
+                            Delete dept
+                        </button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <button onClick={onClose} style={{ padding: '8px 14px', background: 'var(--povio-gray-100)', color: 'var(--povio-gray-700)', border: '1px solid var(--povio-border)', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>Cancel</button>
+                            <button onClick={save} disabled={!name.trim()} style={{ padding: '8px 14px', background: 'var(--povio-blue)', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: name.trim() ? 'pointer' : 'not-allowed', opacity: name.trim() ? 1 : 0.5 }}>Save</button>
+                        </div>
+                    </div>
+                </TeamModal>
+            );
+        };
+
+        // Modal for adding a new team member (optionally placing into a dept)
+        const AddPersonModal = ({ departments, initialDeptId, onAdd, onClose }) => {
+            const [name, setName] = useState('');
+            const [title, setTitle] = useState('');
+            const [roles, setRoles] = useState([]);
+            const [deptId, setDeptId] = useState(initialDeptId || '');
+            const toggleRole = (r) => setRoles(roles.includes(r) ? roles.filter(x => x !== r) : [...roles, r]);
+            const submit = () => {
+                if (!name.trim()) return;
+                onAdd({ name: name.trim(), title: title.trim(), roles }, deptId || null);
+                onClose();
+            };
+            return (
+                <TeamModal title="Add Team Member" onClose={onClose}>
+                    <div style={{ marginBottom: '14px' }}>
+                        <label style={formLabelStyle}>Name *</label>
+                        <input value={name} onChange={e => setName(e.target.value)} style={formInputStyle} autoFocus placeholder="Full name" />
+                    </div>
+                    <div style={{ marginBottom: '14px' }}>
+                        <label style={formLabelStyle}>Title</label>
+                        <input value={title} onChange={e => setTitle(e.target.value)} style={formInputStyle} placeholder="e.g. Account Manager" />
+                    </div>
+                    <div style={{ marginBottom: '14px' }}>
+                        <label style={formLabelStyle}>Roles</label>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                            {ALL_ROLES.map(r => {
+                                const on = roles.includes(r);
+                                return (
+                                    <button key={r} onClick={() => toggleRole(r)} style={{
+                                        padding: '4px 10px', fontSize: '11px', fontWeight: '700',
+                                        color: on ? '#fff' : 'var(--povio-gray-700)',
+                                        background: on ? ROLE_COLORS[r] : 'var(--povio-gray-100)',
+                                        border: on ? 'none' : '1px solid var(--povio-border)',
+                                        borderRadius: '4px', cursor: 'pointer'
+                                    }}>{r}</button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    <div style={{ marginBottom: '20px' }}>
+                        <label style={formLabelStyle}>Initial department (optional)</label>
+                        <select value={deptId} onChange={e => setDeptId(e.target.value)} style={formInputStyle}>
+                            <option value="">— Unassigned —</option>
+                            {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                        </select>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        <button onClick={onClose} style={{ padding: '8px 14px', background: 'var(--povio-gray-100)', color: 'var(--povio-gray-700)', border: '1px solid var(--povio-border)', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>Cancel</button>
+                        <button onClick={submit} disabled={!name.trim()} style={{ padding: '8px 14px', background: 'var(--povio-blue)', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: name.trim() ? 'pointer' : 'not-allowed', opacity: name.trim() ? 1 : 0.5 }}>Add Person</button>
+                    </div>
+                </TeamModal>
+            );
+        };
+
+        // Modal to pick an existing unassigned member to add to a dept
+        const PickMemberModal = ({ candidates, onPick, onClose }) => (
+            <TeamModal title="Add existing member" onClose={onClose}>
+                {candidates.length === 0 ? (
+                    <p style={{ color: 'var(--povio-gray-500)', fontSize: '13px', margin: 0 }}>All members are already in this department. Use "+ Add Person" to create someone new.</p>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {candidates.map(m => (
+                            <button key={m.id} onClick={() => { onPick(m.id); onClose(); }} style={{
+                                display: 'flex', alignItems: 'center', gap: '10px',
+                                padding: '10px 12px', background: 'var(--povio-gray-100)',
+                                border: '1px solid var(--povio-border)', borderRadius: '6px',
+                                cursor: 'pointer', textAlign: 'left'
+                            }}>
+                                <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--povio-gray-900)' }}>{m.name}</div>
+                                {m.title && <div style={{ fontSize: '11px', color: 'var(--povio-gray-500)' }}>— {m.title}</div>}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </TeamModal>
+        );
+
+        const TeamView = ({ teamData, onUpdate, user }) => {
+            const [editMode, setEditMode] = useState(false);
+            const [editingMemberId, setEditingMemberId] = useState(null);
+            const [editingDeptId, setEditingDeptId] = useState(null);
+            const [addingPerson, setAddingPerson] = useState(false);
+            const [addingPersonForDept, setAddingPersonForDept] = useState(null);
+            const [pickingForDept, setPickingForDept] = useState(null);
+            const [saving, setSaving] = useState(false);
+
+            const structure = normalizeTeamStructure(teamData?.structure);
+            const members = structure.members;
+
+            const commit = async (next) => {
+                setSaving(true);
+                try { await onUpdate(next); } finally { setSaving(false); }
+            };
+
+            const updateMember = (updated) => {
+                const next = { ...structure, members: { ...members, [updated.id]: updated } };
+                commit(next);
+            };
+
+            const deleteMember = (memberId) => {
+                const nextMembers = { ...members };
+                delete nextMembers[memberId];
+                const nextDepts = structure.departments.map(d => ({
+                    ...d,
+                    leadMemberId: d.leadMemberId === memberId ? null : d.leadMemberId,
+                    memberIds: (d.memberIds || []).filter(id => id !== memberId),
+                    segments: (d.segments || []).map(s => s.memberId === memberId ? { ...s, memberId: null } : s)
+                }));
+                const nextReports = {};
+                Object.entries(structure.reports || {}).forEach(([k, v]) => {
+                    if (k === memberId) return;
+                    nextReports[k] = (v || []).filter(id => id !== memberId);
+                });
+                const nextRoot = structure.root === memberId ? (Object.keys(nextMembers)[0] || null) : structure.root;
+                commit({ ...structure, members: nextMembers, departments: nextDepts, reports: nextReports, root: nextRoot });
+            };
+
+            const addPerson = (memberData, deptId) => {
+                const id = genTeamId('m');
+                const newMember = { id, ...memberData };
+                const nextStructure = {
+                    ...structure,
+                    members: { ...members, [id]: newMember }
+                };
+                if (deptId) {
+                    nextStructure.departments = structure.departments.map(d =>
+                        d.id === deptId ? { ...d, memberIds: [...(d.memberIds || []), id] } : d
+                    );
+                }
+                commit(nextStructure);
+            };
+
+            const addExistingMemberToDept = (deptId, memberId) => {
+                const nextDepts = structure.departments.map(d =>
+                    d.id === deptId && !(d.memberIds || []).includes(memberId)
+                        ? { ...d, memberIds: [...(d.memberIds || []), memberId] }
+                        : d
+                );
+                commit({ ...structure, departments: nextDepts });
+            };
+
+            const removeMemberFromDept = (deptId, memberId) => {
+                const nextDepts = structure.departments.map(d =>
+                    d.id === deptId ? { ...d, memberIds: (d.memberIds || []).filter(id => id !== memberId) } : d
+                );
+                commit({ ...structure, departments: nextDepts });
+            };
+
+            const updateDept = (updated) => {
+                const nextDepts = structure.departments.map(d => d.id === updated.id ? updated : d);
+                commit({ ...structure, departments: nextDepts });
+            };
+
+            const deleteDept = (deptId) => {
+                commit({ ...structure, departments: structure.departments.filter(d => d.id !== deptId) });
+            };
+
+            const addDept = (managerId) => {
+                const newDept = {
+                    id: genTeamId('d'),
+                    name: 'New Department',
+                    color: DEPT_COLOR_OPTIONS[structure.departments.length % DEPT_COLOR_OPTIONS.length],
+                    managerId,
+                    leadMemberId: null, leadLabel: null,
+                    memberIds: [], segments: [], vacancy: null
+                };
+                commit({ ...structure, departments: [...structure.departments, newDept] });
+                setEditingDeptId(newDept.id);
+            };
+
+            // Which members are NOT in this dept (available to add)
+            const candidatesForDept = (deptId) => {
+                const dept = structure.departments.find(d => d.id === deptId);
+                const taken = new Set(dept?.memberIds || []);
+                return Object.values(members).filter(m => !taken.has(m.id)).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            };
+
+            // Render a person node + any departments they manage + any direct reports (recursive)
+            const renderPersonSubtree = (personId, primary = false) => {
+                const person = members[personId];
+                if (!person) return null;
+                const managedDepts = structure.departments.filter(d => d.managerId === personId);
+                const directReports = (structure.reports || {})[personId] || [];
+                const hasChildren = managedDepts.length > 0 || directReports.length > 0;
+
+                const personNode = (
+                    <div
+                        onClick={editMode ? () => setEditingMemberId(personId) : undefined}
+                        style={{ cursor: editMode ? 'pointer' : 'default', position: 'relative' }}
+                        title={editMode ? 'Click to edit' : undefined}
+                    >
+                        <div style={{
+                            display: 'flex', alignItems: 'center', gap: '10px',
+                            background: 'var(--povio-white)',
+                            border: primary
+                                ? (editMode ? '2px solid var(--povio-blue)' : '2px solid var(--povio-blue)')
+                                : (editMode ? '1.5px solid var(--povio-blue)' : '1px solid var(--povio-border)'),
+                            borderRadius: '12px', padding: '10px 16px',
+                            boxShadow: primary ? '0 4px 16px rgba(31,53,255,0.15)' : '0 1px 4px rgba(0,0,0,0.06)',
+                            whiteSpace: 'nowrap'
+                        }}>
+                            <div style={{
+                                width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
+                                background: primary ? 'linear-gradient(135deg, var(--povio-blue), #4338ca)' : 'var(--povio-blue)',
+                                color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '13px', fontWeight: '700'
+                            }}>{person.name.split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()}</div>
+                            <div>
+                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--povio-gray-900)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    {person.name}
+                                    {editMode && <span style={{ fontSize: '10px', color: 'var(--povio-gray-400)' }}>✎</span>}
+                                </div>
+                                <div style={{ fontSize: '11px', color: 'var(--povio-gray-500)', marginTop: '1px' }}>{person.title}</div>
+                            </div>
+                        </div>
+                    </div>
+                );
+
+                if (!hasChildren && !editMode) return personNode;
+
+                const childNodes = [
+                    ...managedDepts.map(d => (
+                        <DeptNode
+                            key={d.id}
+                            dept={d}
+                            membersMap={members}
+                            editMode={editMode}
+                            onEditDept={() => setEditingDeptId(d.id)}
+                            onEditMember={(mid) => setEditingMemberId(mid)}
+                            onRemoveMemberFromDept={removeMemberFromDept}
+                            onAddMember={(deptId) => setPickingForDept(deptId)}
+                        />
+                    )),
+                    ...directReports.map(reportId => (
+                        <div key={reportId}>{renderPersonSubtree(reportId)}</div>
+                    )),
+                    ...(editMode ? [(
+                        <div key={`add-${personId}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                            <button
+                                onClick={() => addDept(personId)}
+                                style={{
+                                    padding: '10px 14px', background: 'var(--povio-white)',
+                                    color: 'var(--povio-blue)', border: '1.5px dashed var(--povio-blue)',
+                                    borderRadius: '10px', fontSize: '12px', fontWeight: '600',
+                                    cursor: 'pointer', maxWidth: '220px', width: '100%'
+                                }}>+ Add department</button>
+                        </div>
+                    )] : [])
+                ];
+
+                return (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        {personNode}
+                        {childNodes.length > 0 && <VLine h={28} />}
+                        {childNodes.length > 0 && <TreeChildren>{childNodes}</TreeChildren>}
+                    </div>
+                );
+            };
+
+            const rootId = structure.root;
+            const editingMember = editingMemberId ? members[editingMemberId] : null;
+            const editingDept = editingDeptId ? structure.departments.find(d => d.id === editingDeptId) : null;
 
             return (
-                <div style={{ padding: '0 24px 24px', overflowX: 'auto' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '750px' }}>
-                        {/* Level 0: Vid */}
-                        <PersonNode name="Vid Lešnik" title="Head of Sales & Partnerships" primary />
-                        <VLine h={28} />
-
-                        {/* Level 1: Vid's 3 direct depts + Žiga subtree */}
-                        <TreeChildren>
-                            <DeptNode dept={{ name: 'Inbound Marketing', color: '#6366f1', subtitle: 'Daša (Inbound Marketing Lead)', members: inboundMembers }} />
-                            <DeptNode dept={{ name: 'Outbound', color: '#f59e0b', subtitle: 'Jerry (Outbound Lead)', members: outboundMembers }} />
-                            <DeptNode dept={{ name: 'Partnerships', color: '#ec4899', owner: 'Vid', vacancy: 'New person???' }} />
-
-                            {/* Žiga subtree */}
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <PersonNode name="Žiga" title="Sales Manager" />
-                                <VLine h={28} />
-                                <TreeChildren>
-                                    <DeptNode dept={{ name: 'New Sales', color: '#10b981', segments: [{ label: 'Early Stage', owner: 'Jerry' }, { label: 'Mid Market', owner: 'Žiga' }, { label: 'Enterprise', owner: 'Durdica' }], members: newSalesMembers }} />
-                                    <DeptNode dept={{ name: 'Client Success', color: '#3b82f6', members: clientSuccessMembers }} />
-                                </TreeChildren>
-                            </div>
-                        </TreeChildren>
+                <div style={{ padding: '0 24px 24px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', margin: '4px 0 16px' }}>
+                        {saving && <span style={{ fontSize: '11px', color: 'var(--povio-gray-500)' }}>Saving…</span>}
+                        {editMode && (
+                            <button onClick={() => setAddingPerson(true)} style={{
+                                padding: '7px 14px', background: 'var(--povio-blue)', color: '#fff',
+                                border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer'
+                            }}>+ Add Person</button>
+                        )}
+                        <button onClick={() => setEditMode(!editMode)} style={{
+                            padding: '7px 14px',
+                            background: editMode ? 'var(--povio-gray-900)' : 'var(--povio-white)',
+                            color: editMode ? '#fff' : 'var(--povio-gray-900)',
+                            border: '1px solid var(--povio-gray-900)',
+                            borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer'
+                        }}>{editMode ? 'Done Editing' : 'Edit Team'}</button>
                     </div>
+                    <div style={{ overflowX: 'auto' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '750px' }}>
+                            {rootId ? renderPersonSubtree(rootId, true) : (
+                                <div style={{ padding: '40px', textAlign: 'center', color: 'var(--povio-gray-500)' }}>
+                                    No team yet. Click "Edit Team" to get started.
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {editingMember && (
+                        <EditPersonModal
+                            member={editingMember}
+                            departments={structure.departments}
+                            currentDeptId={null}
+                            onSave={updateMember}
+                            onDelete={deleteMember}
+                            onClose={() => setEditingMemberId(null)}
+                        />
+                    )}
+                    {editingDept && (
+                        <EditDeptModal
+                            dept={editingDept}
+                            members={members}
+                            onSave={updateDept}
+                            onDelete={deleteDept}
+                            onClose={() => setEditingDeptId(null)}
+                        />
+                    )}
+                    {addingPerson && (
+                        <AddPersonModal
+                            departments={structure.departments}
+                            initialDeptId={addingPersonForDept}
+                            onAdd={addPerson}
+                            onClose={() => { setAddingPerson(false); setAddingPersonForDept(null); }}
+                        />
+                    )}
+                    {pickingForDept && (
+                        <PickMemberModal
+                            candidates={candidatesForDept(pickingForDept)}
+                            onPick={(memberId) => addExistingMemberToDept(pickingForDept, memberId)}
+                            onClose={() => setPickingForDept(null)}
+                        />
+                    )}
                 </div>
             );
         };
@@ -2299,6 +2845,7 @@
             }, []);
             const [goals, setGoals] = useState([]);
             const [whales, setWhales] = useState([]);
+            const [teamData, setTeamData] = useState(null);
             const [loading, setLoading] = useState(true);
 
             // Fetch goals from database
@@ -2368,10 +2915,58 @@
                 setWhales(mappedWhales);
             };
 
+            // Fetch team data from database; auto-seed with defaults if no row exists
+            const fetchTeam = async () => {
+                const { data, error } = await supabaseClient
+                    .from('team_data')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+
+                if (error) {
+                    console.error('Error fetching team:', error);
+                    setTeamData({ structure: DEFAULT_TEAM_STRUCTURE });
+                    return;
+                }
+
+                if (!data) {
+                    // First-time user — seed with default structure
+                    const { data: seeded, error: seedError } = await supabaseClient
+                        .from('team_data')
+                        .insert([{ user_id: user.id, structure: DEFAULT_TEAM_STRUCTURE }])
+                        .select()
+                        .single();
+                    if (seedError) {
+                        console.error('Error seeding team:', seedError);
+                        setTeamData({ structure: DEFAULT_TEAM_STRUCTURE });
+                    } else {
+                        setTeamData(seeded);
+                    }
+                    return;
+                }
+
+                setTeamData(data);
+            };
+
+            // Save an updated team structure to DB
+            const updateTeam = async (newStructure) => {
+                // Optimistic update for snappy UI
+                setTeamData(prev => ({ ...(prev || {}), structure: newStructure }));
+                const { error } = await supabaseClient
+                    .from('team_data')
+                    .update({ structure: newStructure })
+                    .eq('user_id', user.id);
+                if (error) {
+                    console.error('Error updating team:', error);
+                    // Refetch to revert on error
+                    fetchTeam();
+                }
+            };
+
             // Initial data load
             useEffect(() => {
                 const loadData = async () => {
-                    await Promise.all([fetchGoals(), fetchWhales()]);
+                    await Promise.all([fetchGoals(), fetchWhales(), fetchTeam()]);
                     setLoading(false);
                 };
 
@@ -2519,7 +3114,7 @@
                     {view === 'goals' && <GoalsView goals={goals} onUpdate={updateGoal} onDelete={deleteGoal} onAdd={addGoal} />}
                     {view === 'roadmap' && <RoadmapView goals={goals} />}
                     {view === 'whales' && <WhaleView whales={whales} onUpdate={updateWhales} user={user} />}
-                    {view === 'team' && <TeamView />}
+                    {view === 'team' && <TeamView teamData={teamData} onUpdate={updateTeam} user={user} />}
                 </div>
             );
         };
