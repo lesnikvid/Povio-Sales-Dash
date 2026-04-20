@@ -50,6 +50,13 @@ CREATE TABLE IF NOT EXISTS whale_notes (
     created_by TEXT NOT NULL
 );
 
+-- Team Data Table (one row per user, full org structure stored as JSONB)
+CREATE TABLE IF NOT EXISTS team_data (
+    user_id TEXT PRIMARY KEY,
+    structure JSONB NOT NULL DEFAULT '{"members":{},"root":null,"departments":[]}'::jsonb,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ============================================================================
 -- INDEXES FOR PERFORMANCE
 -- ============================================================================
@@ -86,6 +93,10 @@ DROP TRIGGER IF EXISTS update_whales_updated_at ON whales;
 CREATE TRIGGER update_whales_updated_at BEFORE UPDATE ON whales
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_team_data_updated_at ON team_data;
+CREATE TRIGGER update_team_data_updated_at BEFORE UPDATE ON team_data
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- ============================================================================
 -- ROW LEVEL SECURITY (RLS)
 -- ============================================================================
@@ -94,6 +105,7 @@ CREATE TRIGGER update_whales_updated_at BEFORE UPDATE ON whales
 ALTER TABLE goals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE whales ENABLE ROW LEVEL SECURITY;
 ALTER TABLE whale_notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE team_data ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================================
 -- USER ALLOWLIST (only these emails can access the dashboard)
@@ -206,20 +218,48 @@ CREATE POLICY "Users can delete their own notes"
     ON whale_notes FOR DELETE
     USING (auth.uid()::text = user_id AND is_user_allowed());
 
+-- Team Data Policies (user_id match + allowlist check)
+DROP POLICY IF EXISTS "Users can view their own team" ON team_data;
+CREATE POLICY "Users can view their own team"
+    ON team_data FOR SELECT
+    USING (auth.uid()::text = user_id AND is_user_allowed());
+
+DROP POLICY IF EXISTS "Users can insert their own team" ON team_data;
+CREATE POLICY "Users can insert their own team"
+    ON team_data FOR INSERT
+    WITH CHECK (auth.uid()::text = user_id AND is_user_allowed());
+
+DROP POLICY IF EXISTS "Users can update their own team" ON team_data;
+CREATE POLICY "Users can update their own team"
+    ON team_data FOR UPDATE
+    USING (auth.uid()::text = user_id AND is_user_allowed())
+    WITH CHECK (auth.uid()::text = user_id AND is_user_allowed());
+
+DROP POLICY IF EXISTS "Users can delete their own team" ON team_data;
+CREATE POLICY "Users can delete their own team"
+    ON team_data FOR DELETE
+    USING (auth.uid()::text = user_id AND is_user_allowed());
+
+-- Size constraint on structure JSON (prevent JSON bombs)
+ALTER TABLE team_data
+    DROP CONSTRAINT IF EXISTS team_data_structure_size;
+ALTER TABLE team_data
+    ADD CONSTRAINT team_data_structure_size CHECK (pg_column_size(structure) <= 200000);
+
 -- ============================================================================
 -- VERIFICATION QUERIES (run these to confirm)
 -- ============================================================================
 
--- Check RLS is enabled (should return 3 rows with rowsecurity = t)
+-- Check RLS is enabled (should return 4 rows with rowsecurity = t)
 SELECT tablename, rowsecurity
 FROM pg_tables
-WHERE tablename IN ('goals', 'whales', 'whale_notes')
+WHERE tablename IN ('goals', 'whales', 'whale_notes', 'team_data')
 AND schemaname = 'public';
 
--- Check policies exist (should return 12 rows)
+-- Check policies exist (should return 16 rows)
 SELECT tablename, policyname
 FROM pg_policies
-WHERE tablename IN ('goals', 'whales', 'whale_notes')
+WHERE tablename IN ('goals', 'whales', 'whale_notes', 'team_data')
 ORDER BY tablename, policyname;
 
 -- ============================================================================
