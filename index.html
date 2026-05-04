@@ -3103,6 +3103,18 @@
                         <div className="header-brand"><PovioLogo /><div className="header-divider" /><div className="header-title"><h1>{view === 'whales' ? 'Whale Protection Programme' : view === 'team' ? 'Sales Team Structure' : '2026 Sales Goals'}</h1><span className="header-subtitle">Vid Lešnik • Head of Sales & Partnerships</span></div></div>
                         <div className="header-actions"><div className="view-toggle"><button className={`view-btn ${view === 'goals' ? 'active' : ''}`} onClick={() => setView('goals')}>Goals</button><button className={`view-btn ${view === 'roadmap' ? 'active' : ''}`} onClick={() => setView('roadmap')}>Roadmap</button><button className={`view-btn ${view === 'whales' ? 'active' : ''}`} onClick={() => setView('whales')}>Whales</button><button className={`view-btn ${view === 'team' ? 'active' : ''}`} onClick={() => setView('team')}>Team</button></div><button className="logout-btn" onClick={onLogout}>Sign Out</button></div>
                     </div>
+                    <div style={{
+                        background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                        borderBottom: '1px solid #fbbf24',
+                        padding: '8px 24px',
+                        textAlign: 'center',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        color: '#92400e',
+                        letterSpacing: '0.3px'
+                    }}>
+                        ⚠️ DEMO MODE — All data shown is fictional and for demonstration purposes only
+                    </div>
                     {view !== 'whales' && view !== 'team' && (
                         <div className="stats-bar">
                             <div className="stat-card"><h3>Overall Progress</h3><div className="value blue">{overallProgress}%</div></div>
