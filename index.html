@@ -413,6 +413,114 @@
         .calendar-gantt-event.work_trip { background: var(--povio-event-trip); }
         .calendar-gantt-event.sick_leave { background: var(--povio-event-sick); }
         .calendar-gantt-empty { padding: 40px; text-align: center; color: var(--povio-gray-500); font-size: 13px; border-top: 1px solid var(--povio-border); }
+
+        /* ============================================================
+           MERGED CSC — added by migration 002 (Sales Command Center)
+           ============================================================ */
+
+        .login-btn-google { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 12px 16px; margin-top: 12px; background: var(--povio-white); color: var(--povio-gray-900); border: 1px solid var(--povio-border); border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s ease; }
+        .login-btn-google:hover { background: var(--povio-bg); border-color: var(--povio-border-hover); }
+        .login-btn-google svg { width: 18px; height: 18px; }
+        .login-divider { display: flex; align-items: center; gap: 12px; margin: 16px 0 4px; color: var(--povio-gray-500); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .login-divider::before, .login-divider::after { content: ''; flex: 1; height: 1px; background: var(--povio-border); }
+
+        .role-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .role-chip.admin { background: var(--povio-blue-subtle); color: var(--povio-blue); }
+        .role-chip.rep { background: var(--povio-gray-100); color: var(--povio-gray-700); }
+
+        /* Mobile bottom nav (admin: 3 buttons; rep: 2) */
+        .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--povio-white); border-top: 1px solid var(--povio-border); padding: 8px 4px calc(env(safe-area-inset-bottom) + 8px); z-index: 100; }
+        .mobile-nav-grid { display: grid; gap: 4px; max-width: 600px; margin: 0 auto; }
+        .mobile-nav-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .mobile-nav-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .mobile-nav-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+        .mobile-nav-btn { background: transparent; border: none; padding: 10px 8px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--povio-gray-500); font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s ease; }
+        .mobile-nav-btn.active { color: var(--povio-blue); background: var(--povio-blue-subtle); }
+        .mobile-nav-btn .nav-icon { font-size: 18px; line-height: 1; }
+        @media (max-width: 720px) {
+            .mobile-nav { display: block; }
+            .view-toggle.desktop-only { display: none; }
+            .app-container { padding-bottom: 90px !important; }
+        }
+
+        /* Account list (replaces minimal whale list when imported data is in) */
+        .account-row { background: var(--povio-card); border: 1px solid var(--povio-border); border-radius: 12px; overflow: hidden; transition: all 0.15s ease; border-left-width: 4px; margin-bottom: 8px; }
+        .account-row.healthy { border-left-color: var(--povio-success); }
+        .account-row.at_risk { border-left-color: var(--povio-warning); }
+        .account-row.critical { border-left-color: var(--povio-danger); }
+        .account-row:hover { border-color: var(--povio-border-hover); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04); }
+        .account-summary { display: grid; grid-template-columns: 2fr 0.9fr 0.9fr 1fr 1fr 1.2fr 100px 36px; gap: 14px; align-items: center; padding: 14px 18px; cursor: pointer; }
+        .account-summary:hover { background: var(--povio-gray-100); }
+        .acct-name-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .acct-name { font-size: 14px; font-weight: 700; color: var(--povio-black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .acct-sub { font-size: 11px; color: var(--povio-gray-500); margin-top: 2px; }
+        .acct-cell-label { font-size: 10px; color: var(--povio-gray-500); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        .acct-cell-value { font-size: 13px; font-weight: 700; color: var(--povio-black); white-space: nowrap; }
+        .acct-cell-value.arr { color: var(--povio-blue); }
+        .acct-expand-icon { color: var(--povio-gray-400); font-size: 18px; transition: transform 0.2s ease; text-align: center; }
+        .acct-expand-icon.expanded { transform: rotate(180deg); color: var(--povio-blue); }
+        .acct-expanded { padding: 0; background: var(--povio-bg); border-top: 1px solid var(--povio-border); }
+        .acct-tabs { display: flex; padding: 0 18px; background: var(--povio-white); border-bottom: 1px solid var(--povio-border); overflow-x: auto; }
+        .acct-tab { padding: 14px 18px; border: none; background: transparent; font-size: 13px; font-weight: 600; color: var(--povio-gray-500); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+        .acct-tab:hover { color: var(--povio-gray-900); }
+        .acct-tab.active { color: var(--povio-blue); border-bottom-color: var(--povio-blue); }
+        .acct-tab-content { padding: 22px; }
+        .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+        .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--povio-border); font-size: 13px; gap: 12px; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: var(--povio-gray-500); flex-shrink: 0; }
+        .detail-value { color: var(--povio-gray-900); font-weight: 600; text-align: right; }
+        .detail-section h4 { font-size: 11px; text-transform: uppercase; color: var(--povio-gray-500); margin-bottom: 12px; letter-spacing: 0.5px; font-weight: 700; }
+
+        .tag { padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; background: var(--povio-gray-100); color: var(--povio-gray-700); display: inline-flex; align-items: center; gap: 4px; }
+        .tag-blue { background: var(--povio-blue-subtle); color: var(--povio-blue); }
+        .tag-green { background: var(--povio-success-subtle); color: var(--povio-success); }
+        .tag-yellow { background: var(--povio-warning-subtle); color: var(--povio-warning); }
+        .tag-red { background: var(--povio-danger-subtle); color: var(--povio-danger); }
+
+        .filters-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 14px 16px; background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 12px; margin-bottom: 16px; }
+        .filters-bar select, .filters-bar input { padding: 8px 12px; font-size: 12px; min-width: 130px; background: var(--povio-bg); border: 1px solid var(--povio-border); border-radius: 8px; color: var(--povio-gray-900); }
+        .filters-bar input:focus, .filters-bar select:focus { outline: none; border-color: var(--povio-blue); }
+        .toggle-pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; background: var(--povio-bg); border: 1px solid var(--povio-border); border-radius: 100px; font-size: 12px; font-weight: 600; color: var(--povio-gray-700); cursor: pointer; }
+        .toggle-pill.active { background: var(--povio-blue-subtle); color: var(--povio-blue); border-color: rgba(31, 53, 255, 0.2); }
+        .filters-bar .search-input { flex: 1; min-width: 180px; }
+
+        /* KPI / dashboard cards */
+        .kpi-card { background: var(--povio-card); border: 1px solid var(--povio-border); border-radius: 16px; padding: 20px 22px; }
+        .kpi-card h3 { font-size: 11px; text-transform: uppercase; color: var(--povio-gray-500); margin-bottom: 10px; letter-spacing: 1px; font-weight: 700; }
+        .kpi-card .value { font-size: 32px; font-weight: 800; color: var(--povio-black); letter-spacing: -1px; line-height: 1.05; }
+        .kpi-card .value.blue { color: var(--povio-blue); }
+        .kpi-card .value.green { color: var(--povio-success); }
+        .kpi-card .value.yellow { color: var(--povio-warning); }
+        .kpi-card .value.red { color: var(--povio-danger); }
+        .kpi-card .sub { font-size: 12px; color: var(--povio-gray-500); margin-top: 8px; }
+
+        /* Import flow */
+        .import-row { display: grid; grid-template-columns: 60px 1fr 1fr 100px 100px 80px; gap: 12px; padding: 8px 12px; border-bottom: 1px solid var(--povio-border); font-size: 12px; align-items: center; }
+        .import-row.head { font-weight: 700; color: var(--povio-gray-500); text-transform: uppercase; letter-spacing: 0.5px; background: var(--povio-gray-100); border-radius: 6px 6px 0 0; }
+        .import-bucket { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .import-bucket.insert { background: var(--povio-success-subtle); color: var(--povio-success); }
+        .import-bucket.update { background: var(--povio-blue-subtle); color: var(--povio-blue); }
+        .import-bucket.skip   { background: var(--povio-warning-subtle); color: var(--povio-warning); }
+
+        /* Process flow + simple admin tables */
+        .process-flow { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
+        .process-step-card { flex: 1; min-width: 200px; background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 12px; padding: 16px; }
+        .process-step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--povio-blue); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; margin-bottom: 12px; }
+        .process-step-name { font-size: 14px; font-weight: 700; color: var(--povio-black); margin-bottom: 6px; }
+        .process-step-desc { font-size: 12px; color: var(--povio-gray-500); line-height: 1.5; }
+
+        .data-table { width: 100%; background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 12px; overflow: hidden; border-collapse: separate; border-spacing: 0; }
+        .data-table th { background: var(--povio-gray-100); padding: 12px 16px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; color: var(--povio-gray-500); border-bottom: 1px solid var(--povio-border); }
+        .data-table td { padding: 14px 16px; font-size: 13px; color: var(--povio-gray-900); border-bottom: 1px solid var(--povio-border); }
+        .data-table tr:last-child td { border-bottom: none; }
+
+        @media (max-width: 900px) {
+            .account-summary { grid-template-columns: 2fr 0.9fr 1fr 28px; gap: 10px; padding: 12px; }
+            .account-summary .acct-hide-mobile { display: none; }
+            .detail-grid { grid-template-columns: 1fr; }
+            .filters-bar { padding: 10px; }
+        }
     </style>
 </head>
 <body>
@@ -2950,7 +3058,659 @@
         };
 
         // ==================== LOGIN SCREEN ====================
-        const LoginScreen = ({ onLogin, error }) => {
+        // =====================================================================
+        // MERGED VIEWS — added by migration 002 (Sales Command Center)
+        // Dashboard, AccountsView (replaces WhaleView for the 198-account list),
+        // MyWeekView, ProcessView, AdminView (incl. import flow).
+        // =====================================================================
+
+        // Format ARR (whales.arr is stored in thousands: 500 = $500K, 2500 = $2.5M)
+        const fmtARR = (arr) => {
+            const v = parseFloat(arr) || 0;
+            if (v >= 1000) return '$' + (v / 1000).toFixed(1) + 'M';
+            if (v >= 1)    return '$' + Math.round(v) + 'K';
+            return '—';
+        };
+        const relTime = (dateStr) => {
+            if (!dateStr) return '—';
+            const d = parseDate(dateStr);
+            if (!d) return '—';
+            const days = Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));
+            if (days === 0) return 'today';
+            if (days === 1) return 'yesterday';
+            if (days < 7) return days + 'd ago';
+            if (days < 30) return Math.floor(days / 7) + 'w ago';
+            if (days < 365) return Math.floor(days / 30) + 'mo ago';
+            return Math.floor(days / 365) + 'y ago';
+        };
+
+        // ============== Dashboard ==============
+        const DashboardView = ({ whales, goals, allowedUsers, setView }) => {
+            const total = whales.length;
+            const totalARR = whales.reduce((s, w) => s + (parseFloat(w.arr) || 0), 0);
+            const healthy = whales.filter(w => (w.health || '').toLowerCase() === 'healthy');
+            const atRisk  = whales.filter(w => (w.health || '').toLowerCase() === 'at_risk' || (w.health || '').toLowerCase() === 'warning');
+            const critical = whales.filter(w => (w.health || '').toLowerCase() === 'critical');
+            const keyAccts = whales.filter(w => w.is_key_account);
+            const totalFTE = whales.reduce((s, w) => s + (parseFloat(w.fte) || 0), 0);
+
+            return (
+                <div>
+                    <div className="stats-bar" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+                        <div className="kpi-card">
+                            <h3>Total accounts</h3>
+                            <div className="value">{total}</div>
+                            <div className="sub">{keyAccts.length} key · {totalFTE.toFixed(1)} FTE total</div>
+                        </div>
+                        <div className="kpi-card">
+                            <h3>Total ARR (est)</h3>
+                            <div className="value blue">{fmtARR(totalARR)}</div>
+                            <div className="sub">From FTE × $180k where ARR not contracted</div>
+                        </div>
+                        <div className="kpi-card">
+                            <h3>Revenue at risk</h3>
+                            <div className="value yellow">{fmtARR(atRisk.reduce((s, w) => s + (parseFloat(w.arr) || 0), 0) + critical.reduce((s, w) => s + (parseFloat(w.arr) || 0), 0))}</div>
+                            <div className="sub">{atRisk.length} at risk · {critical.length} critical</div>
+                        </div>
+                        <div className="kpi-card">
+                            <h3>Goals on track</h3>
+                            <div className="value green">{goals.filter(g => calculateGoalStatus(g.milestones) === 'on-track' || calculateGoalStatus(g.milestones) === 'complete').length}</div>
+                            <div className="sub">of {goals.length} total — <span style={{ color: 'var(--povio-blue)', cursor: 'pointer' }} onClick={() => setView('goals')}>view all →</span></div>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
+                        <div className="kpi-card">
+                            <h3>Account health</h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', background: 'var(--povio-success-subtle)', borderRadius: 10 }}>
+                                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--povio-success)', textTransform: 'uppercase' }}>Healthy</span>
+                                    <span style={{ fontWeight: 800, color: 'var(--povio-success)' }}>{healthy.length} · {fmtARR(healthy.reduce((s, w) => s + (parseFloat(w.arr) || 0), 0))}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', background: 'var(--povio-warning-subtle)', borderRadius: 10 }}>
+                                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--povio-warning)', textTransform: 'uppercase' }}>At risk</span>
+                                    <span style={{ fontWeight: 800, color: 'var(--povio-warning)' }}>{atRisk.length} · {fmtARR(atRisk.reduce((s, w) => s + (parseFloat(w.arr) || 0), 0))}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', background: 'var(--povio-danger-subtle)', borderRadius: 10 }}>
+                                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--povio-danger)', textTransform: 'uppercase' }}>Critical</span>
+                                    <span style={{ fontWeight: 800, color: 'var(--povio-danger)' }}>{critical.length} · {fmtARR(critical.reduce((s, w) => s + (parseFloat(w.arr) || 0), 0))}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="kpi-card">
+                            <h3>Coverage by AM</h3>
+                            <table className="data-table" style={{ marginTop: 12, border: 'none' }}>
+                                <thead><tr><th>AM</th><th>Accounts</th><th>ARR</th></tr></thead>
+                                <tbody>
+                                    {allowedUsers.filter(u => u.role === 'rep' && u.povio_id !== 'u_unassigned').map(u => {
+                                        const owned = whales.filter(w => w.owner_povio_id === u.povio_id);
+                                        return (
+                                            <tr key={u.povio_id}>
+                                                <td><div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><div style={{ width: 22, height: 22, borderRadius: '50%', background: u.color || '#A3A3A3', color: 'white', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700 }}>{u.initials}</div>{u.name}</div></td>
+                                                <td><strong>{owned.length}</strong></td>
+                                                <td style={{ color: 'var(--povio-blue)', fontWeight: 700 }}>{fmtARR(owned.reduce((s, w) => s + (parseFloat(w.arr) || 0), 0))}</td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ============== Accounts (full 198-row list) ==============
+        const AccountsView = ({ whales, allowedUsers, onUpdate, currentPovioUser, user }) => {
+            const [expandedId, setExpandedId] = useState(null);
+            const [activeTab, setActiveTab] = useState('overview');
+            const [search, setSearch] = useState('');
+            const [filterOwner, setFilterOwner] = useState('all');
+            const [filterHealth, setFilterHealth] = useState('all');
+            const [keyOnly, setKeyOnly] = useState(false);
+
+            const ownersById = useMemo(() => {
+                const m = new Map();
+                allowedUsers.forEach(u => m.set(u.povio_id, u));
+                return m;
+            }, [allowedUsers]);
+
+            const filtered = whales.filter(w => {
+                if (filterOwner !== 'all' && w.owner_povio_id !== filterOwner) return false;
+                if (filterHealth !== 'all' && (w.health || '').toLowerCase() !== filterHealth) return false;
+                if (keyOnly && !w.is_key_account) return false;
+                if (search && !(w.name || '').toLowerCase().includes(search.toLowerCase())) return false;
+                return true;
+            });
+
+            const healthCounts = {
+                healthy: whales.filter(w => (w.health || '').toLowerCase() === 'healthy').length,
+                at_risk: whales.filter(w => ['at_risk', 'warning'].includes((w.health || '').toLowerCase())).length,
+                critical: whales.filter(w => (w.health || '').toLowerCase() === 'critical').length
+            };
+
+            const updateField = async (whale, field, newValue) => {
+                const next = whales.map(w => w.id === whale.id ? { ...w, [field]: newValue } : w);
+                await onUpdate(next);
+            };
+
+            return (
+                <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 18, gap: 12, flexWrap: 'wrap' }}>
+                        <div>
+                            <h2 style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px' }}>All accounts</h2>
+                            <p style={{ fontSize: 13, color: 'var(--povio-gray-500)', marginTop: 2 }}>
+                                {whales.length} total · {whales.filter(w => w.is_key_account).length} key accounts ·
+                                {' '}<span style={{ color: 'var(--povio-success)' }}>{healthCounts.healthy} healthy</span> ·
+                                {' '}<span style={{ color: 'var(--povio-warning)' }}>{healthCounts.at_risk} at risk</span> ·
+                                {' '}<span style={{ color: 'var(--povio-danger)' }}>{healthCounts.critical} critical</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="filters-bar">
+                        <input className="search-input" type="text" placeholder="Search by company name…" value={search} onChange={e => setSearch(e.target.value)} />
+                        <select value={filterOwner} onChange={e => setFilterOwner(e.target.value)}>
+                            <option value="all">All owners</option>
+                            {allowedUsers.filter(u => u.povio_id).map(u => <option key={u.povio_id} value={u.povio_id}>{u.name}</option>)}
+                        </select>
+                        <select value={filterHealth} onChange={e => setFilterHealth(e.target.value)}>
+                            <option value="all">All health</option>
+                            <option value="healthy">Healthy</option>
+                            <option value="at_risk">At risk</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                        <button className={'toggle-pill ' + (keyOnly ? 'active' : '')} onClick={() => setKeyOnly(!keyOnly)}>🐋 Key only</button>
+                    </div>
+
+                    {filtered.length === 0 ? (
+                        <div style={{ padding: 60, textAlign: 'center', color: 'var(--povio-gray-500)', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 12 }}>
+                            <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>No accounts match your filters.</p>
+                            <p style={{ fontSize: 12 }}>Try clearing filters or run the import (Admin → Import) if no data yet.</p>
+                        </div>
+                    ) : filtered.map(w => {
+                        const owner = ownersById.get(w.owner_povio_id);
+                        const isExpanded = expandedId === w.id;
+                        const healthClass = ['healthy', 'at_risk', 'critical'].includes((w.health || '').toLowerCase()) ? (w.health || '').toLowerCase() : 'healthy';
+                        return (
+                            <div className={'account-row ' + healthClass} key={w.id}>
+                                <div className="account-summary" onClick={() => { setExpandedId(isExpanded ? null : w.id); setActiveTab('overview'); }}>
+                                    <div className="acct-name-cell">
+                                        {w.is_key_account && <span style={{ fontSize: 14 }}>🐋</span>}
+                                        <div style={{ minWidth: 0 }}>
+                                            <div className="acct-name">{w.name}</div>
+                                            <div className="acct-sub">{w.industry || '—'} · {(w.engagement_type || 'team_aug').replace('_', ' ')}</div>
+                                        </div>
+                                    </div>
+                                    <div className="acct-hide-mobile">
+                                        <div className="acct-cell-label">ARR</div>
+                                        <div className="acct-cell-value arr">{fmtARR(w.arr)}</div>
+                                        {w.fte > 0 && <div style={{ fontSize: 10, color: 'var(--povio-gray-500)', fontWeight: 600 }}>{parseFloat(w.fte).toFixed(2)} FTE</div>}
+                                    </div>
+                                    <div className="acct-hide-mobile">
+                                        <div className="acct-cell-label">Owner</div>
+                                        {owner ? (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                                                <div style={{ width: 18, height: 18, borderRadius: '50%', background: owner.color || '#A3A3A3', color: 'white', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 700 }}>{owner.initials}</div>
+                                                <span style={{ fontSize: 12, fontWeight: 600 }}>{owner.name}</span>
+                                            </div>
+                                        ) : <span style={{ fontSize: 12, color: 'var(--povio-gray-400)' }}>—</span>}
+                                    </div>
+                                    <div className="acct-hide-mobile">
+                                        <span className={'tag tag-' + (healthClass === 'healthy' ? 'green' : healthClass === 'at_risk' ? 'yellow' : 'red')}>{(w.health || 'healthy').replace('_', ' ')}</span>
+                                    </div>
+                                    <div className="acct-hide-mobile">
+                                        <div className="acct-cell-label">Expansion</div>
+                                        <div style={{ fontSize: 12, fontWeight: 600, marginTop: 2 }}>{w.expansion_potential || w.expansion || '—'}</div>
+                                    </div>
+                                    <div className="acct-hide-mobile" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12, color: 'var(--povio-gray-500)', fontStyle: 'italic' }}>{w.last_note || w.notes || ''}</div>
+                                    <div className="acct-hide-mobile" style={{ fontSize: 12, color: 'var(--povio-gray-500)' }}>{relTime(w.updated_at || w.last_touch_at)}</div>
+                                    <div className={'acct-expand-icon ' + (isExpanded ? 'expanded' : '')}>⌄</div>
+                                </div>
+
+                                {isExpanded && (
+                                    <div className="acct-expanded">
+                                        <div className="acct-tabs">
+                                            <button className={'acct-tab ' + (activeTab === 'overview' ? 'active' : '')} onClick={() => setActiveTab('overview')}>Overview</button>
+                                            <button className={'acct-tab ' + (activeTab === 'edit' ? 'active' : '')} onClick={() => setActiveTab('edit')}>Edit</button>
+                                            <button className={'acct-tab ' + (activeTab === 'qbr' ? 'active' : '')} onClick={() => setActiveTab('qbr')}>QBR history</button>
+                                        </div>
+                                        <div className="acct-tab-content">
+                                            {activeTab === 'overview' && (
+                                                <div>
+                                                    <div className="detail-grid">
+                                                        <div className="detail-section">
+                                                            <h4>Engagement</h4>
+                                                            <div className="detail-row"><span className="detail-label">Type</span><span className="detail-value">{(w.engagement_type || 'team_aug').replace('_', ' ')}</span></div>
+                                                            <div className="detail-row"><span className="detail-label">FTE</span><span className="detail-value">{w.fte > 0 ? parseFloat(w.fte).toFixed(2) : '—'}</span></div>
+                                                            <div className="detail-row"><span className="detail-label">Hours/week</span><span className="detail-value">{w.engagement_hours_week || '—'}</span></div>
+                                                            <div className="detail-row"><span className="detail-label">Industry</span><span className="detail-value">{w.industry || '—'}</span></div>
+                                                        </div>
+                                                        <div className="detail-section">
+                                                            <h4>Financial (est)</h4>
+                                                            <div className="detail-row"><span className="detail-label">ARR</span><span className="detail-value" style={{ color: 'var(--povio-blue)' }}>{fmtARR(w.arr)}</span></div>
+                                                            <div className="detail-row"><span className="detail-label">LTV</span><span className="detail-value">{fmtARR(w.ltv)}</span></div>
+                                                            <div className="detail-row"><span className="detail-label">2025 forecast</span><span className="detail-value">{w.forecast_raw || '—'}</span></div>
+                                                            <div className="detail-row"><span className="detail-label">Potential</span><span className="detail-value">{w.potential_flag || '—'}</span></div>
+                                                        </div>
+                                                        <div className="detail-section">
+                                                            <h4>Risk & opportunity</h4>
+                                                            <div className="detail-row"><span className="detail-label">Health</span><span className={'tag tag-' + (healthClass === 'healthy' ? 'green' : healthClass === 'at_risk' ? 'yellow' : 'red')}>{w.health || '—'}</span></div>
+                                                            <div className="detail-row"><span className="detail-label">Status</span><span className="detail-value">{w.account_status_raw || '—'}</span></div>
+                                                            <div className="detail-row"><span className="detail-label">Expansion</span><span className="detail-value">{w.expansion_potential || w.expansion || '—'}</span></div>
+                                                            <div className="detail-row"><span className="detail-label">Owner</span><span className="detail-value">{owner?.name || '—'}</span></div>
+                                                            <div className="detail-row"><span className="detail-label">Last touch</span><span className="detail-value">{relTime(w.updated_at || w.last_touch_at)}</span></div>
+                                                        </div>
+                                                    </div>
+                                                    {w.last_note && (
+                                                        <div style={{ marginTop: 20 }}>
+                                                            <h4 style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--povio-gray-500)', marginBottom: 10, letterSpacing: 0.5, fontWeight: 700 }}>Latest note</h4>
+                                                            <div style={{ padding: 14, background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10, fontSize: 13, color: 'var(--povio-gray-900)', lineHeight: 1.6 }}>{w.last_note}</div>
+                                                        </div>
+                                                    )}
+                                                    {w.team_members && w.team_members.length > 0 && (
+                                                        <div style={{ marginTop: 20 }}>
+                                                            <h4 style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--povio-gray-500)', marginBottom: 10, letterSpacing: 0.5, fontWeight: 700 }}>Team on the project</h4>
+                                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                                                {w.project_manager && <span className="tag tag-blue">PM · {w.project_manager}</span>}
+                                                                {w.team_members.filter(t => t !== w.project_manager).map((t, i) => <span key={i} className="tag">{t}</span>)}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {activeTab === 'edit' && (
+                                                <WhaleEditForm whale={w} onSave={async (updated) => {
+                                                    const next = whales.map(x => x.id === w.id ? { ...x, ...updated } : x);
+                                                    await onUpdate(next);
+                                                    setActiveTab('overview');
+                                                }} onCancel={() => setActiveTab('overview')} />
+                                            )}
+                                            {activeTab === 'qbr' && (
+                                                <div>
+                                                    {(w.qbr_history && w.qbr_history.length > 0) ? (
+                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                                            {w.qbr_history.map((q, i) => (
+                                                                <span key={i} className={'tag ' + (q.status === 'completed' ? 'tag-green' : 'tag-red')}>{q.q} · {q.status === 'completed' ? '✓ done' : '✗ skipped'}</span>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <p style={{ fontSize: 13, color: 'var(--povio-gray-500)' }}>No QBR history imported for this account. Run an in-app QBR via the Edit tab to start tracking.</p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        };
+
+        // ============== My Week (admin-only) ==============
+        const MyWeekView = ({ whales, user, currentPovioUser }) => {
+            const [todos, setTodos] = useState([]);
+            const [newTodo, setNewTodo] = useState('');
+            const [loading, setLoading] = useState(true);
+
+            const fetchTodos = async () => {
+                const { data } = await supabaseClient
+                    .from('todos').select('*')
+                    .eq('user_id', user.id)
+                    .order('done', { ascending: true })
+                    .order('due_date', { ascending: true, nullsFirst: false });
+                setTodos(data || []);
+                setLoading(false);
+            };
+            useEffect(() => { fetchTodos(); }, []);
+
+            const addTodo = async () => {
+                if (!newTodo.trim()) return;
+                await supabaseClient.from('todos').insert({ user_id: user.id, title: newTodo.trim(), source: 'manual' });
+                setNewTodo('');
+                fetchTodos();
+            };
+            const toggleTodo = async (t) => {
+                await supabaseClient.from('todos').update({ done: !t.done, completed_at: !t.done ? new Date().toISOString() : null }).eq('id', t.id);
+                fetchTodos();
+            };
+
+            // Auto-derived alerts from whale data
+            const staleAccounts = whales.filter(w => {
+                const d = w.updated_at || w.last_touch_at;
+                if (!d) return false;
+                const ts = parseDate(d);
+                return ts && (Date.now() - ts.getTime()) / (1000 * 60 * 60 * 24) > 30;
+            });
+
+            return (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+                    <div>
+                        <div style={{ display: 'flex', gap: 8, marginBottom: 12, padding: '10px 12px', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10 }}>
+                            <input type="text" placeholder="Add a todo… (Enter to save)" value={newTodo} onChange={e => setNewTodo(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTodo()} style={{ flex: 1, border: 'none', background: 'transparent', padding: 6, fontSize: 14 }} />
+                            <button className="btn btn-primary" style={{ padding: '6px 14px', fontSize: 12 }} onClick={addTodo}>Add</button>
+                        </div>
+                        {loading ? <p>Loading…</p> : todos.length === 0 ? (
+                            <div style={{ padding: 40, textAlign: 'center', color: 'var(--povio-gray-500)', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10 }}>No todos yet. Add one above.</div>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                {todos.map(t => (
+                                    <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10, opacity: t.done ? 0.5 : 1 }}>
+                                        <div onClick={() => toggleTodo(t)} style={{ width: 20, height: 20, borderRadius: 6, border: '2px solid var(--povio-gray-300)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: t.done ? 'var(--povio-blue)' : 'transparent', borderColor: t.done ? 'var(--povio-blue)' : 'var(--povio-gray-300)' }}>
+                                            {t.done && <span style={{ color: 'white', fontSize: 12, fontWeight: 800 }}>✓</span>}
+                                        </div>
+                                        <span style={{ flex: 1, fontSize: 14, textDecoration: t.done ? 'line-through' : 'none' }}>{t.title}</span>
+                                        {t.tag && <span className="tag">{t.tag}</span>}
+                                        {t.due_date && <span style={{ fontSize: 11, color: 'var(--povio-gray-500)' }}>{t.due_date.slice(5)}</span>}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div>
+                        <h3 style={{ fontSize: 11, fontWeight: 700, color: 'var(--povio-gray-500)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Auto-generated alerts</h3>
+                        {staleAccounts.length === 0 ? (
+                            <div style={{ padding: 20, textAlign: 'center', color: 'var(--povio-gray-500)', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10, fontSize: 13 }}>No stale accounts. Nice work.</div>
+                        ) : (
+                            <div style={{ padding: '14px 16px', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderLeft: '3px solid var(--povio-warning)', borderRadius: 10 }}>
+                                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>⚠ {staleAccounts.length} account{staleAccounts.length > 1 ? 's' : ''} with no activity 30+ days</div>
+                                {staleAccounts.slice(0, 5).map(a => (
+                                    <div key={a.id} style={{ fontSize: 12, color: 'var(--povio-gray-500)', marginTop: 4 }}>· <strong>{a.name}</strong> — {relTime(a.updated_at || a.last_touch_at)}</div>
+                                ))}
+                                {staleAccounts.length > 5 && <div style={{ fontSize: 12, color: 'var(--povio-gray-400)', marginTop: 6 }}>+{staleAccounts.length - 5} more</div>}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // ============== Process / Playbook (admin-only, mostly static) ==============
+        const PROCESS_FLOWS = {
+            outbound: [
+                { num: 1, name: 'ICP & List Build',        owner: 'Vid',          tools: 'Apollo, LinkedIn',     desc: 'Define ICP, build target list (200/week), enrich contacts.' },
+                { num: 2, name: 'Multi-touch Sequence',    owner: 'AM',           tools: 'Outreach, Lemlist',     desc: 'Email → LinkedIn → Email → Call → Email. 14-day cadence.' },
+                { num: 3, name: 'Discovery Call',          owner: 'AM + Vid',     tools: 'Gong, Calendly',        desc: 'BANT, problem framing, intro to relevant case study.' },
+                { num: 4, name: 'Scoping & Proposal',      owner: 'Vid + Eng',    tools: 'Notion, Pitch',          desc: 'SOW, team match, pricing, proposal deck.' },
+                { num: 5, name: 'Negotiation & Close',     owner: 'Vid',           tools: 'DocuSign',               desc: 'MSA, SOW, kickoff scheduling.' },
+            ],
+            inbound: [
+                { num: 1, name: 'Lead Capture',            owner: 'Marketing',     tools: 'Webflow, HubSpot',       desc: 'Web form, content downloads, demo requests.' },
+                { num: 2, name: 'Qualification (24h SLA)', owner: 'Vid (rotating)', tools: 'HubSpot, Slack',        desc: 'Quick BANT screen, route to AM.' },
+                { num: 3, name: 'Discovery Call',          owner: 'AM',            tools: 'Gong',                  desc: 'Same as outbound discovery.' },
+                { num: 4, name: 'Proposal & Close',        owner: 'Vid + AM',      tools: 'Pitch, DocuSign',        desc: 'Standard proposal flow.' },
+            ],
+            partnership: [
+                { num: 1, name: 'Partner Intro',           owner: 'Vid',          tools: 'Email, Slack Connect',   desc: 'Partner sends warm intro to prospect.' },
+                { num: 2, name: 'Joint Discovery',         owner: 'Vid + Partner', tools: 'Gong',                  desc: 'Three-way call with partner sponsor.' },
+                { num: 3, name: 'Co-pitched Proposal',     owner: 'Vid',          tools: 'Pitch, DocuSign',        desc: 'Joint solution, revenue share documented.' },
+            ]
+        };
+        const ProcessView = () => {
+            const [flow, setFlow] = useState('outbound');
+            return (
+                <div>
+                    <div style={{ display: 'flex', gap: 6, padding: 4, background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10, marginBottom: 18, width: 'fit-content' }}>
+                        {Object.keys(PROCESS_FLOWS).map(f => (
+                            <button key={f} className={'view-btn ' + (flow === f ? 'active' : '')} onClick={() => setFlow(f)}>{f}</button>
+                        ))}
+                    </div>
+                    <div className="process-flow">
+                        {PROCESS_FLOWS[flow].map(s => (
+                            <div key={s.num} className="process-step-card">
+                                <div className="process-step-num">{s.num}</div>
+                                <div className="process-step-name">{s.name}</div>
+                                <div className="process-step-desc">{s.desc}</div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
+                                    <span className="tag tag-blue">{s.owner}</span>
+                                    <span className="tag">{s.tools}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // ============== Admin (incl. one-time 198-account import flow) ==============
+        const ImportFlow = ({ user, currentPovioUser, allowedUsers, onWhalesRefresh }) => {
+            // Lazy-load accounts-seed.js the first time this component renders
+            const [seedLoaded, setSeedLoaded] = useState(typeof window.POVIO_ACCOUNTS !== 'undefined');
+            const [seedError, setSeedError] = useState(null);
+            const [dryRun, setDryRun] = useState(null);
+            const [importing, setImporting] = useState(false);
+            const [importLog, setImportLog] = useState([]);
+            const [done, setDone] = useState(false);
+
+            useEffect(() => {
+                if (seedLoaded) return;
+                const s = document.createElement('script');
+                s.src = 'accounts-seed.js';
+                s.onload = () => setSeedLoaded(true);
+                s.onerror = () => setSeedError('Could not load accounts-seed.js. Check that the file exists at the repo root.');
+                document.body.appendChild(s);
+            }, []);
+
+            const normalize = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+
+            const runDryRun = async () => {
+                if (!seedLoaded) return;
+                const { data: existing } = await supabaseClient.from('whales').select('id, name');
+                const existingByName = new Map((existing || []).map(w => [normalize(w.name), w]));
+                const buckets = { insert: [], update: [], skip: [] };
+                for (const a of window.POVIO_ACCOUNTS) {
+                    const match = existingByName.get(normalize(a.company_name));
+                    if (!match) buckets.insert.push({ source: a, existing: null });
+                    else buckets.update.push({ source: a, existing: match });
+                }
+                setDryRun(buckets);
+            };
+
+            const runImport = async () => {
+                if (!dryRun) return;
+                setImporting(true);
+                const log = [];
+                const allowedPovioIds = new Set(allowedUsers.map(u => u.povio_id).filter(Boolean));
+
+                const toWhaleRow = (a) => {
+                    // owner_povio_id may be from B's data but not in allowed_users — fallback to unassigned
+                    const owner = allowedPovioIds.has(a.owner_id) ? a.owner_id : 'u_unassigned';
+                    const arrInThousands = a.arr_estimated > 0 ? Math.round(a.arr_estimated / 1000) : 0;
+                    return {
+                        user_id: user.id,                 // stamp with importing admin's auth uid (for ownership history)
+                        name: a.company_name,
+                        industry: a.industry || '',
+                        health: a.health_status || 'healthy',
+                        arr: arrInThousands,
+                        ltv: 0,
+                        contract_end: null,
+                        account_manager: (allowedUsers.find(u => u.povio_id === owner) || {}).name || '',
+                        last_qbr: null,
+                        next_qbr: null,
+                        expansion: 'Low',
+                        churn_risk: 'Low',
+                        notes: a.last_note || '',
+                        contacts: [],
+                        referrals_count: 0,
+                        referrals_revenue: 0,
+                        is_key_account: !!a.is_key_account,
+                        fte: a.fte || 0,
+                        engagement_type: a.engagement_type || 'team_aug',
+                        engagement_hours_week: a.engagement_hours_week || '',
+                        account_status_raw: a.account_status_raw || '',
+                        forecast_raw: a.forecast_raw || '',
+                        expansion_potential: a.expansion_potential || 'none',
+                        potential_flag: a.potential_flag || '',
+                        last_note: a.last_note || '',
+                        project_manager: a.project_manager || '',
+                        team_members: a.team_members || [],
+                        invoicing_note: a.invoicing_note || '',
+                        qbr_history: a.qbr_history || [],
+                        owner_povio_id: owner,
+                        created_date: a.created || null,
+                        last_touch_at: a.last_touch_at || a.created || null,
+                        source: 'am_board_import',
+                        updated_by_povio_id: currentPovioUser.povio_id
+                    };
+                };
+
+                // Inserts in batches of 50
+                const toInsert = dryRun.insert.map(r => toWhaleRow(r.source));
+                for (let i = 0; i < toInsert.length; i += 50) {
+                    const batch = toInsert.slice(i, i + 50);
+                    const { error } = await supabaseClient.from('whales').insert(batch);
+                    if (error) { log.push('❌ insert batch ' + (i / 50 + 1) + ': ' + error.message); }
+                    else       { log.push('✓ inserted batch ' + (i / 50 + 1) + ' (' + batch.length + ' rows)'); }
+                    setImportLog([...log]);
+                }
+
+                // Updates: fill in new columns only — never overwrite existing arr/notes/contacts
+                for (const r of dryRun.update) {
+                    const a = r.source;
+                    const enrichment = {
+                        is_key_account: true,
+                        fte: a.fte || 0,
+                        engagement_type: a.engagement_type || 'team_aug',
+                        engagement_hours_week: a.engagement_hours_week || '',
+                        account_status_raw: a.account_status_raw || '',
+                        forecast_raw: a.forecast_raw || '',
+                        expansion_potential: a.expansion_potential || 'none',
+                        potential_flag: a.potential_flag || '',
+                        last_note: a.last_note || r.existing.notes,
+                        project_manager: a.project_manager || '',
+                        team_members: a.team_members || [],
+                        invoicing_note: a.invoicing_note || '',
+                        qbr_history: a.qbr_history || [],
+                        owner_povio_id: allowedPovioIds.has(a.owner_id) ? a.owner_id : 'u_unassigned',
+                        source: 'merged'
+                    };
+                    const { error } = await supabaseClient.from('whales').update(enrichment).eq('id', r.existing.id);
+                    if (error) { log.push('❌ enrich "' + a.company_name + '": ' + error.message); }
+                    else       { log.push('✓ enriched "' + a.company_name + '"'); }
+                    setImportLog([...log]);
+                }
+
+                setImporting(false);
+                setDone(true);
+                if (onWhalesRefresh) onWhalesRefresh();
+            };
+
+            if (seedError) return <div style={{ padding: 20, background: 'var(--povio-danger-subtle)', color: 'var(--povio-danger)', borderRadius: 8 }}>{seedError}</div>;
+            if (!seedLoaded) return <div style={{ padding: 20, color: 'var(--povio-gray-500)' }}>Loading import data…</div>;
+
+            return (
+                <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>Import 198 accounts from Povio AM board</h3>
+                    <p style={{ fontSize: 13, color: 'var(--povio-gray-500)', marginBottom: 18 }}>
+                        Loaded {window.POVIO_ACCOUNTS?.length || 0} accounts from accounts-seed.js. Run dry-run first to preview matches against existing whales. Nothing is written until you click <strong>Run import</strong>.
+                    </p>
+
+                    {!dryRun && (
+                        <button className="btn btn-primary" onClick={runDryRun}>Run dry-run</button>
+                    )}
+
+                    {dryRun && !done && (
+                        <div>
+                            <div style={{ display: 'flex', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
+                                <span className="import-bucket insert">{dryRun.insert.length} to insert</span>
+                                <span className="import-bucket update">{dryRun.update.length} to enrich (name match)</span>
+                                <span className="import-bucket skip">{dryRun.skip.length} skipped</span>
+                            </div>
+                            <div style={{ maxHeight: 360, overflowY: 'auto', border: '1px solid var(--povio-border)', borderRadius: 8, marginBottom: 14 }}>
+                                <div className="import-row head">
+                                    <div></div><div>Source name</div><div>Owner</div><div>FTE</div><div>ARR (est)</div><div>Bucket</div>
+                                </div>
+                                {[...dryRun.insert.map(r => ({ ...r, bucket: 'insert' })), ...dryRun.update.map(r => ({ ...r, bucket: 'update' }))].slice(0, 60).map((r, i) => {
+                                    const owner = allowedUsers.find(u => u.povio_id === r.source.owner_id);
+                                    return (
+                                        <div className="import-row" key={i}>
+                                            <div>{i + 1}</div>
+                                            <div><strong>{r.source.company_name}</strong>{r.existing && <div style={{ fontSize: 10, color: 'var(--povio-gray-500)' }}>→ enriches whale id #{r.existing.id}</div>}</div>
+                                            <div>{owner?.name || <span style={{ color: 'var(--povio-gray-400)' }}>Unassigned</span>}</div>
+                                            <div>{r.source.fte || 0}</div>
+                                            <div>{fmtARR(r.source.arr_estimated / 1000)}</div>
+                                            <div><span className={'import-bucket ' + r.bucket}>{r.bucket}</span></div>
+                                        </div>
+                                    );
+                                })}
+                                {(dryRun.insert.length + dryRun.update.length) > 60 && (
+                                    <div style={{ padding: 12, textAlign: 'center', color: 'var(--povio-gray-500)', fontSize: 12 }}>… and {dryRun.insert.length + dryRun.update.length - 60} more</div>
+                                )}
+                            </div>
+                            <button className="btn btn-primary" onClick={runImport} disabled={importing}>
+                                {importing ? 'Importing…' : 'Run import (writes to database)'}
+                            </button>
+                            <button className="btn btn-secondary" style={{ marginLeft: 8 }} onClick={() => setDryRun(null)}>Reset</button>
+                        </div>
+                    )}
+
+                    {(importing || done) && (
+                        <div style={{ marginTop: 18, padding: 14, background: 'var(--povio-bg)', borderRadius: 8, fontSize: 12, fontFamily: 'monospace', maxHeight: 300, overflowY: 'auto' }}>
+                            {importLog.map((l, i) => <div key={i}>{l}</div>)}
+                            {done && <div style={{ marginTop: 12, fontWeight: 700, color: 'var(--povio-success)' }}>✓ Done. Switch to Accounts to see the imported data.</div>}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const AdminView = ({ whales, allowedUsers, user, currentPovioUser, onWhalesRefresh }) => {
+            const [tab, setTab] = useState('import');
+            return (
+                <div>
+                    <div style={{ display: 'flex', gap: 6, padding: 4, background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10, marginBottom: 18, width: 'fit-content' }}>
+                        <button className={'view-btn ' + (tab === 'import' ? 'active' : '')} onClick={() => setTab('import')}>Import 198 accounts</button>
+                        <button className={'view-btn ' + (tab === 'team' ? 'active' : '')} onClick={() => setTab('team')}>Team allowlist</button>
+                        <button className={'view-btn ' + (tab === 'data' ? 'active' : '')} onClick={() => setTab('data')}>Data status</button>
+                    </div>
+                    {tab === 'import' && <ImportFlow user={user} currentPovioUser={currentPovioUser} allowedUsers={allowedUsers} onWhalesRefresh={onWhalesRefresh} />}
+                    {tab === 'team' && (
+                        <table className="data-table">
+                            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Povio ID</th></tr></thead>
+                            <tbody>
+                                {allowedUsers.map(u => (
+                                    <tr key={u.email}>
+                                        <td><div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><div style={{ width: 22, height: 22, borderRadius: '50%', background: u.color || '#A3A3A3', color: 'white', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700 }}>{u.initials || '?'}</div>{u.name || '(no name)'}</div></td>
+                                        <td>{u.email}</td>
+                                        <td><span className={'role-chip ' + (u.role === 'admin' ? 'admin' : 'rep')}>{u.role}</span></td>
+                                        <td style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--povio-gray-500)' }}>{u.povio_id || '—'}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                    {tab === 'data' && (
+                        <div className="stats-bar" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+                            <div className="kpi-card">
+                                <h3>Whales in DB</h3>
+                                <div className="value">{whales.length}</div>
+                                <div className="sub">{whales.filter(w => w.source === 'am_board_import').length} from import · {whales.filter(w => w.is_key_account).length} key</div>
+                            </div>
+                            <div className="kpi-card">
+                                <h3>Team members</h3>
+                                <div className="value">{allowedUsers.length}</div>
+                                <div className="sub">{allowedUsers.filter(u => u.role === 'admin').length} admin · {allowedUsers.filter(u => u.role === 'rep').length} reps</div>
+                            </div>
+                            <div className="kpi-card">
+                                <h3>Total ARR</h3>
+                                <div className="value blue">{fmtARR(whales.reduce((s, w) => s + (parseFloat(w.arr) || 0), 0))}</div>
+                                <div className="sub">Across all accounts</div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // =====================================================================
+        // END MERGED VIEWS
+        // =====================================================================
+
+        const LoginScreen = ({ onLogin, onLoginGoogle, error }) => {
             return (
                 <div className="login-container">
                     <div className="login-card">
@@ -2958,7 +3718,7 @@
                             <PovioLogo />
                         </div>
                         <h1 className="login-title">Welcome Back</h1>
-                        <p className="login-subtitle">Sign in to access your sales dashboard</p>
+                        <p className="login-subtitle">Sign in to access the sales command center</p>
                         {error && (
                             <p style={{
                                 color: 'var(--povio-danger)',
@@ -2974,6 +3734,20 @@
                         <button className="login-btn" onClick={onLogin}>
                             Sign in with GitHub
                         </button>
+                        <div className="login-divider">or</div>
+                        <button className="login-btn-google" onClick={onLoginGoogle}>
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            Sign in with Google (@povio.com)
+                        </button>
+                        <p style={{ fontSize: 11, color: 'var(--povio-gray-500)', textAlign: 'center', marginTop: 14, lineHeight: 1.5 }}>
+                            Vid signs in with GitHub. AMs sign in with their @povio.com Google account.<br/>
+                            Email not on the team list? Ask Vid to add you.
+                        </p>
                     </div>
                 </div>
             );
@@ -3040,18 +3814,47 @@
         // ==================== MAIN APP ====================
         const App = () => {
             const [user, setUser] = useState(null);
+            const [currentPovioUser, setCurrentPovioUser] = useState(null);
             const [loading, setLoading] = useState(true);
             const [loginError, setLoginError] = useState(null);
+
+            // Look up the authenticated session in allowed_users by email,
+            // attach role + povio_id, or sign out if not on the team list.
+            const linkAllowedUser = async (sess_user) => {
+                if (!sess_user) { setCurrentPovioUser(null); return; }
+                const email = (sess_user.email || '').toLowerCase();
+                if (!email) {
+                    setLoginError('Sign-in succeeded but no email is associated with your account. Cannot grant access.');
+                    await supabaseClient.auth.signOut();
+                    return;
+                }
+                const { data, error } = await supabaseClient
+                    .from('allowed_users')
+                    .select('email, role, povio_id, name, initials, color')
+                    .eq('email', email)
+                    .maybeSingle();
+                if (error) {
+                    console.error('Error fetching allowed_users row:', error);
+                    setLoginError('Unable to verify access. Try again in a moment.');
+                    await supabaseClient.auth.signOut();
+                    return;
+                }
+                if (!data) {
+                    setLoginError('Your email (' + email + ') is not on the team list. Ask Vid to add you.');
+                    await supabaseClient.auth.signOut();
+                    return;
+                }
+                setCurrentPovioUser(data);
+            };
 
             // Initialize Supabase Auth
             useEffect(() => {
                 const initAuth = async () => {
                     try {
-                        // Check if user is authenticated
                         const { data: { session } } = await supabaseClient.auth.getSession();
-
                         if (session?.user) {
                             setUser(session.user);
+                            await linkAllowedUser(session.user);
                         }
                     } catch (err) {
                         console.error('Failed to initialize auth (network error?):', err);
@@ -3062,11 +3865,11 @@
 
                 initAuth();
 
-                // Listen for auth changes
                 let subscription = null;
                 try {
-                    const { data } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+                    const { data } = supabaseClient.auth.onAuthStateChange(async (_event, session) => {
                         setUser(session?.user ?? null);
+                        await linkAllowedUser(session?.user ?? null);
                     });
                     subscription = data?.subscription;
                 } catch (err) {
@@ -3120,8 +3923,33 @@
                 }
             };
 
+            const handleLoginGoogle = async () => {
+                setLoginError(null);
+                if (!navigator.onLine) {
+                    setLoginError('No internet connection. Please check your network and try again.');
+                    return;
+                }
+                try {
+                    const { error } = await supabaseClient.auth.signInWithOAuth({
+                        provider: 'google',
+                        options: {
+                            redirectTo: window.location.href.split('#')[0].split('?')[0],
+                            queryParams: { hd: 'povio.com', prompt: 'select_account' }
+                        }
+                    });
+                    if (error) {
+                        console.error('Error logging in (Google):', error);
+                        setLoginError('Google sign in failed: ' + error.message);
+                    }
+                } catch (err) {
+                    console.error('Error logging in (Google):', err);
+                    setLoginError('Unable to reach the authentication server. Please check your connection.');
+                }
+            };
+
             const handleLogout = async () => {
                 await supabaseClient.auth.signOut();
+                setCurrentPovioUser(null);
             };
 
             // Show loading state
@@ -3129,32 +3957,55 @@
                 return <div className="login-container"><div className="login-card"><p>Loading...</p></div></div>;
             }
 
-            // Show login screen if not authenticated
-            if (!user) {
-                return <LoginScreen onLogin={handleLogin} error={loginError} />;
+            // Show login screen if not authenticated OR if email isn't on the team list
+            if (!user || !currentPovioUser) {
+                return <LoginScreen onLogin={handleLogin} onLoginGoogle={handleLoginGoogle} error={loginError} />;
             }
 
             // Main authenticated app
-            return <AuthenticatedApp user={user} onLogout={handleLogout} />;
+            return <AuthenticatedApp user={user} currentPovioUser={currentPovioUser} onLogout={handleLogout} />;
         };
 
-        const AuthenticatedApp = ({ user, onLogout }) => {
-            const VIEWS = ['goals', 'roadmap', 'whales', 'calendar', 'team'];
+        const AuthenticatedApp = ({ user, currentPovioUser, onLogout }) => {
+            const isAdmin = currentPovioUser?.role === 'admin';
+            // Reps see only Accounts + Calendar. Admins see everything.
+            const VIEWS = isAdmin
+                ? ['dashboard', 'goals', 'roadmap', 'whales', 'calendar', 'team', 'my-week', 'process', 'admin']
+                : ['whales', 'calendar'];
+            const DEFAULT_VIEW = isAdmin ? 'dashboard' : 'whales';
             const getViewFromHash = () => {
-                const h = window.location.hash.replace('#', '');
-                return VIEWS.includes(h) ? h : 'goals';
+                const h = window.location.hash.replace('#', '').split('/')[0];
+                return VIEWS.includes(h) ? h : DEFAULT_VIEW;
             };
 
             const [view, setView] = useState(getViewFromHash);
+            const [allowedUsers, setAllowedUsers] = useState([]);  // directory (Vid + all AMs)
 
             // Keep URL hash in sync when view changes
             useEffect(() => { window.location.hash = view; }, [view]);
 
-            // Respect browser back / forward
+            // Respect browser back / forward + redirect reps trying to hit admin routes
             useEffect(() => {
-                const onHash = () => setView(getViewFromHash());
+                const onHash = () => {
+                    const requested = window.location.hash.replace('#', '').split('/')[0];
+                    if (!VIEWS.includes(requested) && requested) {
+                        // Rep tried to hit an admin route — redirect quietly
+                        window.location.hash = DEFAULT_VIEW;
+                        return;
+                    }
+                    setView(getViewFromHash());
+                };
                 window.addEventListener('hashchange', onHash);
                 return () => window.removeEventListener('hashchange', onHash);
+            }, [VIEWS.join(',')]);
+
+            // Fetch the team directory once (used for owner-name lookups and avatars)
+            useEffect(() => {
+                supabaseClient
+                    .from('allowed_users')
+                    .select('email, role, povio_id, name, initials, color')
+                    .order('role', { ascending: true })
+                    .then(({ data }) => setAllowedUsers(data || []));
             }, []);
             const [goals, setGoals] = useState([]);
             const [whales, setWhales] = useState([]);
@@ -3203,12 +4054,15 @@
                 setGoals(mappedGoals);
             };
 
-            // Fetch whales from database
+            // Fetch ALL whales (collaborative — RLS handles access control)
+            // Post-merge: no longer user_id-scoped. Reps see all imported accounts;
+            // Vid sees everything including his original 5–6 key whales.
             const fetchWhales = async () => {
                 const { data, error } = await supabaseClient
                     .from('whales')
                     .select('*')
-                    .eq('user_id', user.id)
+                    .order('is_key_account', { ascending: false })
+                    .order('arr', { ascending: false, nullsFirst: false })
                     .order('id', { ascending: true });
 
                 if (error) {
@@ -3223,7 +4077,9 @@
                     accountManager: whale.account_manager,
                     lastQBR: whale.last_qbr,
                     nextQBR: whale.next_qbr,
-                    churnRisk: whale.churn_risk
+                    churnRisk: whale.churn_risk,
+                    ownerPovioId: whale.owner_povio_id,
+                    isKeyAccount: whale.is_key_account
                 }));
 
                 setWhales(mappedWhales);
@@ -3437,34 +4293,61 @@
                 setGoals([...goals, mappedGoal]);
             };
 
-            // Update whales in database
+            // Update whales in database — collaborative (any AM can edit any account).
+            // Drops the user_id filter post-merge; RLS still gates access.
+            // Auto-logs every edit to `activities` so we can audit who changed what.
             const updateWhales = async (updatedWhales) => {
-                // This is called when WhaleView updates the whales array
-                // We'll need to update each whale individually
+                const prevById = new Map(whales.map(w => [w.id, w]));
                 for (const whale of updatedWhales) {
-                    if (whale.id) {
-                        // Update existing whale
-                        await supabaseClient
-                            .from('whales')
-                            .update({
-                                name: whale.name,
-                                industry: whale.industry,
-                                health: whale.health,
-                                arr: whale.arr,
-                                ltv: whale.ltv,
-                                contract_end: whale.contractEnd,
-                                account_manager: whale.accountManager,
-                                last_qbr: whale.lastQBR,
-                                next_qbr: whale.nextQBR,
-                                expansion: whale.expansion,
-                                churn_risk: whale.churnRisk,
-                                notes: whale.notes,
-                                contacts: whale.contacts || [],
-                                referrals_count: whale.referrals_count || 0,
-                                referrals_revenue: whale.referrals_revenue || 0
-                            })
-                            .eq('id', whale.id)
-                            .eq('user_id', user.id);
+                    if (!whale.id) continue;
+                    const prev = prevById.get(whale.id);
+                    const next = {
+                        name: whale.name,
+                        industry: whale.industry,
+                        health: whale.health,
+                        arr: whale.arr,
+                        ltv: whale.ltv,
+                        contract_end: whale.contractEnd,
+                        account_manager: whale.accountManager,
+                        last_qbr: whale.lastQBR,
+                        next_qbr: whale.nextQBR,
+                        expansion: whale.expansion,
+                        churn_risk: whale.churnRisk,
+                        notes: whale.notes,
+                        contacts: whale.contacts || [],
+                        referrals_count: whale.referrals_count || 0,
+                        referrals_revenue: whale.referrals_revenue || 0,
+                        updated_by_povio_id: currentPovioUser?.povio_id
+                    };
+                    const { error } = await supabaseClient
+                        .from('whales')
+                        .update(next)
+                        .eq('id', whale.id);
+                    if (error) { console.error('updateWhale error', error); continue; }
+
+                    // Audit: detect changed fields, write a single activity row summarizing the diff
+                    if (prev) {
+                        const watchedFields = ['name','industry','health','arr','ltv','contract_end','account_manager','last_qbr','next_qbr','expansion','churn_risk','notes','referrals_count','referrals_revenue'];
+                        const dbToCmpKey = { contract_end: 'contractEnd', account_manager: 'accountManager', last_qbr: 'lastQBR', next_qbr: 'nextQBR', churn_risk: 'churnRisk' };
+                        const before = {}, after = {}, diffs = [];
+                        for (const f of watchedFields) {
+                            const cmpKey = dbToCmpKey[f] || f;
+                            const oldVal = prev[cmpKey] ?? prev[f] ?? null;
+                            const newVal = next[f] ?? null;
+                            if (String(oldVal ?? '') !== String(newVal ?? '')) {
+                                before[f] = oldVal; after[f] = newVal; diffs.push(f);
+                            }
+                        }
+                        if (diffs.length) {
+                            const actor = currentPovioUser?.name || currentPovioUser?.email || 'someone';
+                            await supabaseClient.from('activities').insert({
+                                whale_id: whale.id,
+                                actor_povio_id: currentPovioUser?.povio_id,
+                                kind: 'edit',
+                                summary: `${actor} updated ${diffs.join(', ')}`,
+                                payload: { before, after }
+                            });
+                        }
                     }
                 }
                 setWhales(updatedWhales);
@@ -3481,27 +4364,62 @@
             const goalsOnTrack = goalStatuses.filter(s => s === 'on-track' || s === 'complete').length;
             const goalsAtRisk = goalStatuses.filter(s => s === 'at-risk' || s === 'behind').length;
 
+            const TITLES = {
+                dashboard: 'Sales Command Center',
+                goals:     '2026 Sales Goals',
+                roadmap:   'Roadmap',
+                whales:    'Accounts',
+                calendar:  'Team Calendar',
+                team:      'Sales Team Structure',
+                'my-week': 'My Week',
+                process:   'Process & Playbook',
+                admin:     'Admin'
+            };
+            const NAV_ITEMS = [
+                { id: 'dashboard', label: 'Dashboard', icon: '◇', adminOnly: true,  mobile: true  },
+                { id: 'goals',     label: 'Goals',     icon: '◎', adminOnly: true,  mobile: false },
+                { id: 'roadmap',   label: 'Roadmap',   icon: '↗', adminOnly: true,  mobile: false },
+                { id: 'whales',    label: 'Accounts',  icon: '◧', adminOnly: false, mobile: true  },
+                { id: 'calendar',  label: 'Calendar',  icon: '☐', adminOnly: false, mobile: true  },
+                { id: 'team',      label: 'Team',      icon: '◈', adminOnly: true,  mobile: false },
+                { id: 'my-week',   label: 'My Week',   icon: '✓', adminOnly: true,  mobile: false },
+                { id: 'process',   label: 'Process',   icon: '→', adminOnly: true,  mobile: false },
+                { id: 'admin',     label: 'Admin',     icon: '⚙', adminOnly: true,  mobile: false },
+            ];
+            const visibleNav   = NAV_ITEMS.filter(n => !n.adminOnly || isAdmin);
+            const mobileNavBtns = visibleNav.filter(n => n.mobile);
+
+            const showGoalsStats = isAdmin && (view === 'goals' || view === 'roadmap');
+
             return (
                 <div className="app-container">
                     <div className="header">
-                        <div className="header-brand"><PovioLogo /><div className="header-divider" /><div className="header-title"><h1>{view === 'whales' ? 'Whale Protection Programme' : view === 'team' ? 'Sales Team Structure' : view === 'calendar' ? 'Team Calendar' : '2026 Sales Goals'}</h1><span className="header-subtitle">Vid Lešnik • Head of Sales & Partnerships</span></div></div>
-                        <div className="header-actions"><div className="view-toggle"><button className={`view-btn ${view === 'goals' ? 'active' : ''}`} onClick={() => setView('goals')}>Goals</button><button className={`view-btn ${view === 'roadmap' ? 'active' : ''}`} onClick={() => setView('roadmap')}>Roadmap</button><button className={`view-btn ${view === 'whales' ? 'active' : ''}`} onClick={() => setView('whales')}>Whales</button><button className={`view-btn ${view === 'calendar' ? 'active' : ''}`} onClick={() => setView('calendar')}>Calendar</button><button className={`view-btn ${view === 'team' ? 'active' : ''}`} onClick={() => setView('team')}>Team</button></div><button className="logout-btn" onClick={onLogout}>Sign Out</button></div>
-                    </div>
-                    {view !== 'calendar' && (
-                        <div style={{
-                            background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                            borderBottom: '1px solid #fbbf24',
-                            padding: '8px 24px',
-                            textAlign: 'center',
-                            fontSize: '12px',
-                            fontWeight: '600',
-                            color: '#92400e',
-                            letterSpacing: '0.3px'
-                        }}>
-                            ⚠️ DEMO MODE — All data shown is fictional and for demonstration purposes only
+                        <div className="header-brand">
+                            <PovioLogo />
+                            <div className="header-divider" />
+                            <div className="header-title">
+                                <h1>{TITLES[view] || 'Povio Sales'}</h1>
+                                <span className="header-subtitle">
+                                    {currentPovioUser?.name || user.email}
+                                    {' · '}<span className={'role-chip ' + (isAdmin ? 'admin' : 'rep')}>{isAdmin ? 'Admin' : 'AM'}</span>
+                                </span>
+                            </div>
                         </div>
-                    )}
-                    {view !== 'whales' && view !== 'team' && view !== 'calendar' && (
+                        <div className="header-actions">
+                            <div className="view-toggle desktop-only">
+                                {visibleNav.map(n => (
+                                    <button
+                                        key={n.id}
+                                        className={'view-btn ' + (view === n.id ? 'active' : '')}
+                                        onClick={() => setView(n.id)}
+                                    >{n.label}</button>
+                                ))}
+                            </div>
+                            <button className="logout-btn" onClick={onLogout}>Sign Out</button>
+                        </div>
+                    </div>
+
+                    {showGoalsStats && (
                         <div className="stats-bar">
                             <div className="stat-card"><h3>Overall Progress</h3><div className="value blue">{overallProgress}%</div></div>
                             <div className="stat-card"><h3>Milestones Complete</h3><div className="value">{completedMilestones}/{totalMilestones}</div></div>
@@ -3509,11 +4427,32 @@
                             <div className="stat-card"><h3>Goals At Risk</h3><div className="value red">{goalsAtRisk}</div></div>
                         </div>
                     )}
-                    {view === 'goals' && <GoalsView goals={goals} onUpdate={updateGoal} onDelete={deleteGoal} onAdd={addGoal} />}
-                    {view === 'roadmap' && <RoadmapView goals={goals} />}
-                    {view === 'whales' && <WhaleView whales={whales} onUpdate={updateWhales} user={user} />}
-                    {view === 'calendar' && <CalendarView teamData={teamData} events={calendarEvents} onUpdateEvents={updateCalendarEvents} user={user} />}
-                    {view === 'team' && <TeamView teamData={teamData} onUpdate={updateTeam} user={user} />}
+
+                    {isAdmin && view === 'dashboard' && <DashboardView whales={whales} goals={goals} allowedUsers={allowedUsers} setView={setView} />}
+                    {isAdmin && view === 'goals'     && <GoalsView goals={goals} onUpdate={updateGoal} onDelete={deleteGoal} onAdd={addGoal} />}
+                    {isAdmin && view === 'roadmap'   && <RoadmapView goals={goals} />}
+                    {            view === 'whales'   && <AccountsView whales={whales} allowedUsers={allowedUsers} onUpdate={updateWhales} currentPovioUser={currentPovioUser} user={user} />}
+                    {            view === 'calendar' && <CalendarView teamData={teamData} events={calendarEvents} onUpdateEvents={updateCalendarEvents} user={user} readOnly={!isAdmin} />}
+                    {isAdmin && view === 'team'      && <TeamView teamData={teamData} onUpdate={updateTeam} user={user} />}
+                    {isAdmin && view === 'my-week'   && <MyWeekView whales={whales} user={user} currentPovioUser={currentPovioUser} />}
+                    {isAdmin && view === 'process'   && <ProcessView />}
+                    {isAdmin && view === 'admin'     && <AdminView whales={whales} allowedUsers={allowedUsers} user={user} currentPovioUser={currentPovioUser} onWhalesRefresh={fetchWhales} />}
+
+                    {/* Mobile bottom nav — adapts to role */}
+                    <nav className="mobile-nav">
+                        <div className={'mobile-nav-grid cols-' + Math.min(4, mobileNavBtns.length)}>
+                            {mobileNavBtns.map(n => (
+                                <button
+                                    key={n.id}
+                                    className={'mobile-nav-btn ' + (view === n.id ? 'active' : '')}
+                                    onClick={() => setView(n.id)}
+                                >
+                                    <span className="nav-icon">{n.icon}</span>
+                                    {n.label}
+                                </button>
+                            ))}
+                        </div>
+                    </nav>
                 </div>
             );
         };
