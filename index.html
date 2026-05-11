@@ -25,16 +25,22 @@
             --povio-black: #0A0A0A;
             --povio-gray-900: #171717;
             --povio-gray-700: #404040;
+            --povio-gray-600: #525252;
             --povio-gray-500: #737373;
             --povio-gray-400: #A3A3A3;
             --povio-gray-200: #E5E5E5;
             --povio-gray-100: #F5F5F5;
+            --povio-gray-50: #FAFAFA;
             --povio-success: #16A34A;
             --povio-success-subtle: rgba(22, 163, 74, 0.08);
             --povio-warning: #CA8A04;
             --povio-warning-subtle: rgba(202, 138, 4, 0.08);
             --povio-danger: #DC2626;
             --povio-danger-subtle: rgba(220, 38, 38, 0.08);
+            --povio-event-vacation: #3b82f6;
+            --povio-event-sick: #ef4444;
+            --povio-event-trip: #f97316;
+            --povio-today-tint: #eff6ff;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -373,6 +379,48 @@
             background: var(--povio-gray-100);
             border-color: var(--povio-border-hover);
         }
+
+        /* Calendar */
+        .calendar-view { padding: 0 24px 24px; }
+        .calendar-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .calendar-toolbar-group { display: flex; gap: 10px; align-items: center; }
+        .calendar-nav-btn { padding: 6px 12px; background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .calendar-nav-btn.today { background: var(--povio-gray-100); font-size: 12px; font-weight: 600; }
+        .calendar-period-label { margin: 0; font-size: 18px; font-weight: 700; color: var(--povio-gray-900); min-width: 240px; text-align: center; }
+        .calendar-period-switcher { margin-left: 12px; display: flex; gap: 4px; background: var(--povio-gray-100); padding: 3px; border-radius: 6px; }
+        .calendar-period-btn { padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 4px; cursor: pointer; border: none; background: transparent; color: var(--povio-gray-600); }
+        .calendar-period-btn.active { background: var(--povio-white); color: var(--povio-blue); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .calendar-legend { display: flex; gap: 12px; font-size: 12px; }
+        .calendar-legend-item { display: flex; align-items: center; gap: 6px; }
+        .calendar-legend-swatch { width: 16px; height: 12px; border-radius: 3px; }
+        .calendar-legend-swatch.vacation { background: var(--povio-event-vacation); }
+        .calendar-legend-swatch.work_trip { background: var(--povio-event-trip); }
+        .calendar-legend-swatch.sick_leave { background: var(--povio-event-sick); }
+        .calendar-add-btn { padding: 7px 14px; background: var(--povio-blue); color: #fff; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .calendar-table-wrap { overflow-x: auto; border: 1px solid var(--povio-border); border-radius: 8px; background: var(--povio-white); }
+        .calendar-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        .calendar-table thead tr { background: var(--povio-gray-100); }
+        .calendar-table th.member-col { position: sticky; left: 0; background: var(--povio-gray-100); z-index: 2; padding: 10px 14px; text-align: left; border-right: 1px solid var(--povio-border); font-weight: 700; font-size: 11px; color: var(--povio-gray-600); text-transform: uppercase; letter-spacing: 0.5px; min-width: 140px; }
+        .calendar-table th.day-head { padding: 8px 4px; text-align: center; font-size: 10px; font-weight: 600; color: var(--povio-gray-600); background: var(--povio-gray-100); border-left: 1px solid var(--povio-gray-200); min-width: 28px; }
+        .calendar-table th.day-head.first-col { border-left: none; }
+        .calendar-table th.day-head.weekend { color: var(--povio-gray-400); }
+        .calendar-table th.day-head.today { color: var(--povio-blue); background: var(--povio-today-tint); }
+        .calendar-table th.day-head.month-start { border-left: 2px solid var(--povio-gray-400); }
+        .calendar-month-label { font-size: 9px; font-weight: 700; color: var(--povio-gray-700); margin-bottom: 2px; }
+        .calendar-day-number { font-size: 11px; font-weight: 600; margin-top: 2px; }
+        .calendar-day-number.today { font-weight: 700; }
+        .calendar-empty-row { padding: 40px; text-align: center; color: var(--povio-gray-500); font-size: 13px; }
+        .calendar-member-row { border-top: 1px solid var(--povio-border); }
+        .calendar-member-cell { position: sticky; left: 0; background: var(--povio-white); z-index: 1; padding: 10px 14px; border-right: 1px solid var(--povio-border); font-size: 13px; font-weight: 600; color: var(--povio-gray-900); }
+        .calendar-day-cell { padding: 4px 2px; position: relative; text-align: center; background: var(--povio-white); border-left: 1px solid var(--povio-gray-100); min-width: 28px; }
+        .calendar-day-cell.first-col { border-left: none; }
+        .calendar-day-cell.weekend { background: var(--povio-gray-50); }
+        .calendar-day-cell.today { background: var(--povio-today-tint); }
+        .calendar-day-cell.month-start { border-left: 2px solid var(--povio-gray-400); }
+        .calendar-event-bar { position: absolute; left: 2px; top: 6px; height: 20px; border-radius: 4px; font-size: 10px; font-weight: 600; color: #fff; display: flex; align-items: center; justify-content: flex-start; padding-left: 6px; cursor: pointer; z-index: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .calendar-event-bar.vacation { background: var(--povio-event-vacation); }
+        .calendar-event-bar.work_trip { background: var(--povio-event-trip); }
+        .calendar-event-bar.sick_leave { background: var(--povio-event-sick); }
     </style>
 </head>
 <body>
@@ -1881,7 +1929,7 @@
                     <div style={{ marginBottom: '14px' }}>
                         <label style={formLabelStyle}>Type</label>
                         <div style={{ display: 'flex', gap: '8px' }}>
-                            {[{v:'vacation',l:'Vacation',c:'#3b82f6'},{v:'work_trip',l:'Work Trip',c:'#f97316'},{v:'sick_leave',l:'Sick Leave',c:'#ef4444'}].map(t => (
+                            {[{v:'vacation',l:'Vacation',c:'var(--povio-event-vacation)'},{v:'work_trip',l:'Work Trip',c:'var(--povio-event-trip)'},{v:'sick_leave',l:'Sick Leave',c:'var(--povio-event-sick)'}].map(t => (
                                 <button key={t.v} onClick={() => setType(t.v)} style={{
                                     flex:1, padding:'8px', fontSize:'13px', fontWeight:'600', borderRadius:'6px', cursor:'pointer',
                                     color: type===t.v ? '#fff' : 'var(--povio-gray-700)',
@@ -1928,7 +1976,13 @@
             );
         };
 
-        const CalendarView = ({ teamData, events, onUpdateEvents, user }) => {
+        const CALENDAR_PRIORITY_ORDER = ['Vid Lešnik', 'Žiga Triller', 'Daša Ravter', 'Sara Petrič', 'Gregor Špan'];
+        const EVENT_LABELS = { vacation: 'Vacation', sick_leave: 'Sick Leave', work_trip: 'Work Trip' };
+        const eventLabel = (type) => EVENT_LABELS[type] || EVENT_LABELS.work_trip;
+        const eventTypeClass = (type) => EVENT_LABELS[type] ? type : 'work_trip';
+        const isoDay = (d) => d.toISOString().split('T')[0];
+
+        const CalendarView = ({ teamData, events, onUpdateEvents }) => {
             const [currentMonth, setCurrentMonth] = useState(new Date());
             const [monthsToShow, setMonthsToShow] = useState(1);
             const [editingEvent, setEditingEvent] = useState(null);
@@ -1938,61 +1992,49 @@
             const structure = normalizeTeamStructure(teamData?.structure);
             const members = structure.members || {};
 
-            // Custom sort: Vid, Žiga, Daša, Sara, Gregor first, then alphabetical
-            const priorityOrder = ['Vid Lešnik', 'Žiga Triller', 'Daša Ravter', 'Sara Petrič', 'Gregor Špan'];
-            const membersList = Object.values(members).sort((a, b) => {
-                const aIdx = priorityOrder.indexOf(a.name);
-                const bIdx = priorityOrder.indexOf(b.name);
+            const membersList = useMemo(() => Object.values(members).sort((a, b) => {
+                const aIdx = CALENDAR_PRIORITY_ORDER.indexOf(a.name);
+                const bIdx = CALENDAR_PRIORITY_ORDER.indexOf(b.name);
                 if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
                 if (aIdx !== -1) return -1;
                 if (bIdx !== -1) return 1;
                 return (a.name || '').localeCompare(b.name || '');
-            });
+            }), [members]);
 
-            // Generate array of months to display
-            const monthsArray = Array.from({ length: monthsToShow }, (_, i) => {
-                const year = currentMonth.getFullYear();
-                const month = currentMonth.getMonth();
-                return new Date(year, month + i, 1);
-            });
+            const { monthsArray, allDays } = useMemo(() => {
+                const y = currentMonth.getFullYear();
+                const m = currentMonth.getMonth();
+                const months = Array.from({ length: monthsToShow }, (_, i) => new Date(y, m + i, 1));
+                const days = months.flatMap(md => {
+                    const my = md.getFullYear();
+                    const mm = md.getMonth();
+                    const daysInMonth = new Date(my, mm + 1, 0).getDate();
+                    return Array.from({ length: daysInMonth }, (_, i) => new Date(my, mm, i + 1));
+                });
+                return { monthsArray: months, allDays: days };
+            }, [currentMonth, monthsToShow]);
 
-            // Flatten all days across all months
-            const allDays = monthsArray.flatMap(monthDate => {
-                const year = monthDate.getFullYear();
-                const month = monthDate.getMonth();
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-                return Array.from({ length: daysInMonth }, (_, i) => new Date(year, month, i + 1));
-            });
-
-            console.log('DEBUG Calendar:', {
-                monthsToShow,
-                monthsArrayLength: monthsArray.length,
-                allDaysLength: allDays.length,
-                firstDay: allDays[0]?.toISOString(),
-                lastDay: allDays[allDays.length - 1]?.toISOString()
-            });
-
-            const startDate = allDays[0];
             const endDate = allDays[allDays.length - 1];
 
-            const year = currentMonth.getFullYear();
-            const month = currentMonth.getMonth();
-            const prevPeriod = () => setCurrentMonth(new Date(year, month - monthsToShow, 1));
-            const nextPeriod = () => setCurrentMonth(new Date(year, month + monthsToShow, 1));
+            // O(1) lookup of "is there an event starting on this day for this member?"
+            const eventsByStart = useMemo(() => {
+                const map = new Map();
+                for (const e of events) map.set(`${e.member_id}|${e.start_date}`, e);
+                return map;
+            }, [events]);
+
+            const todayKey = new Date().toDateString();
+
+            const prevPeriod = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - monthsToShow, 1));
+            const nextPeriod = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + monthsToShow, 1));
             const today = () => setCurrentMonth(new Date());
 
-            // Find event starting on a specific date for a member
-            const eventStartingOn = (date, memberId) => {
-                const d = date.toISOString().split('T')[0];
-                return events.find(e => e.member_id === memberId && e.start_date === d);
-            };
-
-            // Calculate span in days for an event from a start date (clipped to visible range)
+            // Span in days for an event starting on `date`, clipped to the visible range
             const eventSpan = (date, evt) => {
                 const evtStart = new Date(evt.start_date);
                 const evtEnd = new Date(evt.end_date);
-                const start = new Date(Math.max(date.getTime(), evtStart.getTime()));
-                const end = new Date(Math.min(endDate.getTime(), evtEnd.getTime()));
+                const start = Math.max(date.getTime(), evtStart.getTime());
+                const end = Math.min(endDate.getTime(), evtEnd.getTime());
                 const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
                 return Math.max(1, diffDays);
             };
@@ -2001,78 +2043,64 @@
             const updateEvent = (updated) => onUpdateEvents(events.map(e => e.id === updated.id ? updated : e));
             const deleteEvent = (id) => onUpdateEvents(events.filter(e => e.id !== id));
 
-            const eventColor = (type) => type === 'vacation' ? '#3b82f6' : type === 'sick_leave' ? '#ef4444' : '#f97316';
-            const eventLabel = (type) => type === 'vacation' ? 'Vacation' : type === 'sick_leave' ? 'Sick Leave' : 'Work Trip';
-
             const periodLabel = monthsToShow === 1
                 ? currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
                 : `${monthsArray[0].toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} - ${monthsArray[monthsArray.length - 1].toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
 
             return (
-                <div style={{ padding: '0 24px 24px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                            <button onClick={prevPeriod} style={{ padding: '6px 12px', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' }}>‹</button>
-                            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: 'var(--povio-gray-900)', minWidth: '240px', textAlign: 'center' }}>{periodLabel}</h2>
-                            <button onClick={nextPeriod} style={{ padding: '6px 12px', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' }}>›</button>
-                            <button onClick={today} style={{ padding: '6px 12px', background: 'var(--povio-gray-100)', border: '1px solid var(--povio-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>Today</button>
-                            <div style={{ marginLeft: '12px', display: 'flex', gap: '4px', background: 'var(--povio-gray-100)', padding: '3px', borderRadius: '6px' }}>
+                <div className="calendar-view">
+                    <div className="calendar-toolbar">
+                        <div className="calendar-toolbar-group">
+                            <button className="calendar-nav-btn" onClick={prevPeriod}>‹</button>
+                            <h2 className="calendar-period-label">{periodLabel}</h2>
+                            <button className="calendar-nav-btn" onClick={nextPeriod}>›</button>
+                            <button className="calendar-nav-btn today" onClick={today}>Today</button>
+                            <div className="calendar-period-switcher">
                                 {[1, 3, 6].map(n => (
-                                    <button key={n} onClick={() => setMonthsToShow(n)} style={{
-                                        padding: '4px 10px', fontSize: '11px', fontWeight: '600', borderRadius: '4px', cursor: 'pointer', border: 'none',
-                                        background: monthsToShow === n ? 'var(--povio-white)' : 'transparent',
-                                        color: monthsToShow === n ? 'var(--povio-blue)' : 'var(--povio-gray-600)',
-                                        boxShadow: monthsToShow === n ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
-                                    }}>{n} {n === 1 ? 'Month' : 'Months'}</button>
+                                    <button key={n}
+                                        className={`calendar-period-btn${monthsToShow === n ? ' active' : ''}`}
+                                        onClick={() => setMonthsToShow(n)}>
+                                        {n} {n === 1 ? 'Month' : 'Months'}
+                                    </button>
                                 ))}
                             </div>
                         </div>
-                        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', gap: '12px', fontSize: '12px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <div style={{ width: '16px', height: '12px', background: '#3b82f6', borderRadius: '3px' }} />
-                                    <span>Vacation</span>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <div style={{ width: '16px', height: '12px', background: '#f97316', borderRadius: '3px' }} />
-                                    <span>Work Trip</span>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <div style={{ width: '16px', height: '12px', background: '#ef4444', borderRadius: '3px' }} />
-                                    <span>Sick Leave</span>
-                                </div>
+                        <div className="calendar-toolbar-group" style={{ gap: '16px' }}>
+                            <div className="calendar-legend">
+                                <div className="calendar-legend-item"><div className="calendar-legend-swatch vacation" /><span>Vacation</span></div>
+                                <div className="calendar-legend-item"><div className="calendar-legend-swatch work_trip" /><span>Work Trip</span></div>
+                                <div className="calendar-legend-item"><div className="calendar-legend-swatch sick_leave" /><span>Sick Leave</span></div>
                             </div>
-                            <button onClick={() => { setSelectedMemberForAdd(null); setAddingEvent(true); }}
-                                style={{ padding: '7px 14px', background: 'var(--povio-blue)', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
+                            <button className="calendar-add-btn" onClick={() => { setSelectedMemberForAdd(null); setAddingEvent(true); }}>
                                 + Add Event
                             </button>
                         </div>
                     </div>
 
-                    <div style={{ overflowX: 'auto', border: '1px solid var(--povio-border)', borderRadius: '8px', background: '#fff' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px' }}>
+                    <div className="calendar-table-wrap">
+                        <table className="calendar-table">
                             <thead>
-                                <tr style={{ background: 'var(--povio-gray-100)' }}>
-                                    <th style={{ position: 'sticky', left: 0, background: 'var(--povio-gray-100)', zIndex: 2, padding: '10px 14px', textAlign: 'left', borderRight: '1px solid var(--povio-border)', fontWeight: '700', fontSize: '11px', color: 'var(--povio-gray-600)', textTransform: 'uppercase', letterSpacing: '0.5px', minWidth: '140px' }}>Team Member</th>
+                                <tr>
+                                    <th className="member-col">Team Member</th>
                                     {allDays.map((d, i) => {
-                                        const isToday = d.toDateString() === new Date().toDateString();
+                                        const isToday = d.toDateString() === todayKey;
                                         const isWeekend = d.getDay() === 0 || d.getDay() === 6;
                                         const isFirstOfMonth = d.getDate() === 1;
+                                        const cls = ['day-head',
+                                            i === 0 && 'first-col',
+                                            isToday && 'today',
+                                            !isToday && isWeekend && 'weekend',
+                                            isFirstOfMonth && 'month-start'
+                                        ].filter(Boolean).join(' ');
                                         return (
-                                            <th key={i} style={{
-                                                padding: '8px 4px', textAlign: 'center', fontSize: '10px', fontWeight: '600',
-                                                color: isToday ? 'var(--povio-blue)' : (isWeekend ? 'var(--povio-gray-400)' : 'var(--povio-gray-600)'),
-                                                background: isToday ? '#eff6ff' : 'var(--povio-gray-100)',
-                                                borderLeft: isFirstOfMonth ? '2px solid var(--povio-gray-400)' : (i === 0 ? 'none' : '1px solid #e5e7eb'),
-                                                minWidth: '28px'
-                                            }}>
+                                            <th key={i} className={cls}>
                                                 {isFirstOfMonth && monthsToShow > 1 && (
-                                                    <div style={{ fontSize: '9px', fontWeight: '700', color: 'var(--povio-gray-700)', marginBottom: '2px' }}>
+                                                    <div className="calendar-month-label">
                                                         {d.toLocaleDateString('en-US', { month: 'short' })}
                                                     </div>
                                                 )}
                                                 <div>{d.toLocaleDateString('en-US', { weekday: 'narrow' })}</div>
-                                                <div style={{ fontSize: '11px', fontWeight: isToday ? '700' : '600', marginTop: '2px' }}>{d.getDate()}</div>
+                                                <div className={`calendar-day-number${isToday ? ' today' : ''}`}>{d.getDate()}</div>
                                             </th>
                                         );
                                     })}
@@ -2080,43 +2108,33 @@
                             </thead>
                             <tbody>
                                 {membersList.length === 0 ? (
-                                    <tr><td colSpan={allDays.length + 1} style={{ padding: '40px', textAlign: 'center', color: 'var(--povio-gray-500)', fontSize: '13px' }}>No team members yet. Add members in the Team tab first.</td></tr>
+                                    <tr><td colSpan={allDays.length + 1} className="calendar-empty-row">No team members yet. Add members in the Team tab first.</td></tr>
                                 ) : membersList.map((member) => (
-                                    <tr key={member.id} style={{ borderTop: '1px solid var(--povio-border)' }}>
-                                        <td style={{ position: 'sticky', left: 0, background: '#fff', zIndex: 1, padding: '10px 14px', borderRight: '1px solid var(--povio-border)', fontSize: '13px', fontWeight: '600', color: 'var(--povio-gray-900)' }}>
-                                            {member.name}
-                                        </td>
+                                    <tr key={member.id} className="calendar-member-row">
+                                        <td className="calendar-member-cell">{member.name}</td>
                                         {allDays.map((d, dayIdx) => {
-                                            const startingEvt = eventStartingOn(d, member.id);
+                                            const startingEvt = eventsByStart.get(`${member.id}|${isoDay(d)}`);
                                             const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-                                            const isToday = d.toDateString() === new Date().toDateString();
+                                            const isToday = d.toDateString() === todayKey;
                                             const isFirstOfMonth = d.getDate() === 1;
-                                            const span = startingEvt ? eventSpan(d, startingEvt) : 0;
+                                            const cellCls = ['calendar-day-cell',
+                                                dayIdx === 0 && 'first-col',
+                                                isToday && 'today',
+                                                !isToday && isWeekend && 'weekend',
+                                                isFirstOfMonth && 'month-start'
+                                            ].filter(Boolean).join(' ');
 
                                             return (
-                                                <td key={dayIdx} style={{
-                                                    padding: '4px 2px', position: 'relative', textAlign: 'center',
-                                                    background: isToday ? '#eff6ff' : (isWeekend ? '#fafafa' : '#fff'),
-                                                    borderLeft: isFirstOfMonth ? '2px solid var(--povio-gray-400)' : (dayIdx === 0 ? 'none' : '1px solid #f3f4f6'),
-                                                    minWidth: '28px'
-                                                }}>
-                                                    {startingEvt ? (
+                                                <td key={dayIdx} className={cellCls}>
+                                                    {startingEvt && (
                                                         <div
+                                                            className={`calendar-event-bar ${eventTypeClass(startingEvt.event_type)}`}
                                                             onClick={() => setEditingEvent(startingEvt)}
                                                             title={`${eventLabel(startingEvt.event_type)}${startingEvt.title ? ': ' + startingEvt.title : ''}\n${startingEvt.start_date} to ${startingEvt.end_date}${startingEvt.notes ? '\n' + startingEvt.notes : ''}`}
-                                                            style={{
-                                                                position: 'absolute', left: '2px',
-                                                                width: `calc(${span} * (100% + 4px) - 4px)`,
-                                                                top: '6px', height: '20px', background: eventColor(startingEvt.event_type),
-                                                                borderRadius: '4px', fontSize: '10px', fontWeight: '600', color: '#fff',
-                                                                display: 'flex', alignItems: 'center', justifyContent: 'flex-start', paddingLeft: '6px',
-                                                                cursor: 'pointer', zIndex: 1, boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                                                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                                                                pointerEvents: 'auto'
-                                                            }}>
+                                                            style={{ width: `calc(${eventSpan(d, startingEvt)} * (100% + 4px) - 4px)` }}>
                                                             {startingEvt.title || eventLabel(startingEvt.event_type)}
                                                         </div>
-                                                    ) : null}
+                                                    )}
                                                 </td>
                                             );
                                         })}
