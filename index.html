@@ -398,7 +398,7 @@
         .calendar-legend-swatch.sick_leave { background: var(--povio-event-sick); }
         .calendar-add-btn { padding: 7px 14px; background: var(--povio-blue); color: #fff; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
         .calendar-table-wrap { overflow-x: auto; border: 1px solid var(--povio-border); border-radius: 8px; background: var(--povio-white); }
-        .calendar-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        .calendar-table { width: 100%; border-collapse: collapse; }
         .calendar-table thead tr { background: var(--povio-gray-100); }
         .calendar-table th.member-col { position: sticky; left: 0; background: var(--povio-gray-100); z-index: 2; padding: 10px 14px; text-align: left; border-right: 1px solid var(--povio-border); font-weight: 700; font-size: 11px; color: var(--povio-gray-600); text-transform: uppercase; letter-spacing: 0.5px; min-width: 140px; }
         .calendar-table th.day-head { padding: 8px 4px; text-align: center; font-size: 10px; font-weight: 600; color: var(--povio-gray-600); background: var(--povio-gray-100); border-left: 1px solid var(--povio-gray-200); min-width: 28px; }
@@ -2078,7 +2078,7 @@
                     </div>
 
                     <div className="calendar-table-wrap">
-                        <table className="calendar-table">
+                        <table className="calendar-table" style={{ minWidth: `${140 + allDays.length * 28}px` }}>
                             <thead>
                                 <tr>
                                     <th className="member-col">Team Member</th>
