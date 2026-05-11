@@ -397,30 +397,22 @@
         .calendar-legend-swatch.work_trip { background: var(--povio-event-trip); }
         .calendar-legend-swatch.sick_leave { background: var(--povio-event-sick); }
         .calendar-add-btn { padding: 7px 14px; background: var(--povio-blue); color: #fff; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
-        .calendar-table-wrap { overflow-x: auto; border: 1px solid var(--povio-border); border-radius: 8px; background: var(--povio-white); }
-        .calendar-table { border-collapse: collapse; table-layout: fixed; }
-        .calendar-table thead tr { background: var(--povio-gray-100); }
-        .calendar-table th.member-col { position: sticky; left: 0; background: var(--povio-gray-100); z-index: 2; padding: 10px 14px; text-align: left; border-right: 1px solid var(--povio-border); font-weight: 700; font-size: 11px; color: var(--povio-gray-600); text-transform: uppercase; letter-spacing: 0.5px; }
-        .calendar-table th.day-head { padding: 8px 2px; text-align: center; font-size: 10px; font-weight: 600; color: var(--povio-gray-600); background: var(--povio-gray-100); border-left: 1px solid var(--povio-gray-200); overflow: hidden; }
-        .calendar-table th.day-head.first-col { border-left: none; }
-        .calendar-table th.day-head.weekend { color: var(--povio-gray-400); }
-        .calendar-table th.day-head.today { color: var(--povio-blue); background: var(--povio-today-tint); }
-        .calendar-table th.day-head.month-start { border-left: 2px solid var(--povio-gray-400); }
-        .calendar-month-label { font-size: 9px; font-weight: 700; color: var(--povio-gray-700); margin-bottom: 2px; white-space: nowrap; }
-        .calendar-day-number { font-size: 11px; font-weight: 600; margin-top: 2px; }
-        .calendar-day-number.today { font-weight: 700; }
-        .calendar-empty-row { padding: 40px; text-align: center; color: var(--povio-gray-500); font-size: 13px; }
-        .calendar-member-row { border-top: 1px solid var(--povio-border); }
-        .calendar-member-cell { position: sticky; left: 0; background: var(--povio-white); z-index: 1; padding: 10px 14px; border-right: 1px solid var(--povio-border); font-size: 13px; font-weight: 600; color: var(--povio-gray-900); }
-        .calendar-day-cell { padding: 4px 0; position: relative; text-align: center; background: var(--povio-white); border-left: 1px solid var(--povio-gray-100); overflow: visible; }
-        .calendar-day-cell.first-col { border-left: none; }
-        .calendar-day-cell.weekend { background: var(--povio-gray-50); }
-        .calendar-day-cell.today { background: var(--povio-today-tint); }
-        .calendar-day-cell.month-start { border-left: 2px solid var(--povio-gray-400); }
-        .calendar-event-bar { position: absolute; left: 2px; top: 6px; height: 20px; border-radius: 4px; font-size: 10px; font-weight: 600; color: #fff; display: flex; align-items: center; justify-content: flex-start; padding-left: 6px; cursor: pointer; z-index: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .calendar-event-bar.vacation { background: var(--povio-event-vacation); }
-        .calendar-event-bar.work_trip { background: var(--povio-event-trip); }
-        .calendar-event-bar.sick_leave { background: var(--povio-event-sick); }
+        .calendar-gantt { border: 1px solid var(--povio-border); border-radius: 8px; background: var(--povio-white); overflow: hidden; }
+        .calendar-gantt-header { display: flex; background: var(--povio-gray-100); border-bottom: 1px solid var(--povio-border); height: 44px; }
+        .calendar-gantt-row { display: flex; border-top: 1px solid var(--povio-border); height: 44px; }
+        .calendar-gantt-member-col { flex: 0 0 160px; padding: 0 16px; font-size: 13px; font-weight: 600; color: var(--povio-gray-900); border-right: 1px solid var(--povio-border); display: flex; align-items: center; }
+        .calendar-gantt-header .calendar-gantt-member-col { font-size: 11px; font-weight: 700; color: var(--povio-gray-600); text-transform: uppercase; letter-spacing: 0.5px; }
+        .calendar-gantt-track { flex: 1; position: relative; }
+        .calendar-gantt-track.header-track { display: flex; align-items: center; }
+        .calendar-gantt-month-label { flex-shrink: 0; font-size: 11px; font-weight: 700; color: var(--povio-gray-700); text-align: center; border-left: 1px solid var(--povio-gray-200); padding: 0 4px; box-sizing: border-box; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; }
+        .calendar-gantt-month-label:first-child { border-left: none; }
+        .calendar-gantt-divider { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--povio-gray-200); pointer-events: none; }
+        .calendar-gantt-today { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--povio-blue); opacity: 0.4; pointer-events: none; z-index: 1; }
+        .calendar-gantt-event { position: absolute; top: 10px; height: 24px; min-width: 4px; border-radius: 6px; color: #fff; font-size: 11px; font-weight: 600; display: flex; align-items: center; padding: 0 8px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; white-space: nowrap; box-sizing: border-box; z-index: 2; }
+        .calendar-gantt-event.vacation { background: var(--povio-event-vacation); }
+        .calendar-gantt-event.work_trip { background: var(--povio-event-trip); }
+        .calendar-gantt-event.sick_leave { background: var(--povio-event-sick); }
+        .calendar-gantt-empty { padding: 40px; text-align: center; color: var(--povio-gray-500); font-size: 13px; border-top: 1px solid var(--povio-border); }
     </style>
 </head>
 <body>
@@ -1980,7 +1972,6 @@
         const EVENT_LABELS = { vacation: 'Vacation', sick_leave: 'Sick Leave', work_trip: 'Work Trip' };
         const eventLabel = (type) => EVENT_LABELS[type] || EVENT_LABELS.work_trip;
         const eventTypeClass = (type) => EVENT_LABELS[type] ? type : 'work_trip';
-        const isoDay = (d) => d.toISOString().split('T')[0];
 
         const CalendarView = ({ teamData, events, onUpdateEvents }) => {
             const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -2001,58 +1992,75 @@
                 return (a.name || '').localeCompare(b.name || '');
             }), [members]);
 
-            const { monthsArray, allDays } = useMemo(() => {
+            const { monthsArray, rangeStart, rangeEnd, totalDays } = useMemo(() => {
                 const y = currentMonth.getFullYear();
                 const m = currentMonth.getMonth();
-                const months = Array.from({ length: monthsToShow }, (_, i) => new Date(y, m + i, 1));
-                const days = months.flatMap(md => {
-                    const my = md.getFullYear();
-                    const mm = md.getMonth();
-                    const daysInMonth = new Date(my, mm + 1, 0).getDate();
-                    return Array.from({ length: daysInMonth }, (_, i) => new Date(my, mm, i + 1));
+                const months = Array.from({ length: monthsToShow }, (_, i) => {
+                    const date = new Date(y, m + i, 1);
+                    const days = new Date(y, m + i + 1, 0).getDate();
+                    return { date, days };
                 });
-                return { monthsArray: months, allDays: days };
+                const last = months[months.length - 1];
+                return {
+                    monthsArray: months,
+                    rangeStart: months[0].date,
+                    rangeEnd: new Date(last.date.getFullYear(), last.date.getMonth(), last.days),
+                    totalDays: months.reduce((sum, mo) => sum + mo.days, 0)
+                };
             }, [currentMonth, monthsToShow]);
 
-            const endDate = allDays[allDays.length - 1];
-
-            // Pack columns tighter as the date range widens, so 3- and 6-month views fit on screen
-            const colWidth = monthsToShow === 1 ? 28 : monthsToShow === 3 ? 14 : 8;
-            const memberColWidth = 140;
-            const showWeekday = monthsToShow === 1;
-            const showDayNumber = monthsToShow <= 3;
-            const tableWidth = memberColWidth + allDays.length * colWidth;
-
-            // O(1) lookup of "is there an event starting on this day for this member?"
-            const eventsByStart = useMemo(() => {
+            // Group events by member for fast row rendering
+            const eventsByMember = useMemo(() => {
                 const map = new Map();
-                for (const e of events) map.set(`${e.member_id}|${e.start_date}`, e);
+                for (const e of events) {
+                    if (!map.has(e.member_id)) map.set(e.member_id, []);
+                    map.get(e.member_id).push(e);
+                }
                 return map;
             }, [events]);
-
-            const todayKey = new Date().toDateString();
 
             const prevPeriod = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - monthsToShow, 1));
             const nextPeriod = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + monthsToShow, 1));
             const today = () => setCurrentMonth(new Date());
-
-            // Span in days for an event starting on `date`, clipped to the visible range
-            const eventSpan = (date, evt) => {
-                const evtStart = new Date(evt.start_date);
-                const evtEnd = new Date(evt.end_date);
-                const start = Math.max(date.getTime(), evtStart.getTime());
-                const end = Math.min(endDate.getTime(), evtEnd.getTime());
-                const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-                return Math.max(1, diffDays);
-            };
 
             const addEvent = (ev) => onUpdateEvents([...events, { ...ev, id: Date.now() }]);
             const updateEvent = (updated) => onUpdateEvents(events.map(e => e.id === updated.id ? updated : e));
             const deleteEvent = (id) => onUpdateEvents(events.filter(e => e.id !== id));
 
             const periodLabel = monthsToShow === 1
-                ? currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-                : `${monthsArray[0].toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} - ${monthsArray[monthsArray.length - 1].toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+                ? rangeStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                : `${monthsArray[0].date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} - ${monthsArray[monthsArray.length - 1].date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+
+            // Position an event on the timeline as { left%, width% }, clipped to the visible range.
+            // Returns null if the event doesn't overlap.
+            const dayMs = 24 * 60 * 60 * 1000;
+            const eventPosition = (evt) => {
+                const [sy, sm, sd] = evt.start_date.split('-').map(Number);
+                const [ey, em, ed] = evt.end_date.split('-').map(Number);
+                const eStart = new Date(sy, sm - 1, sd).getTime();
+                const eEnd = new Date(ey, em - 1, ed).getTime();
+                const rStart = rangeStart.getTime();
+                const rEnd = rangeEnd.getTime();
+                if (eEnd < rStart || eStart > rEnd) return null;
+                const visStart = Math.max(eStart, rStart);
+                const visEnd = Math.min(eEnd, rEnd);
+                const startOffset = (visStart - rStart) / dayMs;
+                const duration = (visEnd - visStart) / dayMs + 1;
+                return { left: (startOffset / totalDays) * 100, width: (duration / totalDays) * 100 };
+            };
+
+            // Today indicator position
+            const now = new Date();
+            const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            const todayPct = todayMidnight >= rangeStart.getTime() && todayMidnight <= rangeEnd.getTime()
+                ? ((todayMidnight - rangeStart.getTime()) / dayMs / totalDays) * 100
+                : null;
+
+            // Cumulative day offsets at the start of each month (excluding the first), for dividers
+            const monthDividers = monthsArray.slice(1).map((_, i) => {
+                const offsetDays = monthsArray.slice(0, i + 1).reduce((s, mo) => s + mo.days, 0);
+                return (offsetDays / totalDays) * 100;
+            });
 
             return (
                 <div className="calendar-view">
@@ -2084,75 +2092,44 @@
                         </div>
                     </div>
 
-                    <div className="calendar-table-wrap">
-                        <table className="calendar-table" style={{ width: `${tableWidth}px` }}>
-                            <colgroup>
-                                <col style={{ width: `${memberColWidth}px` }} />
-                                {allDays.map((_, i) => <col key={i} style={{ width: `${colWidth}px` }} />)}
-                            </colgroup>
-                            <thead>
-                                <tr>
-                                    <th className="member-col">Team Member</th>
-                                    {allDays.map((d, i) => {
-                                        const isToday = d.toDateString() === todayKey;
-                                        const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-                                        const isFirstOfMonth = d.getDate() === 1;
-                                        const cls = ['day-head',
-                                            i === 0 && 'first-col',
-                                            isToday && 'today',
-                                            !isToday && isWeekend && 'weekend',
-                                            isFirstOfMonth && 'month-start'
-                                        ].filter(Boolean).join(' ');
+                    <div className="calendar-gantt">
+                        <div className="calendar-gantt-header">
+                            <div className="calendar-gantt-member-col">Team Member</div>
+                            <div className="calendar-gantt-track header-track">
+                                {monthsArray.map((mo, i) => (
+                                    <div key={i} className="calendar-gantt-month-label" style={{ width: `${(mo.days / totalDays) * 100}%` }}>
+                                        {mo.date.toLocaleDateString('en-US', { month: 'short', year: monthsToShow > 1 ? '2-digit' : 'numeric' })}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        {membersList.length === 0 ? (
+                            <div className="calendar-gantt-empty">No team members yet. Add members in the Team tab first.</div>
+                        ) : membersList.map((member) => (
+                            <div key={member.id} className="calendar-gantt-row">
+                                <div className="calendar-gantt-member-col">{member.name}</div>
+                                <div className="calendar-gantt-track">
+                                    {monthDividers.map((pct, i) => (
+                                        <div key={i} className="calendar-gantt-divider" style={{ left: `${pct}%` }} />
+                                    ))}
+                                    {todayPct !== null && <div className="calendar-gantt-today" style={{ left: `${todayPct}%` }} />}
+                                    {(eventsByMember.get(member.id) || []).map(evt => {
+                                        const pos = eventPosition(evt);
+                                        if (!pos) return null;
                                         return (
-                                            <th key={i} className={cls}>
-                                                {isFirstOfMonth && monthsToShow > 1 && (
-                                                    <div className="calendar-month-label">
-                                                        {d.toLocaleDateString('en-US', { month: 'short' })}
-                                                    </div>
-                                                )}
-                                                {showWeekday && <div>{d.toLocaleDateString('en-US', { weekday: 'narrow' })}</div>}
-                                                {showDayNumber && <div className={`calendar-day-number${isToday ? ' today' : ''}`}>{d.getDate()}</div>}
-                                            </th>
+                                            <div
+                                                key={evt.id}
+                                                className={`calendar-gantt-event ${eventTypeClass(evt.event_type)}`}
+                                                style={{ left: `${pos.left}%`, width: `${pos.width}%` }}
+                                                onClick={() => setEditingEvent(evt)}
+                                                title={`${eventLabel(evt.event_type)}${evt.title ? ': ' + evt.title : ''}\n${evt.start_date} to ${evt.end_date}${evt.notes ? '\n' + evt.notes : ''}`}>
+                                                {evt.title || eventLabel(evt.event_type)}
+                                            </div>
                                         );
                                     })}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {membersList.length === 0 ? (
-                                    <tr><td colSpan={allDays.length + 1} className="calendar-empty-row">No team members yet. Add members in the Team tab first.</td></tr>
-                                ) : membersList.map((member) => (
-                                    <tr key={member.id} className="calendar-member-row">
-                                        <td className="calendar-member-cell">{member.name}</td>
-                                        {allDays.map((d, dayIdx) => {
-                                            const startingEvt = eventsByStart.get(`${member.id}|${isoDay(d)}`);
-                                            const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-                                            const isToday = d.toDateString() === todayKey;
-                                            const isFirstOfMonth = d.getDate() === 1;
-                                            const cellCls = ['calendar-day-cell',
-                                                dayIdx === 0 && 'first-col',
-                                                isToday && 'today',
-                                                !isToday && isWeekend && 'weekend',
-                                                isFirstOfMonth && 'month-start'
-                                            ].filter(Boolean).join(' ');
-
-                                            return (
-                                                <td key={dayIdx} className={cellCls}>
-                                                    {startingEvt && (
-                                                        <div
-                                                            className={`calendar-event-bar ${eventTypeClass(startingEvt.event_type)}`}
-                                                            onClick={() => setEditingEvent(startingEvt)}
-                                                            title={`${eventLabel(startingEvt.event_type)}${startingEvt.title ? ': ' + startingEvt.title : ''}\n${startingEvt.start_date} to ${startingEvt.end_date}${startingEvt.notes ? '\n' + startingEvt.notes : ''}`}
-                                                            style={{ width: `${eventSpan(d, startingEvt) * colWidth - 4}px` }}>
-                                                            {startingEvt.title || eventLabel(startingEvt.event_type)}
-                                                        </div>
-                                                    )}
-                                                </td>
-                                            );
-                                        })}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </div>
+                            </div>
+                        ))}
                     </div>
 
                     {editingEvent && (
