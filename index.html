@@ -1881,7 +1881,7 @@
                     <div style={{ marginBottom: '14px' }}>
                         <label style={formLabelStyle}>Type</label>
                         <div style={{ display: 'flex', gap: '8px' }}>
-                            {[{v:'vacation',l:'Vacation',c:'#3b82f6'},{v:'work_trip',l:'Work Trip',c:'#f97316'}].map(t => (
+                            {[{v:'vacation',l:'Vacation',c:'#3b82f6'},{v:'work_trip',l:'Work Trip',c:'#f97316'},{v:'sick_leave',l:'Sick Leave',c:'#ef4444'}].map(t => (
                                 <button key={t.v} onClick={() => setType(t.v)} style={{
                                     flex:1, padding:'8px', fontSize:'13px', fontWeight:'600', borderRadius:'6px', cursor:'pointer',
                                     color: type===t.v ? '#fff' : 'var(--povio-gray-700)',
@@ -1974,8 +1974,8 @@
             const updateEvent = (updated) => onUpdateEvents(events.map(e => e.id === updated.id ? updated : e));
             const deleteEvent = (id) => onUpdateEvents(events.filter(e => e.id !== id));
 
-            const eventColor = (type) => type === 'vacation' ? '#3b82f6' : '#f97316';
-            const eventLabel = (type) => type === 'vacation' ? 'Vacation' : 'Work Trip';
+            const eventColor = (type) => type === 'vacation' ? '#3b82f6' : type === 'sick_leave' ? '#ef4444' : '#f97316';
+            const eventLabel = (type) => type === 'vacation' ? 'Vacation' : type === 'sick_leave' ? 'Sick Leave' : 'Work Trip';
 
             return (
                 <div style={{ padding: '0 24px 24px' }}>
@@ -1995,6 +1995,10 @@
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     <div style={{ width: '16px', height: '12px', background: '#f97316', borderRadius: '3px' }} />
                                     <span>Work Trip</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <div style={{ width: '16px', height: '12px', background: '#ef4444', borderRadius: '3px' }} />
+                                    <span>Sick Leave</span>
                                 </div>
                             </div>
                             <button onClick={() => { setSelectedMemberForAdd(null); setAddingEvent(true); }}
@@ -3425,19 +3429,21 @@
                         <div className="header-brand"><PovioLogo /><div className="header-divider" /><div className="header-title"><h1>{view === 'whales' ? 'Whale Protection Programme' : view === 'team' ? 'Sales Team Structure' : view === 'calendar' ? 'Team Calendar' : '2026 Sales Goals'}</h1><span className="header-subtitle">Vid Lešnik • Head of Sales & Partnerships</span></div></div>
                         <div className="header-actions"><div className="view-toggle"><button className={`view-btn ${view === 'goals' ? 'active' : ''}`} onClick={() => setView('goals')}>Goals</button><button className={`view-btn ${view === 'roadmap' ? 'active' : ''}`} onClick={() => setView('roadmap')}>Roadmap</button><button className={`view-btn ${view === 'whales' ? 'active' : ''}`} onClick={() => setView('whales')}>Whales</button><button className={`view-btn ${view === 'calendar' ? 'active' : ''}`} onClick={() => setView('calendar')}>Calendar</button><button className={`view-btn ${view === 'team' ? 'active' : ''}`} onClick={() => setView('team')}>Team</button></div><button className="logout-btn" onClick={onLogout}>Sign Out</button></div>
                     </div>
-                    <div style={{
-                        background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                        borderBottom: '1px solid #fbbf24',
-                        padding: '8px 24px',
-                        textAlign: 'center',
-                        fontSize: '12px',
-                        fontWeight: '600',
-                        color: '#92400e',
-                        letterSpacing: '0.3px'
-                    }}>
-                        ⚠️ DEMO MODE — All data shown is fictional and for demonstration purposes only
-                    </div>
-                    {view !== 'whales' && view !== 'team' && (
+                    {view !== 'calendar' && (
+                        <div style={{
+                            background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                            borderBottom: '1px solid #fbbf24',
+                            padding: '8px 24px',
+                            textAlign: 'center',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            color: '#92400e',
+                            letterSpacing: '0.3px'
+                        }}>
+                            ⚠️ DEMO MODE — All data shown is fictional and for demonstration purposes only
+                        </div>
+                    )}
+                    {view !== 'whales' && view !== 'team' && view !== 'calendar' && (
                         <div className="stats-bar">
                             <div className="stat-card"><h3>Overall Progress</h3><div className="value blue">{overallProgress}%</div></div>
                             <div className="stat-card"><h3>Milestones Complete</h3><div className="value">{completedMilestones}/{totalMilestones}</div></div>

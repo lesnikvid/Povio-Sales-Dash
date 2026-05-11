@@ -30,7 +30,7 @@ ALTER TABLE calendar_events
     DROP CONSTRAINT IF EXISTS calendar_events_type_valid;
 ALTER TABLE calendar_events
     ADD CONSTRAINT calendar_events_type_valid CHECK (
-        event_type IN ('vacation', 'work_trip')
+        event_type IN ('vacation', 'work_trip', 'sick_leave')
     );
 
 ALTER TABLE calendar_events
