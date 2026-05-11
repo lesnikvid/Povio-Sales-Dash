@@ -57,6 +57,21 @@ CREATE TABLE IF NOT EXISTS team_data (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Calendar Events Table (team member vacations and work trips)
+CREATE TABLE IF NOT EXISTS calendar_events (
+    id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    member_id TEXT NOT NULL,
+    member_name TEXT NOT NULL,
+    event_type TEXT NOT NULL DEFAULT 'vacation',
+    title TEXT,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ============================================================================
 -- INDEXES FOR PERFORMANCE
 -- ============================================================================
@@ -70,6 +85,10 @@ CREATE INDEX IF NOT EXISTS idx_whale_notes_user_id ON whale_notes(user_id);
 CREATE INDEX IF NOT EXISTS idx_whale_notes_whale_user ON whale_notes(whale_id, user_id);
 CREATE INDEX IF NOT EXISTS idx_whale_notes_composite ON whale_notes(whale_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_whale_notes_created_at ON whale_notes(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_calendar_events_user_id ON calendar_events(user_id);
+CREATE INDEX IF NOT EXISTS idx_calendar_events_member_id ON calendar_events(member_id);
+CREATE INDEX IF NOT EXISTS idx_calendar_events_dates ON calendar_events(start_date, end_date);
+CREATE INDEX IF NOT EXISTS idx_calendar_events_user_dates ON calendar_events(user_id, start_date, end_date);
 
 -- ============================================================================
 -- TRIGGERS
@@ -97,6 +116,10 @@ DROP TRIGGER IF EXISTS update_team_data_updated_at ON team_data;
 CREATE TRIGGER update_team_data_updated_at BEFORE UPDATE ON team_data
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_calendar_events_updated_at ON calendar_events;
+CREATE TRIGGER update_calendar_events_updated_at BEFORE UPDATE ON calendar_events
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- ============================================================================
 -- ROW LEVEL SECURITY (RLS)
 -- ============================================================================
@@ -106,6 +129,7 @@ ALTER TABLE goals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE whales ENABLE ROW LEVEL SECURITY;
 ALTER TABLE whale_notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE team_data ENABLE ROW LEVEL SECURITY;
+ALTER TABLE calendar_events ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================================
 -- USER ALLOWLIST (only these emails can access the dashboard)
@@ -246,20 +270,67 @@ ALTER TABLE team_data
 ALTER TABLE team_data
     ADD CONSTRAINT team_data_structure_size CHECK (pg_column_size(structure) <= 200000);
 
+-- Calendar Events Policies (user_id match + allowlist check)
+DROP POLICY IF EXISTS "Users can view their own events" ON calendar_events;
+CREATE POLICY "Users can view their own events"
+    ON calendar_events FOR SELECT
+    USING (auth.uid()::text = user_id AND is_user_allowed());
+
+DROP POLICY IF EXISTS "Users can insert their own events" ON calendar_events;
+CREATE POLICY "Users can insert their own events"
+    ON calendar_events FOR INSERT
+    WITH CHECK (auth.uid()::text = user_id AND is_user_allowed());
+
+DROP POLICY IF EXISTS "Users can update their own events" ON calendar_events;
+CREATE POLICY "Users can update their own events"
+    ON calendar_events FOR UPDATE
+    USING (auth.uid()::text = user_id AND is_user_allowed())
+    WITH CHECK (auth.uid()::text = user_id AND is_user_allowed());
+
+DROP POLICY IF EXISTS "Users can delete their own events" ON calendar_events;
+CREATE POLICY "Users can delete their own events"
+    ON calendar_events FOR DELETE
+    USING (auth.uid()::text = user_id AND is_user_allowed());
+
+-- Calendar events constraints (prevent invalid data)
+ALTER TABLE calendar_events
+    DROP CONSTRAINT IF EXISTS calendar_events_type_valid;
+ALTER TABLE calendar_events
+    ADD CONSTRAINT calendar_events_type_valid CHECK (
+        event_type IN ('vacation', 'work_trip')
+    );
+
+ALTER TABLE calendar_events
+    DROP CONSTRAINT IF EXISTS calendar_events_dates_valid;
+ALTER TABLE calendar_events
+    ADD CONSTRAINT calendar_events_dates_valid CHECK (
+        end_date >= start_date
+    );
+
+ALTER TABLE calendar_events
+    DROP CONSTRAINT IF EXISTS calendar_events_title_length;
+ALTER TABLE calendar_events
+    ADD CONSTRAINT calendar_events_title_length CHECK (length(title) <= 200);
+
+ALTER TABLE calendar_events
+    DROP CONSTRAINT IF EXISTS calendar_events_notes_length;
+ALTER TABLE calendar_events
+    ADD CONSTRAINT calendar_events_notes_length CHECK (length(notes) <= 1000);
+
 -- ============================================================================
 -- VERIFICATION QUERIES (run these to confirm)
 -- ============================================================================
 
--- Check RLS is enabled (should return 4 rows with rowsecurity = t)
+-- Check RLS is enabled (should return 5 rows with rowsecurity = t)
 SELECT tablename, rowsecurity
 FROM pg_tables
-WHERE tablename IN ('goals', 'whales', 'whale_notes', 'team_data')
+WHERE tablename IN ('goals', 'whales', 'whale_notes', 'team_data', 'calendar_events')
 AND schemaname = 'public';
 
--- Check policies exist (should return 16 rows)
+-- Check policies exist (should return 20 rows)
 SELECT tablename, policyname
 FROM pg_policies
-WHERE tablename IN ('goals', 'whales', 'whale_notes', 'team_data')
+WHERE tablename IN ('goals', 'whales', 'whale_notes', 'team_data', 'calendar_events')
 ORDER BY tablename, policyname;
 
 -- ============================================================================

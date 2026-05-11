@@ -1841,6 +1841,257 @@
             </TeamModal>
         );
 
+        // ==================== CALENDAR VIEW ====================
+        // Modal for adding/editing calendar events
+        const CalendarEventModal = ({ event, members, onSave, onDelete, onClose }) => {
+            const [memberSelect, setMemberSelect] = useState(event?.member_id || '');
+            const [type, setType] = useState(event?.event_type || 'vacation');
+            const [title, setTitle] = useState(event?.title || '');
+            const [startDate, setStartDate] = useState(event?.start_date || '');
+            const [endDate, setEndDate] = useState(event?.end_date || '');
+            const [notes, setNotes] = useState(event?.notes || '');
+
+            const membersList = Object.values(members).sort((a,b) => (a.name||'').localeCompare(b.name||''));
+            const selectedMember = members[memberSelect];
+
+            const save = () => {
+                if (!memberSelect || !startDate || !endDate) return;
+                onSave({
+                    ...(event || {}),
+                    member_id: memberSelect,
+                    member_name: selectedMember?.name || '',
+                    event_type: type,
+                    title: title.trim() || null,
+                    start_date: startDate,
+                    end_date: endDate,
+                    notes: notes.trim() || null
+                });
+                onClose();
+            };
+
+            return (
+                <TeamModal title={event ? 'Edit Event' : 'Add Event'} onClose={onClose}>
+                    <div style={{ marginBottom: '14px' }}>
+                        <label style={formLabelStyle}>Team Member *</label>
+                        <select value={memberSelect} onChange={e => setMemberSelect(e.target.value)} style={formInputStyle} autoFocus>
+                            <option value="">— Select —</option>
+                            {membersList.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                        </select>
+                    </div>
+                    <div style={{ marginBottom: '14px' }}>
+                        <label style={formLabelStyle}>Type</label>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            {[{v:'vacation',l:'Vacation',c:'#3b82f6'},{v:'work_trip',l:'Work Trip',c:'#f97316'}].map(t => (
+                                <button key={t.v} onClick={() => setType(t.v)} style={{
+                                    flex:1, padding:'8px', fontSize:'13px', fontWeight:'600', borderRadius:'6px', cursor:'pointer',
+                                    color: type===t.v ? '#fff' : 'var(--povio-gray-700)',
+                                    background: type===t.v ? t.c : 'var(--povio-gray-100)',
+                                    border: type===t.v ? 'none' : '1px solid var(--povio-border)'
+                                }}>{t.l}</button>
+                            ))}
+                        </div>
+                    </div>
+                    <div style={{ marginBottom: '14px' }}>
+                        <label style={formLabelStyle}>Title (optional)</label>
+                        <input value={title} onChange={e => setTitle(e.target.value)} style={formInputStyle} placeholder="e.g. Family vacation, Berlin conference" />
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', marginBottom: '14px' }}>
+                        <div style={{ flex: 1 }}>
+                            <label style={formLabelStyle}>Start Date *</label>
+                            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={formInputStyle} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <label style={formLabelStyle}>End Date *</label>
+                            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={formInputStyle} />
+                        </div>
+                    </div>
+                    <div style={{ marginBottom: '20px' }}>
+                        <label style={formLabelStyle}>Notes (optional)</label>
+                        <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} style={{ ...formInputStyle, resize: 'vertical' }} placeholder="Additional details..." />
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: event ? 'space-between' : 'flex-end', alignItems: 'center' }}>
+                        {event && (
+                            <button onClick={() => { if(confirm('Delete this event?')) { onDelete(event.id); onClose(); }}}
+                                style={{ padding: '8px 12px', background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
+                                Delete
+                            </button>
+                        )}
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <button onClick={onClose} style={{ padding: '8px 14px', background: 'var(--povio-gray-100)', color: 'var(--povio-gray-700)', border: '1px solid var(--povio-border)', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>Cancel</button>
+                            <button onClick={save} disabled={!memberSelect || !startDate || !endDate}
+                                style={{ padding: '8px 14px', background: 'var(--povio-blue)', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: (memberSelect && startDate && endDate) ? 'pointer' : 'not-allowed', opacity: (memberSelect && startDate && endDate) ? 1 : 0.5 }}>
+                                {event ? 'Save' : 'Add Event'}
+                            </button>
+                        </div>
+                    </div>
+                </TeamModal>
+            );
+        };
+
+        const CalendarView = ({ teamData, events, onUpdateEvents, user }) => {
+            const [currentMonth, setCurrentMonth] = useState(new Date());
+            const [editingEvent, setEditingEvent] = useState(null);
+            const [addingEvent, setAddingEvent] = useState(false);
+            const [selectedMemberForAdd, setSelectedMemberForAdd] = useState(null);
+
+            const structure = normalizeTeamStructure(teamData?.structure);
+            const members = structure.members || {};
+            const membersList = Object.values(members).sort((a,b) => (a.name||'').localeCompare(b.name||''));
+
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const days = Array.from({ length: daysInMonth }, (_, i) => new Date(year, month, i + 1));
+
+            const monthName = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+            const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
+            const nextMonth = () => setCurrentMonth(new Date(year, month + 1, 1));
+            const today = () => setCurrentMonth(new Date());
+
+            // Check if a date is within an event's range
+            const isDateInEvent = (date, evt) => {
+                const d = date.toISOString().split('T')[0];
+                return d >= evt.start_date && d <= evt.end_date;
+            };
+
+            // Find event starting on a specific date for a member
+            const eventStartingOn = (date, memberId) => {
+                const d = date.toISOString().split('T')[0];
+                return events.find(e => e.member_id === memberId && e.start_date === d);
+            };
+
+            // Calculate span in days for an event starting on a date (within current month)
+            const eventSpan = (date, evt) => {
+                const start = new Date(Math.max(date, new Date(evt.start_date)));
+                const end = new Date(Math.min(lastDay, new Date(evt.end_date)));
+                return Math.max(1, Math.ceil((end - start) / (1000*60*60*24)) + 1);
+            };
+
+            const addEvent = (ev) => onUpdateEvents([...events, { ...ev, id: Date.now() }]);
+            const updateEvent = (updated) => onUpdateEvents(events.map(e => e.id === updated.id ? updated : e));
+            const deleteEvent = (id) => onUpdateEvents(events.filter(e => e.id !== id));
+
+            const eventColor = (type) => type === 'vacation' ? '#3b82f6' : '#f97316';
+            const eventLabel = (type) => type === 'vacation' ? 'Vacation' : 'Work Trip';
+
+            return (
+                <div style={{ padding: '0 24px 24px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                            <button onClick={prevMonth} style={{ padding: '6px 12px', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' }}>‹</button>
+                            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: 'var(--povio-gray-900)', minWidth: '180px', textAlign: 'center' }}>{monthName}</h2>
+                            <button onClick={nextMonth} style={{ padding: '6px 12px', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' }}>›</button>
+                            <button onClick={today} style={{ padding: '6px 12px', background: 'var(--povio-gray-100)', border: '1px solid var(--povio-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>Today</button>
+                        </div>
+                        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', gap: '12px', fontSize: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <div style={{ width: '16px', height: '12px', background: '#3b82f6', borderRadius: '3px' }} />
+                                    <span>Vacation</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <div style={{ width: '16px', height: '12px', background: '#f97316', borderRadius: '3px' }} />
+                                    <span>Work Trip</span>
+                                </div>
+                            </div>
+                            <button onClick={() => { setSelectedMemberForAdd(null); setAddingEvent(true); }}
+                                style={{ padding: '7px 14px', background: 'var(--povio-blue)', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
+                                + Add Event
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style={{ overflowX: 'auto', border: '1px solid var(--povio-border)', borderRadius: '8px', background: '#fff' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px' }}>
+                            <thead>
+                                <tr style={{ background: 'var(--povio-gray-100)' }}>
+                                    <th style={{ position: 'sticky', left: 0, background: 'var(--povio-gray-100)', zIndex: 2, padding: '10px 14px', textAlign: 'left', borderRight: '1px solid var(--povio-border)', fontWeight: '700', fontSize: '11px', color: 'var(--povio-gray-600)', textTransform: 'uppercase', letterSpacing: '0.5px', minWidth: '140px' }}>Team Member</th>
+                                    {days.map((d, i) => {
+                                        const isToday = d.toDateString() === new Date().toDateString();
+                                        const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+                                        return (
+                                            <th key={i} style={{
+                                                padding: '8px 4px', textAlign: 'center', fontSize: '10px', fontWeight: '600',
+                                                color: isToday ? 'var(--povio-blue)' : (isWeekend ? 'var(--povio-gray-400)' : 'var(--povio-gray-600)'),
+                                                background: isToday ? '#eff6ff' : 'var(--povio-gray-100)',
+                                                borderLeft: i === 0 ? 'none' : '1px solid #e5e7eb',
+                                                minWidth: '28px'
+                                            }}>
+                                                <div>{d.toLocaleDateString('en-US', { weekday: 'narrow' })}</div>
+                                                <div style={{ fontSize: '11px', fontWeight: isToday ? '700' : '600', marginTop: '2px' }}>{d.getDate()}</div>
+                                            </th>
+                                        );
+                                    })}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {membersList.length === 0 ? (
+                                    <tr><td colSpan={daysInMonth + 1} style={{ padding: '40px', textAlign: 'center', color: 'var(--povio-gray-500)', fontSize: '13px' }}>No team members yet. Add members in the Team tab first.</td></tr>
+                                ) : membersList.map((member) => (
+                                    <tr key={member.id} style={{ borderTop: '1px solid var(--povio-border)' }}>
+                                        <td style={{ position: 'sticky', left: 0, background: '#fff', zIndex: 1, padding: '10px 14px', borderRight: '1px solid var(--povio-border)', fontSize: '13px', fontWeight: '600', color: 'var(--povio-gray-900)' }}>
+                                            {member.name}
+                                        </td>
+                                        {days.map((d, dayIdx) => {
+                                            const startingEvt = eventStartingOn(d, member.id);
+                                            const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+                                            const isToday = d.toDateString() === new Date().toDateString();
+
+                                            return (
+                                                <td key={dayIdx} style={{
+                                                    padding: '4px 2px', position: 'relative', textAlign: 'center',
+                                                    background: isToday ? '#eff6ff' : (isWeekend ? '#fafafa' : '#fff'),
+                                                    borderLeft: dayIdx === 0 ? 'none' : '1px solid #f3f4f6'
+                                                }}>
+                                                    {startingEvt ? (
+                                                        <div
+                                                            onClick={() => setEditingEvent(startingEvt)}
+                                                            title={`${eventLabel(startingEvt.event_type)}${startingEvt.title ? ': ' + startingEvt.title : ''}\n${startingEvt.start_date} to ${startingEvt.end_date}${startingEvt.notes ? '\n' + startingEvt.notes : ''}`}
+                                                            style={{
+                                                                position: 'absolute', left: '2px', right: dayIdx + eventSpan(d, startingEvt) >= daysInMonth ? '2px' : `-${eventSpan(d, startingEvt) * 30}px`,
+                                                                top: '6px', height: '20px', background: eventColor(startingEvt.event_type),
+                                                                borderRadius: '4px', fontSize: '10px', fontWeight: '600', color: '#fff',
+                                                                display: 'flex', alignItems: 'center', justifyContent: 'flex-start', paddingLeft: '6px',
+                                                                cursor: 'pointer', zIndex: 1, boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                                                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                                                            }}>
+                                                            {startingEvt.title || eventLabel(startingEvt.event_type)}
+                                                        </div>
+                                                    ) : null}
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {editingEvent && (
+                        <CalendarEventModal
+                            event={editingEvent}
+                            members={members}
+                            onSave={updateEvent}
+                            onDelete={deleteEvent}
+                            onClose={() => setEditingEvent(null)}
+                        />
+                    )}
+                    {addingEvent && (
+                        <CalendarEventModal
+                            event={selectedMemberForAdd ? { member_id: selectedMemberForAdd } : null}
+                            members={members}
+                            onSave={addEvent}
+                            onDelete={() => {}}
+                            onClose={() => { setAddingEvent(false); setSelectedMemberForAdd(null); }}
+                        />
+                    )}
+                </div>
+            );
+        };
+
         const TeamView = ({ teamData, onUpdate, user }) => {
             const [editMode, setEditMode] = useState(false);
             const [editingMemberId, setEditingMemberId] = useState(null);
@@ -2826,7 +3077,7 @@
         };
 
         const AuthenticatedApp = ({ user, onLogout }) => {
-            const VIEWS = ['goals', 'roadmap', 'whales', 'team'];
+            const VIEWS = ['goals', 'roadmap', 'whales', 'calendar', 'team'];
             const getViewFromHash = () => {
                 const h = window.location.hash.replace('#', '');
                 return VIEWS.includes(h) ? h : 'goals';
@@ -2846,6 +3097,7 @@
             const [goals, setGoals] = useState([]);
             const [whales, setWhales] = useState([]);
             const [teamData, setTeamData] = useState(null);
+            const [calendarEvents, setCalendarEvents] = useState([]);
             const [loading, setLoading] = useState(true);
 
             // Fetch goals from database
@@ -2963,10 +3215,80 @@
                 }
             };
 
+            // Fetch calendar events
+            const fetchCalendarEvents = async () => {
+                const { data, error } = await supabaseClient
+                    .from('calendar_events')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('start_date', { ascending: true });
+                if (error) {
+                    console.error('Error fetching calendar events:', error);
+                    return;
+                }
+                setCalendarEvents(data || []);
+            };
+
+            // Update calendar events in DB (replaces entire array)
+            const updateCalendarEvents = async (newEvents) => {
+                // Optimistic update
+                setCalendarEvents(newEvents);
+
+                // Find added, updated, deleted
+                const oldIds = new Set(calendarEvents.map(e => e.id));
+                const newIds = new Set(newEvents.map(e => e.id));
+
+                const toAdd = newEvents.filter(e => !oldIds.has(e.id));
+                const toUpdate = newEvents.filter(e => oldIds.has(e.id));
+                const toDelete = calendarEvents.filter(e => !newIds.has(e.id));
+
+                try {
+                    // Insert new events
+                    for (const evt of toAdd) {
+                        const { error } = await supabaseClient
+                            .from('calendar_events')
+                            .insert([{ ...evt, user_id: user.id }]);
+                        if (error) console.error('Error adding event:', error);
+                    }
+
+                    // Update existing events
+                    for (const evt of toUpdate) {
+                        const { error } = await supabaseClient
+                            .from('calendar_events')
+                            .update({
+                                member_id: evt.member_id,
+                                member_name: evt.member_name,
+                                event_type: evt.event_type,
+                                title: evt.title,
+                                start_date: evt.start_date,
+                                end_date: evt.end_date,
+                                notes: evt.notes
+                            })
+                            .eq('id', evt.id)
+                            .eq('user_id', user.id);
+                        if (error) console.error('Error updating event:', error);
+                    }
+
+                    // Delete removed events
+                    for (const evt of toDelete) {
+                        const { error } = await supabaseClient
+                            .from('calendar_events')
+                            .delete()
+                            .eq('id', evt.id)
+                            .eq('user_id', user.id);
+                        if (error) console.error('Error deleting event:', error);
+                    }
+                } catch (err) {
+                    console.error('Error updating calendar events:', err);
+                    // Refetch on error
+                    fetchCalendarEvents();
+                }
+            };
+
             // Initial data load
             useEffect(() => {
                 const loadData = async () => {
-                    await Promise.all([fetchGoals(), fetchWhales(), fetchTeam()]);
+                    await Promise.all([fetchGoals(), fetchWhales(), fetchTeam(), fetchCalendarEvents()]);
                     setLoading(false);
                 };
 
@@ -3100,8 +3422,8 @@
             return (
                 <div className="app-container">
                     <div className="header">
-                        <div className="header-brand"><PovioLogo /><div className="header-divider" /><div className="header-title"><h1>{view === 'whales' ? 'Whale Protection Programme' : view === 'team' ? 'Sales Team Structure' : '2026 Sales Goals'}</h1><span className="header-subtitle">Vid Lešnik • Head of Sales & Partnerships</span></div></div>
-                        <div className="header-actions"><div className="view-toggle"><button className={`view-btn ${view === 'goals' ? 'active' : ''}`} onClick={() => setView('goals')}>Goals</button><button className={`view-btn ${view === 'roadmap' ? 'active' : ''}`} onClick={() => setView('roadmap')}>Roadmap</button><button className={`view-btn ${view === 'whales' ? 'active' : ''}`} onClick={() => setView('whales')}>Whales</button><button className={`view-btn ${view === 'team' ? 'active' : ''}`} onClick={() => setView('team')}>Team</button></div><button className="logout-btn" onClick={onLogout}>Sign Out</button></div>
+                        <div className="header-brand"><PovioLogo /><div className="header-divider" /><div className="header-title"><h1>{view === 'whales' ? 'Whale Protection Programme' : view === 'team' ? 'Sales Team Structure' : view === 'calendar' ? 'Team Calendar' : '2026 Sales Goals'}</h1><span className="header-subtitle">Vid Lešnik • Head of Sales & Partnerships</span></div></div>
+                        <div className="header-actions"><div className="view-toggle"><button className={`view-btn ${view === 'goals' ? 'active' : ''}`} onClick={() => setView('goals')}>Goals</button><button className={`view-btn ${view === 'roadmap' ? 'active' : ''}`} onClick={() => setView('roadmap')}>Roadmap</button><button className={`view-btn ${view === 'whales' ? 'active' : ''}`} onClick={() => setView('whales')}>Whales</button><button className={`view-btn ${view === 'calendar' ? 'active' : ''}`} onClick={() => setView('calendar')}>Calendar</button><button className={`view-btn ${view === 'team' ? 'active' : ''}`} onClick={() => setView('team')}>Team</button></div><button className="logout-btn" onClick={onLogout}>Sign Out</button></div>
                     </div>
                     <div style={{
                         background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
@@ -3126,6 +3448,7 @@
                     {view === 'goals' && <GoalsView goals={goals} onUpdate={updateGoal} onDelete={deleteGoal} onAdd={addGoal} />}
                     {view === 'roadmap' && <RoadmapView goals={goals} />}
                     {view === 'whales' && <WhaleView whales={whales} onUpdate={updateWhales} user={user} />}
+                    {view === 'calendar' && <CalendarView teamData={teamData} events={calendarEvents} onUpdateEvents={updateCalendarEvents} user={user} />}
                     {view === 'team' && <TeamView teamData={teamData} onUpdate={updateTeam} user={user} />}
                 </div>
             );
