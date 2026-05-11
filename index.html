@@ -1951,9 +1951,9 @@
 
             // Generate array of months to display
             const monthsArray = Array.from({ length: monthsToShow }, (_, i) => {
-                const d = new Date(currentMonth);
-                d.setMonth(currentMonth.getMonth() + i);
-                return d;
+                const year = currentMonth.getFullYear();
+                const month = currentMonth.getMonth();
+                return new Date(year, month + i, 1);
             });
 
             // Flatten all days across all months
