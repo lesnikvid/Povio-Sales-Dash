@@ -398,21 +398,21 @@
         .calendar-legend-swatch.sick_leave { background: var(--povio-event-sick); }
         .calendar-add-btn { padding: 7px 14px; background: var(--povio-blue); color: #fff; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
         .calendar-table-wrap { overflow-x: auto; border: 1px solid var(--povio-border); border-radius: 8px; background: var(--povio-white); }
-        .calendar-table { width: 100%; border-collapse: collapse; }
+        .calendar-table { border-collapse: collapse; table-layout: fixed; }
         .calendar-table thead tr { background: var(--povio-gray-100); }
-        .calendar-table th.member-col { position: sticky; left: 0; background: var(--povio-gray-100); z-index: 2; padding: 10px 14px; text-align: left; border-right: 1px solid var(--povio-border); font-weight: 700; font-size: 11px; color: var(--povio-gray-600); text-transform: uppercase; letter-spacing: 0.5px; min-width: 140px; }
-        .calendar-table th.day-head { padding: 8px 4px; text-align: center; font-size: 10px; font-weight: 600; color: var(--povio-gray-600); background: var(--povio-gray-100); border-left: 1px solid var(--povio-gray-200); min-width: 28px; }
+        .calendar-table th.member-col { position: sticky; left: 0; background: var(--povio-gray-100); z-index: 2; padding: 10px 14px; text-align: left; border-right: 1px solid var(--povio-border); font-weight: 700; font-size: 11px; color: var(--povio-gray-600); text-transform: uppercase; letter-spacing: 0.5px; }
+        .calendar-table th.day-head { padding: 8px 2px; text-align: center; font-size: 10px; font-weight: 600; color: var(--povio-gray-600); background: var(--povio-gray-100); border-left: 1px solid var(--povio-gray-200); overflow: hidden; }
         .calendar-table th.day-head.first-col { border-left: none; }
         .calendar-table th.day-head.weekend { color: var(--povio-gray-400); }
         .calendar-table th.day-head.today { color: var(--povio-blue); background: var(--povio-today-tint); }
         .calendar-table th.day-head.month-start { border-left: 2px solid var(--povio-gray-400); }
-        .calendar-month-label { font-size: 9px; font-weight: 700; color: var(--povio-gray-700); margin-bottom: 2px; }
+        .calendar-month-label { font-size: 9px; font-weight: 700; color: var(--povio-gray-700); margin-bottom: 2px; white-space: nowrap; }
         .calendar-day-number { font-size: 11px; font-weight: 600; margin-top: 2px; }
         .calendar-day-number.today { font-weight: 700; }
         .calendar-empty-row { padding: 40px; text-align: center; color: var(--povio-gray-500); font-size: 13px; }
         .calendar-member-row { border-top: 1px solid var(--povio-border); }
         .calendar-member-cell { position: sticky; left: 0; background: var(--povio-white); z-index: 1; padding: 10px 14px; border-right: 1px solid var(--povio-border); font-size: 13px; font-weight: 600; color: var(--povio-gray-900); }
-        .calendar-day-cell { padding: 4px 2px; position: relative; text-align: center; background: var(--povio-white); border-left: 1px solid var(--povio-gray-100); min-width: 28px; }
+        .calendar-day-cell { padding: 4px 0; position: relative; text-align: center; background: var(--povio-white); border-left: 1px solid var(--povio-gray-100); overflow: visible; }
         .calendar-day-cell.first-col { border-left: none; }
         .calendar-day-cell.weekend { background: var(--povio-gray-50); }
         .calendar-day-cell.today { background: var(--povio-today-tint); }
@@ -2016,6 +2016,13 @@
 
             const endDate = allDays[allDays.length - 1];
 
+            // Pack columns tighter as the date range widens, so 3- and 6-month views fit on screen
+            const colWidth = monthsToShow === 1 ? 28 : monthsToShow === 3 ? 14 : 8;
+            const memberColWidth = 140;
+            const showWeekday = monthsToShow === 1;
+            const showDayNumber = monthsToShow <= 3;
+            const tableWidth = memberColWidth + allDays.length * colWidth;
+
             // O(1) lookup of "is there an event starting on this day for this member?"
             const eventsByStart = useMemo(() => {
                 const map = new Map();
@@ -2078,7 +2085,11 @@
                     </div>
 
                     <div className="calendar-table-wrap">
-                        <table className="calendar-table" style={{ minWidth: `${140 + allDays.length * 28}px` }}>
+                        <table className="calendar-table" style={{ width: `${tableWidth}px` }}>
+                            <colgroup>
+                                <col style={{ width: `${memberColWidth}px` }} />
+                                {allDays.map((_, i) => <col key={i} style={{ width: `${colWidth}px` }} />)}
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <th className="member-col">Team Member</th>
@@ -2099,8 +2110,8 @@
                                                         {d.toLocaleDateString('en-US', { month: 'short' })}
                                                     </div>
                                                 )}
-                                                <div>{d.toLocaleDateString('en-US', { weekday: 'narrow' })}</div>
-                                                <div className={`calendar-day-number${isToday ? ' today' : ''}`}>{d.getDate()}</div>
+                                                {showWeekday && <div>{d.toLocaleDateString('en-US', { weekday: 'narrow' })}</div>}
+                                                {showDayNumber && <div className={`calendar-day-number${isToday ? ' today' : ''}`}>{d.getDate()}</div>}
                                             </th>
                                         );
                                     })}
@@ -2131,7 +2142,7 @@
                                                             className={`calendar-event-bar ${eventTypeClass(startingEvt.event_type)}`}
                                                             onClick={() => setEditingEvent(startingEvt)}
                                                             title={`${eventLabel(startingEvt.event_type)}${startingEvt.title ? ': ' + startingEvt.title : ''}\n${startingEvt.start_date} to ${startingEvt.end_date}${startingEvt.notes ? '\n' + startingEvt.notes : ''}`}
-                                                            style={{ width: `calc(${eventSpan(d, startingEvt)} * (100% + 4px) - 4px)` }}>
+                                                            style={{ width: `${eventSpan(d, startingEvt) * colWidth - 4}px` }}>
                                                             {startingEvt.title || eventLabel(startingEvt.event_type)}
                                                         </div>
                                                     )}
