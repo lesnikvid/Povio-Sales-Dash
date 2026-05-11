@@ -1930,32 +1930,48 @@
 
         const CalendarView = ({ teamData, events, onUpdateEvents, user }) => {
             const [currentMonth, setCurrentMonth] = useState(new Date());
+            const [monthsToShow, setMonthsToShow] = useState(1);
             const [editingEvent, setEditingEvent] = useState(null);
             const [addingEvent, setAddingEvent] = useState(false);
             const [selectedMemberForAdd, setSelectedMemberForAdd] = useState(null);
 
             const structure = normalizeTeamStructure(teamData?.structure);
             const members = structure.members || {};
-            const membersList = Object.values(members).sort((a,b) => (a.name||'').localeCompare(b.name||''));
+
+            // Custom sort: Vid, Žiga, Daša, Sara, Gregor first, then alphabetical
+            const priorityOrder = ['Vid Lešnik', 'Žiga Triller', 'Daša Ravter', 'Sara Petrič', 'Gregor Špan'];
+            const membersList = Object.values(members).sort((a, b) => {
+                const aIdx = priorityOrder.indexOf(a.name);
+                const bIdx = priorityOrder.indexOf(b.name);
+                if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+                if (aIdx !== -1) return -1;
+                if (bIdx !== -1) return 1;
+                return (a.name || '').localeCompare(b.name || '');
+            });
+
+            // Generate array of months to display
+            const monthsArray = Array.from({ length: monthsToShow }, (_, i) => {
+                const d = new Date(currentMonth);
+                d.setMonth(currentMonth.getMonth() + i);
+                return d;
+            });
+
+            // Flatten all days across all months
+            const allDays = monthsArray.flatMap(monthDate => {
+                const year = monthDate.getFullYear();
+                const month = monthDate.getMonth();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                return Array.from({ length: daysInMonth }, (_, i) => new Date(year, month, i + 1));
+            });
+
+            const startDate = allDays[0];
+            const endDate = allDays[allDays.length - 1];
 
             const year = currentMonth.getFullYear();
             const month = currentMonth.getMonth();
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const daysInMonth = lastDay.getDate();
-            const days = Array.from({ length: daysInMonth }, (_, i) => new Date(year, month, i + 1));
-
-            const monthName = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
-            const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
-            const nextMonth = () => setCurrentMonth(new Date(year, month + 1, 1));
+            const prevPeriod = () => setCurrentMonth(new Date(year, month - monthsToShow, 1));
+            const nextPeriod = () => setCurrentMonth(new Date(year, month + monthsToShow, 1));
             const today = () => setCurrentMonth(new Date());
-
-            // Check if a date is within an event's range
-            const isDateInEvent = (date, evt) => {
-                const d = date.toISOString().split('T')[0];
-                return d >= evt.start_date && d <= evt.end_date;
-            };
 
             // Find event starting on a specific date for a member
             const eventStartingOn = (date, memberId) => {
@@ -1963,11 +1979,14 @@
                 return events.find(e => e.member_id === memberId && e.start_date === d);
             };
 
-            // Calculate span in days for an event starting on a date (within current month)
+            // Calculate span in days for an event from a start date (clipped to visible range)
             const eventSpan = (date, evt) => {
-                const start = new Date(Math.max(date, new Date(evt.start_date)));
-                const end = new Date(Math.min(lastDay, new Date(evt.end_date)));
-                return Math.max(1, Math.ceil((end - start) / (1000*60*60*24)) + 1);
+                const evtStart = new Date(evt.start_date);
+                const evtEnd = new Date(evt.end_date);
+                const start = new Date(Math.max(date.getTime(), evtStart.getTime()));
+                const end = new Date(Math.min(endDate.getTime(), evtEnd.getTime()));
+                const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                return Math.max(1, diffDays);
             };
 
             const addEvent = (ev) => onUpdateEvents([...events, { ...ev, id: Date.now() }]);
@@ -1977,14 +1996,28 @@
             const eventColor = (type) => type === 'vacation' ? '#3b82f6' : type === 'sick_leave' ? '#ef4444' : '#f97316';
             const eventLabel = (type) => type === 'vacation' ? 'Vacation' : type === 'sick_leave' ? 'Sick Leave' : 'Work Trip';
 
+            const periodLabel = monthsToShow === 1
+                ? currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                : `${monthsArray[0].toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} - ${monthsArray[monthsArray.length - 1].toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+
             return (
                 <div style={{ padding: '0 24px 24px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                            <button onClick={prevMonth} style={{ padding: '6px 12px', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' }}>‹</button>
-                            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: 'var(--povio-gray-900)', minWidth: '180px', textAlign: 'center' }}>{monthName}</h2>
-                            <button onClick={nextMonth} style={{ padding: '6px 12px', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' }}>›</button>
+                            <button onClick={prevPeriod} style={{ padding: '6px 12px', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' }}>‹</button>
+                            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: 'var(--povio-gray-900)', minWidth: '240px', textAlign: 'center' }}>{periodLabel}</h2>
+                            <button onClick={nextPeriod} style={{ padding: '6px 12px', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' }}>›</button>
                             <button onClick={today} style={{ padding: '6px 12px', background: 'var(--povio-gray-100)', border: '1px solid var(--povio-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>Today</button>
+                            <div style={{ marginLeft: '12px', display: 'flex', gap: '4px', background: 'var(--povio-gray-100)', padding: '3px', borderRadius: '6px' }}>
+                                {[1, 3, 6].map(n => (
+                                    <button key={n} onClick={() => setMonthsToShow(n)} style={{
+                                        padding: '4px 10px', fontSize: '11px', fontWeight: '600', borderRadius: '4px', cursor: 'pointer', border: 'none',
+                                        background: monthsToShow === n ? 'var(--povio-white)' : 'transparent',
+                                        color: monthsToShow === n ? 'var(--povio-blue)' : 'var(--povio-gray-600)',
+                                        boxShadow: monthsToShow === n ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                                    }}>{n} {n === 1 ? 'Month' : 'Months'}</button>
+                                ))}
+                            </div>
                         </div>
                         <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                             <div style={{ display: 'flex', gap: '12px', fontSize: '12px' }}>
@@ -2013,17 +2046,23 @@
                             <thead>
                                 <tr style={{ background: 'var(--povio-gray-100)' }}>
                                     <th style={{ position: 'sticky', left: 0, background: 'var(--povio-gray-100)', zIndex: 2, padding: '10px 14px', textAlign: 'left', borderRight: '1px solid var(--povio-border)', fontWeight: '700', fontSize: '11px', color: 'var(--povio-gray-600)', textTransform: 'uppercase', letterSpacing: '0.5px', minWidth: '140px' }}>Team Member</th>
-                                    {days.map((d, i) => {
+                                    {allDays.map((d, i) => {
                                         const isToday = d.toDateString() === new Date().toDateString();
                                         const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+                                        const isFirstOfMonth = d.getDate() === 1;
                                         return (
                                             <th key={i} style={{
                                                 padding: '8px 4px', textAlign: 'center', fontSize: '10px', fontWeight: '600',
                                                 color: isToday ? 'var(--povio-blue)' : (isWeekend ? 'var(--povio-gray-400)' : 'var(--povio-gray-600)'),
                                                 background: isToday ? '#eff6ff' : 'var(--povio-gray-100)',
-                                                borderLeft: i === 0 ? 'none' : '1px solid #e5e7eb',
+                                                borderLeft: isFirstOfMonth ? '2px solid var(--povio-gray-400)' : (i === 0 ? 'none' : '1px solid #e5e7eb'),
                                                 minWidth: '28px'
                                             }}>
+                                                {isFirstOfMonth && monthsToShow > 1 && (
+                                                    <div style={{ fontSize: '9px', fontWeight: '700', color: 'var(--povio-gray-700)', marginBottom: '2px' }}>
+                                                        {d.toLocaleDateString('en-US', { month: 'short' })}
+                                                    </div>
+                                                )}
                                                 <div>{d.toLocaleDateString('en-US', { weekday: 'narrow' })}</div>
                                                 <div style={{ fontSize: '11px', fontWeight: isToday ? '700' : '600', marginTop: '2px' }}>{d.getDate()}</div>
                                             </th>
@@ -2033,34 +2072,39 @@
                             </thead>
                             <tbody>
                                 {membersList.length === 0 ? (
-                                    <tr><td colSpan={daysInMonth + 1} style={{ padding: '40px', textAlign: 'center', color: 'var(--povio-gray-500)', fontSize: '13px' }}>No team members yet. Add members in the Team tab first.</td></tr>
+                                    <tr><td colSpan={allDays.length + 1} style={{ padding: '40px', textAlign: 'center', color: 'var(--povio-gray-500)', fontSize: '13px' }}>No team members yet. Add members in the Team tab first.</td></tr>
                                 ) : membersList.map((member) => (
                                     <tr key={member.id} style={{ borderTop: '1px solid var(--povio-border)' }}>
                                         <td style={{ position: 'sticky', left: 0, background: '#fff', zIndex: 1, padding: '10px 14px', borderRight: '1px solid var(--povio-border)', fontSize: '13px', fontWeight: '600', color: 'var(--povio-gray-900)' }}>
                                             {member.name}
                                         </td>
-                                        {days.map((d, dayIdx) => {
+                                        {allDays.map((d, dayIdx) => {
                                             const startingEvt = eventStartingOn(d, member.id);
                                             const isWeekend = d.getDay() === 0 || d.getDay() === 6;
                                             const isToday = d.toDateString() === new Date().toDateString();
+                                            const isFirstOfMonth = d.getDate() === 1;
+                                            const span = startingEvt ? eventSpan(d, startingEvt) : 0;
 
                                             return (
                                                 <td key={dayIdx} style={{
                                                     padding: '4px 2px', position: 'relative', textAlign: 'center',
                                                     background: isToday ? '#eff6ff' : (isWeekend ? '#fafafa' : '#fff'),
-                                                    borderLeft: dayIdx === 0 ? 'none' : '1px solid #f3f4f6'
+                                                    borderLeft: isFirstOfMonth ? '2px solid var(--povio-gray-400)' : (dayIdx === 0 ? 'none' : '1px solid #f3f4f6'),
+                                                    minWidth: '28px'
                                                 }}>
                                                     {startingEvt ? (
                                                         <div
                                                             onClick={() => setEditingEvent(startingEvt)}
                                                             title={`${eventLabel(startingEvt.event_type)}${startingEvt.title ? ': ' + startingEvt.title : ''}\n${startingEvt.start_date} to ${startingEvt.end_date}${startingEvt.notes ? '\n' + startingEvt.notes : ''}`}
                                                             style={{
-                                                                position: 'absolute', left: '2px', right: dayIdx + eventSpan(d, startingEvt) >= daysInMonth ? '2px' : `-${eventSpan(d, startingEvt) * 30}px`,
+                                                                position: 'absolute', left: '2px',
+                                                                width: `calc(${span} * (100% + 4px) - 4px)`,
                                                                 top: '6px', height: '20px', background: eventColor(startingEvt.event_type),
                                                                 borderRadius: '4px', fontSize: '10px', fontWeight: '600', color: '#fff',
                                                                 display: 'flex', alignItems: 'center', justifyContent: 'flex-start', paddingLeft: '6px',
                                                                 cursor: 'pointer', zIndex: 1, boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                                                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                                                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                                                pointerEvents: 'auto'
                                                             }}>
                                                             {startingEvt.title || eventLabel(startingEvt.event_type)}
                                                         </div>
