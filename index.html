@@ -3163,19 +3163,62 @@
         };
 
         // ============== Accounts (full 198-row list) ==============
-        const AccountsView = ({ whales, allowedUsers, onUpdate, currentPovioUser, user }) => {
+        const AccountsView = ({ whales, allowedUsers, onUpdate, onWhalesRefresh, currentPovioUser, user }) => {
             const [expandedId, setExpandedId] = useState(null);
             const [activeTab, setActiveTab] = useState('overview');
             const [search, setSearch] = useState('');
             const [filterOwner, setFilterOwner] = useState('all');
             const [filterHealth, setFilterHealth] = useState('all');
             const [keyOnly, setKeyOnly] = useState(false);
+            const [savingField, setSavingField] = useState(null);  // visual feedback during save
+            const isAdmin = currentPovioUser?.role === 'admin';
 
             const ownersById = useMemo(() => {
                 const m = new Map();
                 allowedUsers.forEach(u => m.set(u.povio_id, u));
                 return m;
             }, [allowedUsers]);
+
+            // Save a single field to Supabase, then refresh the whales list.
+            // Used by all the InlineEdit components in the Overview tab.
+            // The migration-004 trigger handles audit logging server-side, so
+            // we don't need to do it here.
+            const saveField = async (whaleId, fieldName, rawValue) => {
+                let value = rawValue;
+                // Normalize numeric strings to actual numbers for the DB
+                if (['arr','ltv','fte','referrals_count','referrals_revenue'].includes(fieldName)) {
+                    const n = parseFloat(value);
+                    value = isNaN(n) ? null : n;
+                }
+                // Empty string → null for cleaner DB state
+                if (value === '') value = null;
+
+                setSavingField(whaleId + ':' + fieldName);
+                const { error } = await supabaseClient
+                    .from('whales')
+                    .update({ [fieldName]: value })
+                    .eq('id', whaleId);
+                setSavingField(null);
+                if (error) {
+                    console.error('saveField error', error);
+                    alert('Save failed: ' + (error.message || 'unknown error'));
+                    return;
+                }
+                if (onWhalesRefresh) await onWhalesRefresh();
+            };
+
+            // Save a JSON column (team_members, qbr_history, etc.) — needs special
+            // handling since InlineEdit produces strings; we parse + reshape.
+            const saveJsonArray = async (whaleId, fieldName, arrayValue) => {
+                setSavingField(whaleId + ':' + fieldName);
+                const { error } = await supabaseClient
+                    .from('whales')
+                    .update({ [fieldName]: arrayValue })
+                    .eq('id', whaleId);
+                setSavingField(null);
+                if (error) { console.error('saveJsonArray error', error); alert('Save failed: ' + error.message); return; }
+                if (onWhalesRefresh) await onWhalesRefresh();
+            };
 
             const filtered = whales.filter(w => {
                 if (filterOwner !== 'all' && w.owner_povio_id !== filterOwner) return false;
@@ -3280,44 +3323,172 @@
                                         <div className="acct-tab-content">
                                             {activeTab === 'overview' && (
                                                 <div>
+                                                    <p style={{ fontSize: 12, color: 'var(--povio-gray-500)', marginBottom: 16 }}>
+                                                        Click any value to edit it inline. Changes save instantly and are auto-logged to the audit trail.
+                                                    </p>
                                                     <div className="detail-grid">
                                                         <div className="detail-section">
                                                             <h4>Engagement</h4>
-                                                            <div className="detail-row"><span className="detail-label">Type</span><span className="detail-value">{(w.engagement_type || 'team_aug').replace('_', ' ')}</span></div>
-                                                            <div className="detail-row"><span className="detail-label">FTE</span><span className="detail-value">{w.fte > 0 ? parseFloat(w.fte).toFixed(2) : '—'}</span></div>
-                                                            <div className="detail-row"><span className="detail-label">Hours/week</span><span className="detail-value">{w.engagement_hours_week || '—'}</span></div>
-                                                            <div className="detail-row"><span className="detail-label">Industry</span><span className="detail-value">{w.industry || '—'}</span></div>
-                                                        </div>
-                                                        <div className="detail-section">
-                                                            <h4>Financial (est)</h4>
-                                                            <div className="detail-row"><span className="detail-label">ARR</span><span className="detail-value" style={{ color: 'var(--povio-blue)' }}>{fmtARR(w.arr)}</span></div>
-                                                            <div className="detail-row"><span className="detail-label">LTV</span><span className="detail-value">{fmtARR(w.ltv)}</span></div>
-                                                            <div className="detail-row"><span className="detail-label">2025 forecast</span><span className="detail-value">{w.forecast_raw || '—'}</span></div>
-                                                            <div className="detail-row"><span className="detail-label">Potential</span><span className="detail-value">{w.potential_flag || '—'}</span></div>
-                                                        </div>
-                                                        <div className="detail-section">
-                                                            <h4>Risk & opportunity</h4>
-                                                            <div className="detail-row"><span className="detail-label">Health</span><span className={'tag tag-' + (healthClass === 'healthy' ? 'green' : healthClass === 'at_risk' ? 'yellow' : 'red')}>{w.health || '—'}</span></div>
-                                                            <div className="detail-row"><span className="detail-label">Status</span><span className="detail-value">{w.account_status_raw || '—'}</span></div>
-                                                            <div className="detail-row"><span className="detail-label">Expansion</span><span className="detail-value">{w.expansion_potential || w.expansion || '—'}</span></div>
-                                                            <div className="detail-row"><span className="detail-label">Owner</span><span className="detail-value">{owner?.name || '—'}</span></div>
-                                                            <div className="detail-row"><span className="detail-label">Last touch</span><span className="detail-value">{relTime(w.updated_at || w.last_touch_at)}</span></div>
-                                                        </div>
-                                                    </div>
-                                                    {w.last_note && (
-                                                        <div style={{ marginTop: 20 }}>
-                                                            <h4 style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--povio-gray-500)', marginBottom: 10, letterSpacing: 0.5, fontWeight: 700 }}>Latest note</h4>
-                                                            <div style={{ padding: 14, background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10, fontSize: 13, color: 'var(--povio-gray-900)', lineHeight: 1.6 }}>{w.last_note}</div>
-                                                        </div>
-                                                    )}
-                                                    {w.team_members && w.team_members.length > 0 && (
-                                                        <div style={{ marginTop: 20 }}>
-                                                            <h4 style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--povio-gray-500)', marginBottom: 10, letterSpacing: 0.5, fontWeight: 700 }}>Team on the project</h4>
-                                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                                                                {w.project_manager && <span className="tag tag-blue">PM · {w.project_manager}</span>}
-                                                                {w.team_members.filter(t => t !== w.project_manager).map((t, i) => <span key={i} className="tag">{t}</span>)}
+                                                            <div className="detail-row"><span className="detail-label">Type</span>
+                                                                <InlineEdit value={w.engagement_type || 'team_aug'} display={(w.engagement_type || 'team_aug').replace('_', ' ')}
+                                                                    onSave={v => saveField(w.id, 'engagement_type', v)}
+                                                                    options={[{value:'team_aug',label:'team aug'},{value:'agency',label:'agency'},{value:'hybrid',label:'hybrid'}]} />
+                                                            </div>
+                                                            <div className="detail-row"><span className="detail-label">FTE</span>
+                                                                <InlineEdit value={w.fte || 0} display={w.fte > 0 ? parseFloat(w.fte).toFixed(2) : '—'}
+                                                                    onSave={v => saveField(w.id, 'fte', v)} type="number" />
+                                                            </div>
+                                                            <div className="detail-row"><span className="detail-label">Hours/week</span>
+                                                                <InlineEdit value={w.engagement_hours_week || ''}
+                                                                    onSave={v => saveField(w.id, 'engagement_hours_week', v)} />
+                                                            </div>
+                                                            <div className="detail-row"><span className="detail-label">Industry</span>
+                                                                <InlineEdit value={w.industry || ''}
+                                                                    onSave={v => saveField(w.id, 'industry', v)} />
+                                                            </div>
+                                                            <div className="detail-row"><span className="detail-label">Contract end</span>
+                                                                <InlineEdit value={w.contract_end || ''} display={w.contract_end || '—'}
+                                                                    onSave={v => saveField(w.id, 'contract_end', v)} type="date" />
                                                             </div>
                                                         </div>
+                                                        <div className="detail-section">
+                                                            <h4>Financial</h4>
+                                                            <div className="detail-row"><span className="detail-label">ARR (in $K)</span>
+                                                                <InlineEdit value={w.arr || 0} display={<span style={{ color: 'var(--povio-blue)', fontWeight: 700 }}>{fmtARR(w.arr)}</span>}
+                                                                    onSave={v => saveField(w.id, 'arr', v)} type="number" />
+                                                            </div>
+                                                            <div className="detail-row"><span className="detail-label">LTV (in $K)</span>
+                                                                <InlineEdit value={w.ltv || 0} display={fmtARR(w.ltv)}
+                                                                    onSave={v => saveField(w.id, 'ltv', v)} type="number" />
+                                                            </div>
+                                                            <div className="detail-row"><span className="detail-label">2025 forecast</span>
+                                                                <InlineEdit value={w.forecast_raw || ''}
+                                                                    onSave={v => saveField(w.id, 'forecast_raw', v)}
+                                                                    options={[{value:'',label:'—'},{value:'Increasing Revenue',label:'Increasing'},{value:'Same Revenue',label:'Same'},{value:'Decreasing Revenue',label:'Decreasing'},{value:'Not sure',label:'Not sure'}]} />
+                                                            </div>
+                                                            <div className="detail-row"><span className="detail-label">Potential</span>
+                                                                <InlineEdit value={w.potential_flag || ''}
+                                                                    onSave={v => saveField(w.id, 'potential_flag', v)}
+                                                                    options={[{value:'',label:'—'},{value:'Yes',label:'Yes'},{value:'No',label:'No'},{value:"Don't know yet",label:"Don't know yet"}]} />
+                                                            </div>
+                                                            <div className="detail-row"><span className="detail-label">Referrals #</span>
+                                                                <InlineEdit value={w.referrals_count || 0}
+                                                                    onSave={v => saveField(w.id, 'referrals_count', v)} type="number" />
+                                                            </div>
+                                                            <div className="detail-row"><span className="detail-label">Ref. revenue ($K)</span>
+                                                                <InlineEdit value={w.referrals_revenue || 0} display={fmtARR(w.referrals_revenue)}
+                                                                    onSave={v => saveField(w.id, 'referrals_revenue', v)} type="number" />
+                                                            </div>
+                                                        </div>
+                                                        <div className="detail-section">
+                                                            <h4>Status & risk</h4>
+                                                            <div className="detail-row"><span className="detail-label">Health</span>
+                                                                <InlineEdit value={w.health || 'healthy'} display={<span className={'tag tag-' + (healthClass === 'healthy' ? 'green' : healthClass === 'at_risk' ? 'yellow' : 'red')}>{(w.health || 'healthy').replace('_',' ')}</span>}
+                                                                    onSave={v => saveField(w.id, 'health', v)}
+                                                                    options={[{value:'healthy',label:'healthy'},{value:'at_risk',label:'at risk'},{value:'critical',label:'critical'}]} />
+                                                            </div>
+                                                            <div className="detail-row"><span className="detail-label">Status</span>
+                                                                <InlineEdit value={w.account_status_raw || ''}
+                                                                    onSave={v => saveField(w.id, 'account_status_raw', v)}
+                                                                    options={[{value:'',label:'—'},{value:'All good',label:'All good'},{value:'Observing',label:'Observing'},{value:'Firefighting',label:'Firefighting'}]} />
+                                                            </div>
+                                                            <div className="detail-row"><span className="detail-label">Expansion</span>
+                                                                <InlineEdit value={w.expansion_potential || 'none'} display={w.expansion_potential || w.expansion || '—'}
+                                                                    onSave={v => saveField(w.id, 'expansion_potential', v)}
+                                                                    options={[{value:'none',label:'none'},{value:'low',label:'low'},{value:'medium',label:'medium'},{value:'high',label:'high'}]} />
+                                                            </div>
+                                                            <div className="detail-row"><span className="detail-label">Churn risk</span>
+                                                                <InlineEdit value={w.churn_risk || 'Low'}
+                                                                    onSave={v => saveField(w.id, 'churn_risk', v)}
+                                                                    options={[{value:'Low',label:'Low'},{value:'Medium',label:'Medium'},{value:'High',label:'High'}]} />
+                                                            </div>
+                                                            <div className="detail-row"><span className="detail-label">Last QBR</span>
+                                                                <InlineEdit value={w.last_qbr || ''} display={w.last_qbr || '—'}
+                                                                    onSave={v => saveField(w.id, 'last_qbr', v)} type="date" />
+                                                            </div>
+                                                            <div className="detail-row"><span className="detail-label">Next QBR</span>
+                                                                <InlineEdit value={w.next_qbr || ''} display={w.next_qbr || '—'}
+                                                                    onSave={v => saveField(w.id, 'next_qbr', v)} type="date" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div style={{ marginTop: 22 }}>
+                                                        <h4 style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--povio-gray-500)', marginBottom: 10, letterSpacing: 0.5, fontWeight: 700 }}>Account team</h4>
+                                                        <div className="detail-grid" style={{ marginTop: 0 }}>
+                                                            <div className="detail-row"><span className="detail-label">Account manager</span>
+                                                                <InlineEdit value={w.accountManager || w.account_manager || ''}
+                                                                    onSave={v => saveField(w.id, 'account_manager', v)} />
+                                                            </div>
+                                                            <div className="detail-row"><span className="detail-label">Project manager</span>
+                                                                <InlineEdit value={w.project_manager || ''}
+                                                                    onSave={v => saveField(w.id, 'project_manager', v)} />
+                                                            </div>
+                                                            <div className="detail-row"><span className="detail-label">Owner (account)</span>
+                                                                {isAdmin ? (
+                                                                    <InlineEdit value={w.owner_povio_id || 'u_unassigned'} display={owner?.name || 'Unassigned'}
+                                                                        onSave={v => saveField(w.id, 'owner_povio_id', v)}
+                                                                        options={allowedUsers.filter(u => u.povio_id).map(u => ({value: u.povio_id, label: u.name + (u.role === 'admin' ? ' (admin)' : '')}))} />
+                                                                ) : <span className="detail-value">{owner?.name || '—'}</span>}
+                                                            </div>
+                                                            <div className="detail-row"><span className="detail-label">Key account 🐋</span>
+                                                                {isAdmin ? (
+                                                                    <InlineEdit value={w.is_key_account ? 'true' : 'false'} display={w.is_key_account ? '🐋 yes' : 'no'}
+                                                                        onSave={v => saveField(w.id, 'is_key_account', v === 'true')}
+                                                                        options={[{value:'false',label:'no'},{value:'true',label:'yes 🐋'}]} />
+                                                                ) : <span className="detail-value">{w.is_key_account ? '🐋 yes' : 'no'}</span>}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Team members on the project — array editor */}
+                                                    <div style={{ marginTop: 22 }}>
+                                                        <h4 style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--povio-gray-500)', marginBottom: 10, letterSpacing: 0.5, fontWeight: 700 }}>Team on the project</h4>
+                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                                                            {(w.team_members || []).map((t, i) => (
+                                                                <span key={i} className={'tag ' + (t === w.project_manager ? 'tag-blue' : '')}
+                                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                                                    {t === w.project_manager ? 'PM · ' : ''}{t}
+                                                                    <span onClick={() => saveJsonArray(w.id, 'team_members', (w.team_members || []).filter((_, j) => j !== i))}
+                                                                        style={{ cursor: 'pointer', color: 'var(--povio-gray-400)', marginLeft: 4 }} title="Remove">×</span>
+                                                                </span>
+                                                            ))}
+                                                            <button className="btn btn-secondary btn-small" style={{ padding: '4px 10px', fontSize: 11 }}
+                                                                onClick={() => {
+                                                                    const name = prompt('Add team member name:');
+                                                                    if (name) saveJsonArray(w.id, 'team_members', [...(w.team_members || []), name.trim()]);
+                                                                }}>+ Add</button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Notes — freeform text area, editable */}
+                                                    <div style={{ marginTop: 22 }}>
+                                                        <h4 style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--povio-gray-500)', marginBottom: 10, letterSpacing: 0.5, fontWeight: 700 }}>Last note (latest update from the AM)</h4>
+                                                        <textarea
+                                                            defaultValue={w.last_note || ''}
+                                                            placeholder="What's the latest with this account? Click out to save."
+                                                            onBlur={e => { if (e.target.value !== (w.last_note || '')) saveField(w.id, 'last_note', e.target.value); }}
+                                                            style={{ width: '100%', minHeight: 60, padding: 10, background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 8, fontSize: 13, lineHeight: 1.6, fontFamily: 'inherit' }} />
+                                                    </div>
+                                                    <div style={{ marginTop: 14 }}>
+                                                        <h4 style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--povio-gray-500)', marginBottom: 10, letterSpacing: 0.5, fontWeight: 700 }}>Notes (long-form)</h4>
+                                                        <textarea
+                                                            defaultValue={w.notes || ''}
+                                                            placeholder="Background, history, anything important. Click out to save."
+                                                            onBlur={e => { if (e.target.value !== (w.notes || '')) saveField(w.id, 'notes', e.target.value); }}
+                                                            style={{ width: '100%', minHeight: 80, padding: 10, background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 8, fontSize: 13, lineHeight: 1.6, fontFamily: 'inherit' }} />
+                                                    </div>
+                                                    <div style={{ marginTop: 14 }}>
+                                                        <h4 style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--povio-gray-500)', marginBottom: 10, letterSpacing: 0.5, fontWeight: 700 }}>Invoicing notes</h4>
+                                                        <textarea
+                                                            defaultValue={w.invoicing_note || ''}
+                                                            placeholder="Who's invoicing, rate cards, payment terms..."
+                                                            onBlur={e => { if (e.target.value !== (w.invoicing_note || '')) saveField(w.id, 'invoicing_note', e.target.value); }}
+                                                            style={{ width: '100%', minHeight: 50, padding: 10, background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 8, fontSize: 13, lineHeight: 1.6, fontFamily: 'inherit' }} />
+                                                    </div>
+
+                                                    {savingField && (
+                                                        <div style={{ marginTop: 14, fontSize: 11, color: 'var(--povio-blue)' }}>Saving…</div>
                                                     )}
                                                 </div>
                                             )}
@@ -4505,7 +4676,7 @@
                     {isAdmin && view === 'dashboard' && <DashboardView whales={whales} goals={goals} allowedUsers={allowedUsers} setView={setView} />}
                     {isAdmin && view === 'goals'     && <GoalsView goals={goals} onUpdate={updateGoal} onDelete={deleteGoal} onAdd={addGoal} />}
                     {isAdmin && view === 'roadmap'   && <RoadmapView goals={goals} />}
-                    {            view === 'whales'   && <AccountsView whales={whales} allowedUsers={allowedUsers} onUpdate={updateWhales} currentPovioUser={currentPovioUser} user={user} />}
+                    {            view === 'whales'   && <AccountsView whales={whales} allowedUsers={allowedUsers} onUpdate={updateWhales} onWhalesRefresh={fetchWhales} currentPovioUser={currentPovioUser} user={user} />}
                     {            view === 'calendar' && <CalendarView teamData={teamData} events={calendarEvents} onUpdateEvents={updateCalendarEvents} user={user} readOnly={!isAdmin} />}
                     {isAdmin && view === 'team'      && <TeamView teamData={teamData} onUpdate={updateTeam} user={user} />}
                     {isAdmin && view === 'my-week'   && <MyWeekView whales={whales} user={user} currentPovioUser={currentPovioUser} />}

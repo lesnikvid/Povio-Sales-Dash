@@ -34,16 +34,19 @@ ALTER TABLE allowed_users
     ADD COLUMN IF NOT EXISTS color TEXT;
 
 -- Promote Vid to admin (idempotent)
-UPDATE allowed_users SET role = 'admin', povio_id = 'u_vl', name = 'Vid Lešnik', initials = 'VL', color = '#1F35FF'
+-- ASCII-only spellings (Slovenian diacritics normalised to S/Z to avoid font-rendering
+-- inconsistencies — see migration 005). DB triggers and JWT email lookups don't care
+-- about the visible name; this is purely UX.
+UPDATE allowed_users SET role = 'admin', povio_id = 'u_vl', name = 'Vid Lesnik', initials = 'VL', color = '#1F35FF'
 WHERE email = 'lesnik.vid@gmail.com';
 
 -- Seed the 5 active AMs as reps + a sentinel "Unassigned" placeholder.
 -- Real emails confirmed by Vid 2026-05-11.
 INSERT INTO allowed_users (email, role, povio_id, name, initials, color, notes) VALUES
-    ('ziga.triller@povio.com',  'rep', 'u_zt', 'Žiga Triller', 'ŽT', '#7C3AED', 'AM'),
-    ('dasa.ravter@povio.com',   'rep', 'u_dr', 'Daša Ravter',  'DR', '#EC4899', 'AM'),
+    ('ziga.triller@povio.com',  'rep', 'u_zt', 'Ziga Triller', 'ZT', '#7C3AED', 'AM'),
+    ('dasa.ravter@povio.com',   'rep', 'u_dr', 'Dasa Ravter',  'DR', '#EC4899', 'AM'),
     ('edvin.lovic@povio.com',   'rep', 'u_el', 'Edvin Lovic',  'EL', '#10B981', 'AM'),
-    ('gregor.span@povio.com',   'rep', 'u_gs', 'Gregor Špan',  'GŠ', '#F59E0B', 'AM'),
+    ('gregor.span@povio.com',   'rep', 'u_gs', 'Gregor Span',  'GS', '#F59E0B', 'AM'),
     ('sara.petric@povio.com',   'rep', 'u_sp', 'Sara Petric',  'SP', '#06B6D4', 'AM'),
     ('__unassigned__@internal', 'rep', 'u_unassigned', 'Unassigned', '—', '#A3A3A3', 'Placeholder for accounts with no AM')
 ON CONFLICT (email) DO UPDATE SET
@@ -59,9 +62,9 @@ ON CONFLICT (email) DO UPDATE SET
 INSERT INTO allowed_users (email, role, povio_id, name, initials, color, notes) VALUES
     ('durdica.inactive@local',  'rep', 'u_dsk', 'Durdica Strunjas Kurt', 'DS', '#06B6D4', 'Inactive — directory only'),
     ('klemen.inactive@local',   'rep', 'u_kv',  'Klemen Vute',           'KV', '#8B5CF6', 'Inactive — directory only'),
-    ('lana.inactive@local',     'rep', 'u_ls',  'Lana Špiler',           'LŠ', '#F43F5E', 'Inactive — directory only'),
+    ('lana.inactive@local',     'rep', 'u_ls',  'Lana Spiler',           'LS', '#F43F5E', 'Inactive — directory only'),
     ('jakob.inactive@local',    'rep', 'u_jc',  'Jakob Cvetko',          'JC', '#0EA5E9', 'Inactive — directory only'),
-    ('jernej.inactive@local',   'rep', 'u_jl',  'Jernej Lešnik',         'JL', '#84CC16', 'Inactive — directory only')
+    ('jernej.inactive@local',   'rep', 'u_jl',  'Jernej Lesnik',         'JL', '#84CC16', 'Inactive — directory only')
 ON CONFLICT (email) DO UPDATE SET
     name = EXCLUDED.name,
     notes = EXCLUDED.notes;
