@@ -40,34 +40,23 @@ ALTER TABLE allowed_users
 UPDATE allowed_users SET role = 'admin', povio_id = 'u_vl', name = 'Vid Lesnik', initials = 'VL', color = '#1F35FF'
 WHERE email = 'lesnik.vid@gmail.com';
 
--- Seed the 5 active AMs as reps + a sentinel "Unassigned" placeholder.
--- Real emails confirmed by Vid 2026-05-11.
+-- Seed the 6 active AMs as reps. Real emails confirmed by Vid 2026-05-12.
+-- (Migration 006 removed the inactive AMs and the Unassigned placeholder;
+-- those rows are intentionally NOT re-seeded here — re-running 002 should
+-- give the same end state as migration 006.)
 INSERT INTO allowed_users (email, role, povio_id, name, initials, color, notes) VALUES
-    ('ziga.triller@povio.com',  'rep', 'u_zt', 'Ziga Triller', 'ZT', '#7C3AED', 'AM'),
-    ('dasa.ravter@povio.com',   'rep', 'u_dr', 'Dasa Ravter',  'DR', '#EC4899', 'AM'),
-    ('edvin.lovic@povio.com',   'rep', 'u_el', 'Edvin Lovic',  'EL', '#10B981', 'AM'),
-    ('gregor.span@povio.com',   'rep', 'u_gs', 'Gregor Span',  'GS', '#F59E0B', 'AM'),
-    ('sara.petric@povio.com',   'rep', 'u_sp', 'Sara Petric',  'SP', '#06B6D4', 'AM'),
-    ('__unassigned__@internal', 'rep', 'u_unassigned', 'Unassigned', '—', '#A3A3A3', 'Placeholder for accounts with no AM')
+    ('ziga.triller@povio.com',           'rep', 'u_zt',  'Ziga Triller',          'ZT', '#7C3AED', 'AM'),
+    ('dasa.ravter@povio.com',            'rep', 'u_dr',  'Dasa Ravter',           'DR', '#EC4899', 'AM'),
+    ('edvin.lovic@povio.com',            'rep', 'u_el',  'Edvin Lovic',           'EL', '#10B981', 'AM'),
+    ('gregor.span@povio.com',            'rep', 'u_gs',  'Gregor Span',           'GS', '#F59E0B', 'AM'),
+    ('sara.petric@povio.com',            'rep', 'u_sp',  'Sara Petric',           'SP', '#06B6D4', 'AM'),
+    ('durdica.strunjas.kurt@povio.com',  'rep', 'u_dsk', 'Durdica Strunjas Kurt', 'DS', '#06B6D4', 'AM')
 ON CONFLICT (email) DO UPDATE SET
     role = EXCLUDED.role,
     povio_id = EXCLUDED.povio_id,
     name = EXCLUDED.name,
     initials = EXCLUDED.initials,
     color = EXCLUDED.color;
-
--- Inactive / historical AMs that appear as account_manager on existing whales but no longer
--- log in. Seeded with synthetic emails (cannot authenticate via Google Workspace) so the
--- directory lookup still resolves their avatar / initials.
-INSERT INTO allowed_users (email, role, povio_id, name, initials, color, notes) VALUES
-    ('durdica.inactive@local',  'rep', 'u_dsk', 'Durdica Strunjas Kurt', 'DS', '#06B6D4', 'Inactive — directory only'),
-    ('klemen.inactive@local',   'rep', 'u_kv',  'Klemen Vute',           'KV', '#8B5CF6', 'Inactive — directory only'),
-    ('lana.inactive@local',     'rep', 'u_ls',  'Lana Spiler',           'LS', '#F43F5E', 'Inactive — directory only'),
-    ('jakob.inactive@local',    'rep', 'u_jc',  'Jakob Cvetko',          'JC', '#0EA5E9', 'Inactive — directory only'),
-    ('jernej.inactive@local',   'rep', 'u_jl',  'Jernej Lesnik',         'JL', '#84CC16', 'Inactive — directory only')
-ON CONFLICT (email) DO UPDATE SET
-    name = EXCLUDED.name,
-    notes = EXCLUDED.notes;
 
 
 -- =============================================================================

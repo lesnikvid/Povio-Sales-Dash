@@ -3221,7 +3221,9 @@
             };
 
             const filtered = whales.filter(w => {
-                if (filterOwner !== 'all' && w.owner_povio_id !== filterOwner) return false;
+                if (filterOwner === 'unassigned') {
+                    if (w.owner_povio_id) return false;
+                } else if (filterOwner !== 'all' && w.owner_povio_id !== filterOwner) return false;
                 if (filterHealth !== 'all' && (w.health || '').toLowerCase() !== filterHealth) return false;
                 if (keyOnly && !w.is_key_account) return false;
                 if (search && !(w.name || '').toLowerCase().includes(search.toLowerCase())) return false;
@@ -3257,6 +3259,7 @@
                         <input className="search-input" type="text" placeholder="Search by company name…" value={search} onChange={e => setSearch(e.target.value)} />
                         <select value={filterOwner} onChange={e => setFilterOwner(e.target.value)}>
                             <option value="all">All owners</option>
+                            <option value="unassigned">— Unassigned —</option>
                             {allowedUsers.filter(u => u.povio_id).map(u => <option key={u.povio_id} value={u.povio_id}>{u.name}</option>)}
                         </select>
                         <select value={filterHealth} onChange={e => setFilterHealth(e.target.value)}>
@@ -3426,9 +3429,9 @@
                                                             </div>
                                                             <div className="detail-row"><span className="detail-label">Owner (account)</span>
                                                                 {isAdmin ? (
-                                                                    <InlineEdit value={w.owner_povio_id || 'u_unassigned'} display={owner?.name || 'Unassigned'}
+                                                                    <InlineEdit value={w.owner_povio_id || ''} display={owner?.name || <span style={{ color: 'var(--povio-gray-400)' }}>— Unassigned —</span>}
                                                                         onSave={v => saveField(w.id, 'owner_povio_id', v)}
-                                                                        options={allowedUsers.filter(u => u.povio_id).map(u => ({value: u.povio_id, label: u.name + (u.role === 'admin' ? ' (admin)' : '')}))} />
+                                                                        options={[{value: '', label: '— Unassigned —'}, ...allowedUsers.filter(u => u.povio_id).map(u => ({value: u.povio_id, label: u.name + (u.role === 'admin' ? ' (admin)' : '')}))]} />
                                                                 ) : <span className="detail-value">{owner?.name || '—'}</span>}
                                                             </div>
                                                             <div className="detail-row"><span className="detail-label">Key account 🐋</span>
