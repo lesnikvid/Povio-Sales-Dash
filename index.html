@@ -3711,7 +3711,7 @@
         // END MERGED VIEWS
         // =====================================================================
 
-        const LoginScreen = ({ onLogin, onLoginGoogle, error }) => {
+        const LoginScreen = ({ onLogin, onLoginGoogle, onClearSession, error }) => {
             return (
                 <div className="login-container">
                     <div className="login-card">
@@ -3749,6 +3749,11 @@
                             Vid signs in with GitHub. AMs sign in with their @povio.com Google account.<br/>
                             Email not on the team list? Ask Vid to add you.
                         </p>
+                        {onClearSession && (
+                            <p style={{ fontSize: 11, color: 'var(--povio-gray-400)', textAlign: 'center', marginTop: 10 }}>
+                                Stuck? <a href="#" onClick={(e) => { e.preventDefault(); onClearSession(); }} style={{ color: 'var(--povio-blue)', textDecoration: 'underline', cursor: 'pointer' }}>Clear session and retry</a>
+                            </p>
+                        )}
                     </div>
                 </div>
             );
@@ -3819,68 +3824,114 @@
             const [loading, setLoading] = useState(true);
             const [loginError, setLoginError] = useState(null);
 
-            // Look up the authenticated session in allowed_users by email,
-            // attach role + povio_id, or sign out if not on the team list.
+            // ============================================================
+            // Auth flow — single state machine, hang-proof.
+            // ------------------------------------------------------------
+            // Previous design called both supabaseClient.auth.getSession()
+            // AND subscribed to onAuthStateChange. The listener fires with
+            // INITIAL_SESSION on subscription, so linkAllowedUser ran twice
+            // concurrently on every page load. Combined with a stale token
+            // in localStorage that triggers the SDK's internal refresh-lock
+            // deadlock, this produced an indefinite "stuck on Loading" with
+            // no thrown error and no finally fired.
+            //
+            // New design:
+            //   1. Subscribe to onAuthStateChange ONLY. The first event
+            //      (INITIAL_SESSION) drives initial render.
+            //   2. Hard 6-second wall-clock timeout. If no auth event has
+            //      fired in 6s, we force-clear loading and show a
+            //      LoginScreen with a self-rescue button.
+            //   3. A ref-based mutex prevents concurrent linkAllowedUser
+            //      runs if the listener fires more than once before the
+            //      first call completes (e.g. SIGNED_IN immediately after
+            //      INITIAL_SESSION on first login).
+            // ============================================================
+            const linkLockRef = useRef(false);
+            const timeoutFiredRef = useRef(false);
+
             const linkAllowedUser = async (sess_user) => {
-                if (!sess_user) { setCurrentPovioUser(null); return; }
-                const email = (sess_user.email || '').toLowerCase();
-                if (!email) {
-                    setLoginError('Sign-in succeeded but no email is associated with your account. Cannot grant access.');
-                    await supabaseClient.auth.signOut();
-                    return;
+                if (linkLockRef.current) return;          // mutex
+                linkLockRef.current = true;
+                try {
+                    if (!sess_user) { setCurrentPovioUser(null); return; }
+                    const email = (sess_user.email || '').toLowerCase();
+                    if (!email) {
+                        setLoginError('Sign-in succeeded but no email is associated with your account. Cannot grant access.');
+                        await supabaseClient.auth.signOut();
+                        return;
+                    }
+                    const { data, error } = await supabaseClient
+                        .from('allowed_users')
+                        .select('email, role, povio_id, name, initials, color')
+                        .eq('email', email)
+                        .maybeSingle();
+                    if (error) {
+                        console.error('Error fetching allowed_users row:', error);
+                        setLoginError('Unable to verify access. Try again in a moment.');
+                        await supabaseClient.auth.signOut();
+                        return;
+                    }
+                    if (!data) {
+                        setLoginError('Your email (' + email + ') is not on the team list. Ask Vid to add you.');
+                        await supabaseClient.auth.signOut();
+                        return;
+                    }
+                    setCurrentPovioUser(data);
+                } catch (err) {
+                    // Swallow & surface — never leave a hung promise on the floor
+                    console.error('linkAllowedUser failed:', err);
+                    setLoginError('Could not verify access. Click "Clear session and retry" below.');
+                } finally {
+                    linkLockRef.current = false;
                 }
-                const { data, error } = await supabaseClient
-                    .from('allowed_users')
-                    .select('email, role, povio_id, name, initials, color')
-                    .eq('email', email)
-                    .maybeSingle();
-                if (error) {
-                    console.error('Error fetching allowed_users row:', error);
-                    setLoginError('Unable to verify access. Try again in a moment.');
-                    await supabaseClient.auth.signOut();
-                    return;
-                }
-                if (!data) {
-                    setLoginError('Your email (' + email + ') is not on the team list. Ask Vid to add you.');
-                    await supabaseClient.auth.signOut();
-                    return;
-                }
-                setCurrentPovioUser(data);
             };
 
-            // Initialize Supabase Auth
             useEffect(() => {
-                const initAuth = async () => {
-                    try {
-                        const { data: { session } } = await supabaseClient.auth.getSession();
-                        if (session?.user) {
-                            setUser(session.user);
-                            await linkAllowedUser(session.user);
-                        }
-                    } catch (err) {
-                        console.error('Failed to initialize auth (network error?):', err);
-                    } finally {
-                        setLoading(false);
-                    }
-                };
-
-                initAuth();
+                // Hard timeout: if the SDK never emits an auth event in 6s,
+                // unblock the UI so the user can self-rescue.
+                const watchdog = setTimeout(() => {
+                    timeoutFiredRef.current = true;
+                    setLoginError('Authentication timed out. Your session may be corrupted — click "Clear session and retry" below.');
+                    setLoading(false);
+                }, 6000);
 
                 let subscription = null;
                 try {
                     const { data } = supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+                        clearTimeout(watchdog);
                         setUser(session?.user ?? null);
                         await linkAllowedUser(session?.user ?? null);
+                        if (!timeoutFiredRef.current) setLoading(false);
                     });
                     subscription = data?.subscription;
                 } catch (err) {
                     console.error('Failed to subscribe to auth changes:', err);
+                    clearTimeout(watchdog);
+                    setLoginError('Failed to initialize authentication.');
+                    setLoading(false);
                 }
 
                 return () => {
+                    clearTimeout(watchdog);
                     if (subscription) subscription.unsubscribe();
                 };
             }, []);
+
+            // Nuclear option for stuck sessions: wipe Supabase auth from
+            // localStorage and reload. Called from the LoginScreen rescue
+            // button. Safe to run even with no session — it just no-ops
+            // most of the keys.
+            const handleClearSession = async () => {
+                try {
+                    await supabaseClient.auth.signOut({ scope: 'local' });
+                } catch (_) { /* ignore — proceeding to nuke storage anyway */ }
+                try {
+                    Object.keys(localStorage)
+                        .filter(k => k.startsWith('sb-') || k.includes('supabase'))
+                        .forEach(k => localStorage.removeItem(k));
+                } catch (_) {}
+                window.location.reload();
+            };
 
             const handleLogin = async () => {
                 setLoginError(null);
@@ -3960,7 +4011,7 @@
 
             // Show login screen if not authenticated OR if email isn't on the team list
             if (!user || !currentPovioUser) {
-                return <LoginScreen onLogin={handleLogin} onLoginGoogle={handleLoginGoogle} error={loginError} />;
+                return <LoginScreen onLogin={handleLogin} onLoginGoogle={handleLoginGoogle} onClearSession={handleClearSession} error={loginError} />;
             }
 
             // Main authenticated app
