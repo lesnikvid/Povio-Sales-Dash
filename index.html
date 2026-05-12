@@ -467,8 +467,10 @@
         .acct-tab.active { color: var(--povio-blue); border-bottom-color: var(--povio-blue); }
         .acct-tab-content { padding: 22px; }
         .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-        .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--povio-border); font-size: 13px; gap: 12px; }
+        .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--povio-border); font-size: 13px; gap: 12px; min-height: 36px; }
         .detail-row:last-child { border-bottom: none; }
+        .detail-row .detail-label { flex-shrink: 0; }
+        .detail-row > *:last-child { min-width: 0; flex: 1; display: flex; justify-content: flex-end; align-items: center; }
         .detail-label { color: var(--povio-gray-500); flex-shrink: 0; }
         .detail-value { color: var(--povio-gray-900); font-weight: 600; text-align: right; }
         .detail-section h4 { font-size: 11px; text-transform: uppercase; color: var(--povio-gray-500); margin-bottom: 12px; letter-spacing: 0.5px; font-weight: 700; }
@@ -2516,59 +2518,91 @@
         };
 
         // Inline-editable field — click to edit, Enter/blur to save, Esc to cancel
-        const InlineEdit = ({ value, display, onSave, type = 'text', options }) => {
+        const InlineEdit = ({ value, display, onSave, type = 'text', options, placeholder, multiline }) => {
             const [editing, setEditing] = useState(false);
             const [draft, setDraft] = useState(value);
             const [hovered, setHovered] = useState(false);
             const inputRef = useRef(null);
 
-            useEffect(() => { if (editing && inputRef.current) inputRef.current.focus(); }, [editing]);
+            useEffect(() => { if (editing && inputRef.current) { inputRef.current.focus(); if (inputRef.current.select) inputRef.current.select(); } }, [editing]);
 
-            const startEdit = () => { setDraft(value); setEditing(true); };
-            const commit = () => {
+            const startEdit = () => { setDraft(value ?? ''); setEditing(true); };
+            const commit = (override) => {
                 setEditing(false);
-                if (String(draft) !== String(value)) onSave(draft);
+                const next = override !== undefined ? override : draft;
+                if (String(next ?? '') !== String(value ?? '')) onSave(next);
             };
             const cancel = () => { setEditing(false); setDraft(value); };
 
-            const inputStyle = {
-                border: '1.5px solid var(--povio-blue)', borderRadius: '4px',
-                padding: '2px 6px', fontSize: '13px', fontWeight: '500',
+            const baseInputStyle = {
+                border: '1.5px solid var(--povio-blue)', borderRadius: '6px',
+                padding: '6px 10px', fontSize: '13px', fontWeight: '500',
                 color: 'var(--povio-gray-900)', background: 'var(--povio-white)',
-                outline: 'none', minWidth: '80px', maxWidth: '160px'
+                outline: 'none', minWidth: '140px', boxShadow: '0 0 0 3px rgba(31,53,255,0.08)',
+                fontFamily: 'inherit'
             };
 
             if (editing) {
                 if (options) {
+                    // Selects: commit instantly on change (don't wait for blur — fires too late on some browsers)
                     return (
-                        <select ref={inputRef} value={draft} onChange={e => setDraft(e.target.value)}
-                            onBlur={commit} style={{ ...inputStyle, maxWidth: '180px' }}>
+                        <select ref={inputRef} value={draft ?? ''}
+                            onChange={e => { setDraft(e.target.value); commit(e.target.value); }}
+                            onKeyDown={e => { if (e.key === 'Escape') cancel(); }}
+                            onBlur={() => commit()}
+                            style={{ ...baseInputStyle, maxWidth: '240px', cursor: 'pointer' }}>
                             {options.map(o => <option key={o.value ?? o} value={o.value ?? o}>{o.label ?? o}</option>)}
                         </select>
                     );
                 }
+                if (multiline) {
+                    return (
+                        <textarea ref={inputRef} value={draft ?? ''}
+                            onChange={e => setDraft(e.target.value)}
+                            onBlur={() => commit()}
+                            onKeyDown={e => { if (e.key === 'Escape') cancel(); }}
+                            style={{ ...baseInputStyle, minWidth: '240px', minHeight: '60px', resize: 'vertical' }}
+                        />
+                    );
+                }
                 return (
-                    <input ref={inputRef} type={type} value={draft}
+                    <input ref={inputRef} type={type} value={draft ?? ''}
                         onChange={e => setDraft(e.target.value)}
-                        onBlur={commit}
+                        onBlur={() => commit()}
                         onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') cancel(); }}
-                        style={inputStyle}
+                        style={{ ...baseInputStyle, maxWidth: '240px' }}
                     />
                 );
             }
+
+            // Read view — bigger click target, always-visible pencil, clearer empty state.
+            const isEmpty = value === null || value === undefined || value === '' || value === 0;
+            const showAsEmpty = isEmpty && display === undefined;
             return (
                 <span onClick={startEdit}
                     onMouseEnter={() => setHovered(true)}
                     onMouseLeave={() => setHovered(false)}
                     title="Click to edit"
                     style={{
-                        cursor: 'pointer', borderRadius: '4px', padding: '2px 5px', margin: '-2px -5px',
-                        display: 'inline-flex', alignItems: 'center', gap: '4px',
-                        background: hovered ? 'rgba(31,53,255,0.06)' : 'transparent',
-                        transition: 'background 0.15s ease', textAlign: 'right'
+                        cursor: 'pointer', borderRadius: '6px',
+                        padding: '5px 10px', margin: '-5px -10px',
+                        display: 'inline-flex', alignItems: 'center', gap: '8px',
+                        minWidth: '90px', minHeight: '24px', justifyContent: 'flex-end',
+                        background: hovered ? 'rgba(31,53,255,0.07)' : 'transparent',
+                        border: hovered ? '1px dashed rgba(31,53,255,0.35)' : '1px dashed transparent',
+                        transition: 'background 0.12s ease, border-color 0.12s ease',
+                        textAlign: 'right', userSelect: 'none'
                     }}>
-                    {display ?? value ?? <span style={{ color: 'var(--povio-gray-400)' }}>—</span>}
-                    <span style={{ fontSize: '10px', color: 'var(--povio-gray-400)', opacity: hovered ? 1 : 0, transition: 'opacity 0.15s ease' }}>✎</span>
+                    {showAsEmpty
+                        ? <span style={{ color: 'var(--povio-gray-400)', fontStyle: 'italic', fontSize: '12px' }}>{placeholder || '+ click to add'}</span>
+                        : (display ?? value)}
+                    <span style={{
+                        fontSize: '11px',
+                        color: hovered ? 'var(--povio-blue)' : 'var(--povio-gray-400)',
+                        opacity: hovered ? 1 : 0.45,
+                        transition: 'opacity 0.12s ease, color 0.12s ease',
+                        lineHeight: 1
+                    }}>✎</span>
                 </span>
             );
         };
