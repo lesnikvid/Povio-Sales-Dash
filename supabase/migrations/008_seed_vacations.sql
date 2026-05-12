@@ -17,12 +17,15 @@
 -- =============================================================================
 
 
--- Use a CTE so we can reference Vid's auth uid once across all inserts.
+-- Use a CTE to resolve Vid's auth uid once. allowed_users has no
+-- auth_user_id column (RLS uses email-based lookup), so we resolve via
+-- auth.users with team_data as fallback in case the email doesn't match.
 WITH vid AS (
-    SELECT auth_user_id::text AS user_id
-    FROM allowed_users
-    WHERE povio_id = 'u_vl'
-    LIMIT 1
+    SELECT COALESCE(
+        (SELECT id::text   FROM auth.users WHERE email = 'lesnik.vid@gmail.com' LIMIT 1),
+        (SELECT user_id    FROM team_data LIMIT 1),
+        (SELECT user_id    FROM goals     LIMIT 1)
+    ) AS user_id
 ),
 events(member_id, member_name, start_date, end_date) AS (
     VALUES
