@@ -4389,13 +4389,18 @@
             };
 
             // Update whales in database — collaborative (any AM can edit any account).
-            // Drops the user_id filter post-merge; RLS still gates access.
-            // Auto-logs every edit to `activities` so we can audit who changed what.
+            // RLS gates access; migration 004 added BEFORE/AFTER UPDATE triggers that:
+            //   - override updated_by_povio_id with the caller's authoritative id
+            //   - block reps from changing owner_povio_id / is_key_account
+            //   - auto-write an `activities` row diffing the watched columns
+            // So this function no longer logs to `activities` directly — the trigger
+            // is the source of truth and cannot be bypassed by DevTools.
+            //
+            // Note: the updated_by_povio_id field below is decorative — the server
+            // trigger overwrites it. Kept for clarity / debuggability.
             const updateWhales = async (updatedWhales) => {
-                const prevById = new Map(whales.map(w => [w.id, w]));
                 for (const whale of updatedWhales) {
                     if (!whale.id) continue;
-                    const prev = prevById.get(whale.id);
                     const next = {
                         name: whale.name,
                         industry: whale.industry,
@@ -4411,39 +4416,13 @@
                         notes: whale.notes,
                         contacts: whale.contacts || [],
                         referrals_count: whale.referrals_count || 0,
-                        referrals_revenue: whale.referrals_revenue || 0,
-                        updated_by_povio_id: currentPovioUser?.povio_id
+                        referrals_revenue: whale.referrals_revenue || 0
                     };
                     const { error } = await supabaseClient
                         .from('whales')
                         .update(next)
                         .eq('id', whale.id);
-                    if (error) { console.error('updateWhale error', error); continue; }
-
-                    // Audit: detect changed fields, write a single activity row summarizing the diff
-                    if (prev) {
-                        const watchedFields = ['name','industry','health','arr','ltv','contract_end','account_manager','last_qbr','next_qbr','expansion','churn_risk','notes','referrals_count','referrals_revenue'];
-                        const dbToCmpKey = { contract_end: 'contractEnd', account_manager: 'accountManager', last_qbr: 'lastQBR', next_qbr: 'nextQBR', churn_risk: 'churnRisk' };
-                        const before = {}, after = {}, diffs = [];
-                        for (const f of watchedFields) {
-                            const cmpKey = dbToCmpKey[f] || f;
-                            const oldVal = prev[cmpKey] ?? prev[f] ?? null;
-                            const newVal = next[f] ?? null;
-                            if (String(oldVal ?? '') !== String(newVal ?? '')) {
-                                before[f] = oldVal; after[f] = newVal; diffs.push(f);
-                            }
-                        }
-                        if (diffs.length) {
-                            const actor = currentPovioUser?.name || currentPovioUser?.email || 'someone';
-                            await supabaseClient.from('activities').insert({
-                                whale_id: whale.id,
-                                actor_povio_id: currentPovioUser?.povio_id,
-                                kind: 'edit',
-                                summary: `${actor} updated ${diffs.join(', ')}`,
-                                payload: { before, after }
-                            });
-                        }
-                    }
+                    if (error) console.error('updateWhale error', error);
                 }
                 setWhales(updatedWhales);
             };
