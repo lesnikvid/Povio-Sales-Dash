@@ -4033,8 +4033,14 @@
             const [view, setView] = useState(getViewFromHash);
             const [allowedUsers, setAllowedUsers] = useState([]);  // directory (Vid + all AMs)
 
-            // Keep URL hash in sync when view changes
-            useEffect(() => { window.location.hash = view; }, [view]);
+            // Keep URL hash in sync when view changes.
+            // Skip when the hash contains an OAuth callback fragment (access_token=...,
+            // error=...) — those need to be left alone until Supabase parses them.
+            useEffect(() => {
+                const h = window.location.hash.replace('#', '');
+                if (h.startsWith('access_token=') || h.startsWith('error=') || h.includes('&access_token=')) return;
+                window.location.hash = view;
+            }, [view]);
 
             // Respect browser back / forward + redirect reps trying to hit admin routes
             useEffect(() => {
@@ -4255,17 +4261,28 @@
                 }
             };
 
-            // Initial data load
+            // Initial data load.
+            // Use allSettled so one failure (e.g. RLS denial on team_data for a rep)
+            // never leaves the "Loading your data..." screen stuck. Reps don't have
+            // access to goals / team_data / admin-only data anyway, so skip those.
             useEffect(() => {
+                let cancelled = false;
                 const loadData = async () => {
-                    await Promise.all([fetchGoals(), fetchWhales(), fetchTeam(), fetchCalendarEvents()]);
-                    setLoading(false);
+                    try {
+                        const tasks = [fetchWhales(), fetchCalendarEvents()];
+                        if (isAdmin) tasks.push(fetchGoals(), fetchTeam());
+                        await Promise.allSettled(tasks);
+                    } catch (err) {
+                        // Should never reach here with allSettled, but defense-in-depth
+                        console.error('loadData unexpected error:', err);
+                    } finally {
+                        if (!cancelled) setLoading(false);
+                    }
                 };
 
-                if (user) {
-                    loadData();
-                }
-            }, [user]);
+                if (user) loadData();
+                return () => { cancelled = true; };
+            }, [user, isAdmin]);
 
             // Update goal in database
             const updateGoal = async (updatedGoal) => {

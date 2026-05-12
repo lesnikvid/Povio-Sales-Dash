@@ -32,9 +32,11 @@ jobs:
           mkdir -p _site
           cp index.html _site/
           cp .nojekyll _site/
-          # Lazy-loaded by the Admin > Import flow (one-time 198-account seed).
-          # Will be removed in a follow-up commit after the import has run.
-          [ -f accounts-seed.js ] && cp accounts-seed.js _site/ || true
+          # accounts-seed.js is intentionally NOT copied — the one-time import has
+          # been run (see migration history) and the file contains real customer
+          # names, FTE allocations, and team-channel handles that should not be
+          # publicly accessible. The file stays in-repo as a disaster-recovery
+          # re-seed but is no longer served by GitHub Pages.
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
