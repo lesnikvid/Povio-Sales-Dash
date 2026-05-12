@@ -3,8 +3,6 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - claude/import-html-app-9MWX1
-      - claude/povio-sales-calendar-BLibA
       - main
 
 permissions:
