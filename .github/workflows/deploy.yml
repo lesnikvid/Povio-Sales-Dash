@@ -34,6 +34,9 @@ jobs:
           mkdir -p _site
           cp index.html _site/
           cp .nojekyll _site/
+          # Lazy-loaded by the Admin > Import flow (one-time 198-account seed).
+          # Will be removed in a follow-up commit after the import has run.
+          [ -f accounts-seed.js ] && cp accounts-seed.js _site/ || true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
