@@ -14,13 +14,17 @@
 -- =============================================================================
 
 
--- 1. New per-user RLS policy (replaces the admin-only one from migration 002)
+-- 1. New per-user RLS policy (replaces the admin-only one from migration 002).
+-- Casts both sides to text to be compatible with either user_id column type
+-- (the original supabase-schema convention is TEXT; some of my migration-002
+-- tables ended up TEXT too because CREATE TABLE IF NOT EXISTS no-op'd on
+-- pre-existing tables).
 DROP POLICY IF EXISTS "Admin manages todos" ON todos;
 DROP POLICY IF EXISTS "Users manage their own todos" ON todos;
 CREATE POLICY "Users manage their own todos"
     ON todos FOR ALL
-    USING (user_id = auth.uid())
-    WITH CHECK (user_id = auth.uid());
+    USING (user_id::text = auth.uid()::text)
+    WITH CHECK (user_id::text = auth.uid()::text);
 
 
 -- 2. Simple single-tag column for the UI (alongside the existing tags array)
