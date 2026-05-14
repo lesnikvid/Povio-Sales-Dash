@@ -3776,7 +3776,7 @@
                                 <p>Add your first task above. Tap any value to edit it.</p>
                             </div>
                         ) : (
-                            <Fragment>
+                            <React.Fragment>
                                 <Section title="Overdue"     items={overdue}  accent="overdue" />
                                 <Section title="Today"       items={todayL}   accent="today" />
                                 <Section title="Tomorrow"    items={tomorrow} />
@@ -3793,7 +3793,7 @@
                                         {showDone && <div className="task-list">{done.map(t => <TaskRow key={t.id} t={t} />)}</div>}
                                     </div>
                                 )}
-                            </Fragment>
+                            </React.Fragment>
                         )}
                     </div>
 
@@ -4262,7 +4262,7 @@
                             .select('email, role, povio_id, name, initials, color')
                             .eq('email', email)
                             .maybeSingle(),
-                        4000,
+                        7000,
                         'allowed_users lookup'
                     );
                     const { data, error } = result || {};
