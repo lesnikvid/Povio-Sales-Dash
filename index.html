@@ -3850,11 +3850,13 @@
                         <div className="task-row-chips">
                             <InlineEdit value={t.due_date || ''} type="date"
                                 display={t.due_date
-                                    ? <span className={'task-due ' + (t.done ? 'was' : dueClass)}>{t.done ? 'was ' : ''}{formatDateShort(t.due_date)}</span>
+                                    ? <span className={'task-due ' + (t.done ? 'was' : dueClass)}>{t.done ? 'Due ' : ''}{formatDateShort(t.due_date)}</span>
                                     : (t.done ? null : <span className="task-due-empty">+ date</span>)}
                                 onSave={v => updateTodo(t.id, { due_date: v || null })} />
                             {t.done && t.completed_at && (
-                                <span className="task-done-chip">✓ done {relTime(t.completed_at)}</span>
+                                <span className="task-done-chip" title={new Date(t.completed_at).toLocaleString()}>
+                                    ✓ Done {formatDateShort(t.completed_at)}
+                                </span>
                             )}
                             <InlineEdit value={t.tag || ''} options={TAG_OPTIONS}
                                 display={t.tag
