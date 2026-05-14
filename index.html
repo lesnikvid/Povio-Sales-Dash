@@ -416,6 +416,59 @@
         .calendar-gantt-empty { padding: 40px; text-align: center; color: var(--povio-gray-500); font-size: 13px; border-top: 1px solid var(--povio-border); }
 
         /* ============================================================
+           TASKS — My Week view (per-user TODO list, migration 014)
+           ============================================================ */
+        .task-add { display: flex; gap: 8px; padding: 12px; background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 12px; margin-bottom: 22px; align-items: center; }
+        .task-add:focus-within { border-color: var(--povio-blue); box-shadow: 0 0 0 3px var(--povio-blue-subtle); }
+        .task-add-input { flex: 1; border: none; padding: 8px 4px; font-size: 15px; background: transparent; outline: none; min-width: 0; }
+        .task-add-select { padding: 7px 28px 7px 12px; font-size: 12px; background: var(--povio-bg); border: 1px solid var(--povio-border); border-radius: 8px; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23737373' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; }
+        .task-add-select:hover { background-color: var(--povio-white); border-color: var(--povio-border-hover); }
+        .task-add .btn { padding: 8px 18px; font-size: 13px; }
+
+        .task-section { margin-bottom: 22px; }
+        .task-section-head { display: flex; justify-content: space-between; align-items: center; padding: 6px 4px 10px; border-bottom: 1px solid var(--povio-border); margin-bottom: 10px; }
+        .task-section-head.clickable { cursor: pointer; user-select: none; }
+        .task-section-head.clickable:hover .task-section-title { color: var(--povio-blue); }
+        .task-section-title { font-size: 11px; font-weight: 700; color: var(--povio-gray-500); text-transform: uppercase; letter-spacing: 0.8px; }
+        .task-section-title.overdue { color: var(--povio-danger); }
+        .task-section-title.today   { color: var(--povio-blue); }
+        .task-section-count { font-size: 11px; color: var(--povio-gray-400); font-weight: 600; padding: 2px 8px; background: var(--povio-gray-100); border-radius: 100px; }
+
+        .task-list { display: flex; flex-direction: column; gap: 5px; }
+        .task-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 10px; transition: border-color 0.15s ease; min-height: 44px; }
+        .task-row:hover { border-color: var(--povio-border-hover); }
+        .task-row.done { opacity: 0.55; }
+
+        .task-check { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--povio-gray-300); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s ease; background: var(--povio-white); }
+        .task-check:hover { border-color: var(--povio-blue); }
+        .task-check.checked { background: var(--povio-blue); border-color: var(--povio-blue); }
+        .task-check.checked::after { content: '✓'; color: white; font-size: 12px; font-weight: 800; line-height: 1; }
+
+        .task-title-wrap { flex: 1; min-width: 0; font-size: 14px; }
+        .task-title-wrap.done { text-decoration: line-through; color: var(--povio-gray-400); }
+
+        .task-due { padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; background: var(--povio-gray-100); color: var(--povio-gray-700); white-space: nowrap; }
+        .task-due.overdue { background: var(--povio-danger-subtle); color: var(--povio-danger); }
+        .task-due.today   { background: var(--povio-blue-subtle); color: var(--povio-blue); }
+        .task-due-empty, .task-tag-empty { font-size: 11px; color: var(--povio-gray-400); font-style: italic; }
+
+        .task-delete { width: 26px; height: 26px; border: none; background: transparent; color: var(--povio-gray-400); cursor: pointer; border-radius: 6px; font-size: 18px; line-height: 1; flex-shrink: 0; opacity: 0.5; transition: all 0.15s ease; }
+        .task-row:hover .task-delete { opacity: 1; }
+        .task-delete:hover { background: var(--povio-danger-subtle); color: var(--povio-danger); }
+
+        .task-empty { padding: 60px 20px; text-align: center; background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 12px; }
+        .task-empty h3 { font-size: 17px; font-weight: 700; color: var(--povio-gray-700); margin-bottom: 6px; }
+        .task-empty p { font-size: 13px; color: var(--povio-gray-500); }
+
+        @media (max-width: 720px) {
+            .task-add { flex-wrap: wrap; padding: 10px; }
+            .task-add-input { width: 100%; padding: 6px 0; }
+            .task-add-select { flex: 1; min-width: 0; }
+            .task-row { padding: 10px 12px; gap: 8px; }
+            .task-row > .acct-hide-mobile { display: none; }
+        }
+
+        /* ============================================================
            MERGED CSC — added by migration 002 (Sales Command Center)
            ============================================================ */
 
@@ -3559,81 +3612,207 @@
             );
         };
 
-        // ============== My Week (admin-only) ==============
-        const MyWeekView = ({ whales, user, currentPovioUser }) => {
+        // ============== My Week — personal task list (every user has their own) ==============
+        const TAG_OPTIONS = [
+            { value: '',          label: '— no tag —' },
+            { value: 'outbound',  label: '📤 outbound' },
+            { value: 'new_sales', label: '💰 new sales' },
+            { value: 'am',        label: '🤝 AM' },
+            { value: 'internal',  label: '🏠 internal' },
+            { value: 'ceo',       label: '⭐ CEO' },
+        ];
+        const tagLabel = (t) => (TAG_OPTIONS.find(o => o.value === t) || {}).label || t;
+
+        const MyWeekView = ({ whales, user, currentPovioUser, isAdmin }) => {
             const [todos, setTodos] = useState([]);
-            const [newTodo, setNewTodo] = useState('');
             const [loading, setLoading] = useState(true);
+            const [newTitle, setNewTitle] = useState('');
+            const [newDue, setNewDue] = useState('');
+            const [newTag, setNewTag] = useState('');
+            const [showDone, setShowDone] = useState(false);
+            const inputRef = useRef(null);
+
+            // Today / tomorrow / week-end date strings (YYYY-MM-DD, local time)
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            const isoDate = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            const todayStr = isoDate(today);
+            const tomorrowStr = isoDate(new Date(today.getTime() + 86400000));
+            const weekEnd = new Date(today); weekEnd.setDate(today.getDate() + (7 - today.getDay()));
+            const weekEndStr = isoDate(weekEnd);
+
+            const resolveDue = (kind) => {
+                if (kind === 'today')     return todayStr;
+                if (kind === 'tomorrow')  return tomorrowStr;
+                if (kind === 'this_week') return weekEndStr;
+                return null;
+            };
 
             const fetchTodos = async () => {
-                const { data } = await supabaseClient
+                const { data, error } = await supabaseClient
                     .from('todos').select('*')
-                    .eq('user_id', user.id)
                     .order('done', { ascending: true })
-                    .order('due_date', { ascending: true, nullsFirst: false });
+                    .order('due_date', { ascending: true, nullsFirst: false })
+                    .order('created_at', { ascending: false });
+                if (error) console.error('fetchTodos error', error);
                 setTodos(data || []);
                 setLoading(false);
             };
             useEffect(() => { fetchTodos(); }, []);
 
             const addTodo = async () => {
-                if (!newTodo.trim()) return;
-                await supabaseClient.from('todos').insert({ user_id: user.id, title: newTodo.trim(), source: 'manual' });
-                setNewTodo('');
-                fetchTodos();
-            };
-            const toggleTodo = async (t) => {
-                await supabaseClient.from('todos').update({ done: !t.done, completed_at: !t.done ? new Date().toISOString() : null }).eq('id', t.id);
+                if (!newTitle.trim()) return;
+                const { error } = await supabaseClient.from('todos').insert({
+                    user_id: user.id,
+                    title: newTitle.trim(),
+                    due_date: resolveDue(newDue),
+                    tag: newTag || null,
+                    source: 'manual'
+                });
+                if (error) { console.error('addTodo error', error); alert('Could not add task: ' + error.message); return; }
+                setNewTitle(''); setNewDue(''); setNewTag('');
+                if (inputRef.current) inputRef.current.focus();
                 fetchTodos();
             };
 
-            // Auto-derived alerts from whale data
-            const staleAccounts = whales.filter(w => {
+            const updateTodo = async (id, patch) => {
+                const { error } = await supabaseClient.from('todos').update(patch).eq('id', id);
+                if (error) console.error('updateTodo error', error);
+                fetchTodos();
+            };
+
+            const toggleDone = (t) => updateTodo(t.id, {
+                done: !t.done,
+                completed_at: !t.done ? new Date().toISOString() : null
+            });
+
+            const deleteTodo = async (id) => {
+                if (!confirm('Delete this task?')) return;
+                await supabaseClient.from('todos').delete().eq('id', id);
+                fetchTodos();
+            };
+
+            // Group todos by due date
+            const open    = todos.filter(t => !t.done);
+            const done    = todos.filter(t =>  t.done);
+            const overdue  = open.filter(t => t.due_date && t.due_date <  todayStr);
+            const todayL   = open.filter(t => t.due_date === todayStr);
+            const tomorrow = open.filter(t => t.due_date === tomorrowStr);
+            const thisWeek = open.filter(t => t.due_date && t.due_date >  tomorrowStr && t.due_date <= weekEndStr);
+            const later    = open.filter(t => t.due_date && t.due_date >  weekEndStr);
+            const noDate   = open.filter(t => !t.due_date);
+
+            // Stale-accounts alerts (admin only)
+            const staleAccounts = isAdmin ? whales.filter(w => {
                 const d = w.updated_at || w.last_touch_at;
                 if (!d) return false;
                 const ts = parseDate(d);
                 return ts && (Date.now() - ts.getTime()) / (1000 * 60 * 60 * 24) > 30;
-            });
+            }) : [];
+
+            const TaskRow = ({ t }) => {
+                const isOverdue = !t.done && t.due_date && t.due_date < todayStr;
+                const isToday   = !t.done && t.due_date === todayStr;
+                const dueClass  = isOverdue ? 'overdue' : (isToday ? 'today' : '');
+                return (
+                    <div className={'task-row' + (t.done ? ' done' : '')}>
+                        <div onClick={() => toggleDone(t)} className={'task-check' + (t.done ? ' checked' : '')} />
+                        <div className={'task-title-wrap' + (t.done ? ' done' : '')}>
+                            <InlineEdit value={t.title} onSave={v => v && updateTodo(t.id, { title: v })} />
+                        </div>
+                        <InlineEdit value={t.due_date || ''} type="date"
+                            display={t.due_date
+                                ? <span className={'task-due ' + dueClass}>{formatDateShort(t.due_date)}</span>
+                                : <span className="task-due-empty">+ date</span>}
+                            onSave={v => updateTodo(t.id, { due_date: v || null })} />
+                        <InlineEdit value={t.tag || ''} options={TAG_OPTIONS}
+                            display={t.tag
+                                ? <span className="tag">{tagLabel(t.tag)}</span>
+                                : <span className="task-tag-empty">+ tag</span>}
+                            onSave={v => updateTodo(t.id, { tag: v || null })} />
+                        <button onClick={() => deleteTodo(t.id)} className="task-delete" title="Delete">×</button>
+                    </div>
+                );
+            };
+
+            const Section = ({ title, items, accent }) => items.length === 0 ? null : (
+                <div className="task-section">
+                    <div className="task-section-head">
+                        <span className={'task-section-title ' + (accent || '')}>{title}</span>
+                        <span className="task-section-count">{items.length}</span>
+                    </div>
+                    <div className="task-list">
+                        {items.map(t => <TaskRow key={t.id} t={t} />)}
+                    </div>
+                </div>
+            );
 
             return (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isAdmin && whales.length > 0 ? 'minmax(0, 1fr) 320px' : '1fr', gap: 24, maxWidth: 1200, margin: '0 auto' }}>
                     <div>
-                        <div style={{ display: 'flex', gap: 8, marginBottom: 12, padding: '10px 12px', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10 }}>
-                            <input type="text" placeholder="Add a todo… (Enter to save)" value={newTodo} onChange={e => setNewTodo(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTodo()} style={{ flex: 1, border: 'none', background: 'transparent', padding: 6, fontSize: 14 }} />
-                            <button className="btn btn-primary" style={{ padding: '6px 14px', fontSize: 12 }} onClick={addTodo}>Add</button>
+                        <div className="task-add">
+                            <input ref={inputRef} type="text"
+                                placeholder="What needs doing?"
+                                value={newTitle}
+                                onChange={e => setNewTitle(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && addTodo()}
+                                className="task-add-input" />
+                            <select value={newDue} onChange={e => setNewDue(e.target.value)} className="task-add-select" title="Due date">
+                                <option value="">no date</option>
+                                <option value="today">today</option>
+                                <option value="tomorrow">tomorrow</option>
+                                <option value="this_week">this week</option>
+                            </select>
+                            <select value={newTag} onChange={e => setNewTag(e.target.value)} className="task-add-select" title="Tag">
+                                {TAG_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                            </select>
+                            <button className="btn btn-primary" onClick={addTodo} disabled={!newTitle.trim()}>Add</button>
                         </div>
-                        {loading ? <p>Loading…</p> : todos.length === 0 ? (
-                            <div style={{ padding: 40, textAlign: 'center', color: 'var(--povio-gray-500)', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10 }}>No todos yet. Add one above.</div>
-                        ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                                {todos.map(t => (
-                                    <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10, opacity: t.done ? 0.5 : 1 }}>
-                                        <div onClick={() => toggleTodo(t)} style={{ width: 20, height: 20, borderRadius: 6, border: '2px solid var(--povio-gray-300)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: t.done ? 'var(--povio-blue)' : 'transparent', borderColor: t.done ? 'var(--povio-blue)' : 'var(--povio-gray-300)' }}>
-                                            {t.done && <span style={{ color: 'white', fontSize: 12, fontWeight: 800 }}>✓</span>}
-                                        </div>
-                                        <span style={{ flex: 1, fontSize: 14, textDecoration: t.done ? 'line-through' : 'none' }}>{t.title}</span>
-                                        {t.tag && <span className="tag">{t.tag}</span>}
-                                        {t.due_date && <span style={{ fontSize: 11, color: 'var(--povio-gray-500)' }}>{t.due_date.slice(5)}</span>}
-                                    </div>
-                                ))}
+
+                        {loading ? (
+                            <p style={{ color: 'var(--povio-gray-500)' }}>Loading…</p>
+                        ) : (open.length === 0 && done.length === 0) ? (
+                            <div className="task-empty">
+                                <h3>Inbox zero ✨</h3>
+                                <p>Add your first task above. Tap any value to edit it.</p>
                             </div>
+                        ) : (
+                            <Fragment>
+                                <Section title="Overdue"     items={overdue}  accent="overdue" />
+                                <Section title="Today"       items={todayL}   accent="today" />
+                                <Section title="Tomorrow"    items={tomorrow} />
+                                <Section title="This week"   items={thisWeek} />
+                                <Section title="Later"       items={later} />
+                                <Section title="No date"     items={noDate} />
+
+                                {done.length > 0 && (
+                                    <div className="task-section">
+                                        <div className="task-section-head clickable" onClick={() => setShowDone(s => !s)}>
+                                            <span className="task-section-title">Done {showDone ? '▾' : '▸'}</span>
+                                            <span className="task-section-count">{done.length}</span>
+                                        </div>
+                                        {showDone && <div className="task-list">{done.map(t => <TaskRow key={t.id} t={t} />)}</div>}
+                                    </div>
+                                )}
+                            </Fragment>
                         )}
                     </div>
 
-                    <div>
-                        <h3 style={{ fontSize: 11, fontWeight: 700, color: 'var(--povio-gray-500)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Auto-generated alerts</h3>
-                        {staleAccounts.length === 0 ? (
-                            <div style={{ padding: 20, textAlign: 'center', color: 'var(--povio-gray-500)', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10, fontSize: 13 }}>No stale accounts. Nice work.</div>
-                        ) : (
-                            <div style={{ padding: '14px 16px', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderLeft: '3px solid var(--povio-warning)', borderRadius: 10 }}>
-                                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>⚠ {staleAccounts.length} account{staleAccounts.length > 1 ? 's' : ''} with no activity 30+ days</div>
-                                {staleAccounts.slice(0, 5).map(a => (
-                                    <div key={a.id} style={{ fontSize: 12, color: 'var(--povio-gray-500)', marginTop: 4 }}>· <strong>{a.name}</strong> — {relTime(a.updated_at || a.last_touch_at)}</div>
-                                ))}
-                                {staleAccounts.length > 5 && <div style={{ fontSize: 12, color: 'var(--povio-gray-400)', marginTop: 6 }}>+{staleAccounts.length - 5} more</div>}
-                            </div>
-                        )}
-                    </div>
+                    {isAdmin && whales.length > 0 && (
+                        <div>
+                            <h3 style={{ fontSize: 11, fontWeight: 700, color: 'var(--povio-gray-500)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Account alerts</h3>
+                            {staleAccounts.length === 0 ? (
+                                <div style={{ padding: 20, textAlign: 'center', color: 'var(--povio-gray-500)', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10, fontSize: 13 }}>No stale accounts. Nice work.</div>
+                            ) : (
+                                <div style={{ padding: '14px 16px', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderLeft: '3px solid var(--povio-warning)', borderRadius: 10 }}>
+                                    <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>⚠ {staleAccounts.length} account{staleAccounts.length > 1 ? 's' : ''} with no activity 30+ days</div>
+                                    {staleAccounts.slice(0, 8).map(a => (
+                                        <div key={a.id} style={{ fontSize: 12, color: 'var(--povio-gray-500)', marginTop: 4 }}>· <strong>{a.name}</strong> — {relTime(a.updated_at || a.last_touch_at)}</div>
+                                    ))}
+                                    {staleAccounts.length > 8 && <div style={{ fontSize: 12, color: 'var(--povio-gray-400)', marginTop: 6 }}>+{staleAccounts.length - 8} more</div>}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             );
         };
@@ -4257,7 +4436,7 @@
             // Reps see only Accounts + Calendar. Admins see everything.
             const VIEWS = isAdmin
                 ? ['dashboard', 'goals', 'roadmap', 'whales', 'calendar', 'team', 'my-week', 'process', 'admin']
-                : ['whales', 'calendar'];
+                : ['whales', 'calendar', 'my-week'];
             const DEFAULT_VIEW = isAdmin ? 'dashboard' : 'whales';
             const getViewFromHash = () => {
                 const h = window.location.hash.replace('#', '').split('/')[0];
@@ -4653,7 +4832,7 @@
                 whales:    'Accounts',
                 calendar:  'Team Calendar',
                 team:      'Sales Team Structure',
-                'my-week': 'My Week',
+                'my-week': 'My Tasks',
                 process:   'Process & Playbook',
                 admin:     'Admin'
             };
@@ -4664,7 +4843,7 @@
                 { id: 'whales',    label: 'Accounts',  icon: '◧', adminOnly: false, mobile: true  },
                 { id: 'calendar',  label: 'Calendar',  icon: '☐', adminOnly: false, mobile: true  },
                 { id: 'team',      label: 'Team',      icon: '◈', adminOnly: true,  mobile: false },
-                { id: 'my-week',   label: 'My Week',   icon: '✓', adminOnly: true,  mobile: false },
+                { id: 'my-week',   label: 'My Tasks',  icon: '✓', adminOnly: false, mobile: true  },
                 { id: 'process',   label: 'Process',   icon: '→', adminOnly: true,  mobile: false },
                 { id: 'admin',     label: 'Admin',     icon: '⚙', adminOnly: true,  mobile: false },
             ];
@@ -4716,7 +4895,7 @@
                     {            view === 'whales'   && <AccountsView whales={whales} allowedUsers={allowedUsers} onUpdate={updateWhales} onWhalesRefresh={fetchWhales} currentPovioUser={currentPovioUser} user={user} />}
                     {            view === 'calendar' && <CalendarView teamData={teamData} events={calendarEvents} onUpdateEvents={updateCalendarEvents} user={user} readOnly={!isAdmin} />}
                     {isAdmin && view === 'team'      && <TeamView teamData={teamData} onUpdate={updateTeam} user={user} />}
-                    {isAdmin && view === 'my-week'   && <MyWeekView whales={whales} user={user} currentPovioUser={currentPovioUser} />}
+                    {            view === 'my-week'   && <MyWeekView whales={whales} user={user} currentPovioUser={currentPovioUser} isAdmin={isAdmin} />}
                     {isAdmin && view === 'process'   && <ProcessView />}
                     {isAdmin && view === 'admin'     && <AdminView whales={whales} allowedUsers={allowedUsers} user={user} currentPovioUser={currentPovioUser} onWhalesRefresh={fetchWhales} />}
 
