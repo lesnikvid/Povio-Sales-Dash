@@ -3906,7 +3906,7 @@
                             <select value={newTag} onChange={e => setNewTag(e.target.value)} className="task-add-select" title="Tag">
                                 {TAG_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                             </select>
-                            <button type="submit" className="btn btn-primary" disabled={!newTitle.trim()}>Add</button>
+                            <button type="submit" className="btn btn-primary">Add</button>
                         </form>
 
                         {loading ? (
