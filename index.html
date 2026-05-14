@@ -3758,18 +3758,31 @@
             const [showDone, setShowDone] = useState(false);
             const inputRef = useRef(null);
 
-            // Today / tomorrow / week-end date strings (YYYY-MM-DD, local time)
+            // Today / tomorrow / next-week date references (YYYY-MM-DD, local time).
+            // Treat Monday as the start of a week.
             const today = new Date(); today.setHours(0, 0, 0, 0);
             const isoDate = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
             const todayStr = isoDate(today);
             const tomorrowStr = isoDate(new Date(today.getTime() + 86400000));
-            const weekEnd = new Date(today); weekEnd.setDate(today.getDate() + (7 - today.getDay()));
-            const weekEndStr = isoDate(weekEnd);
+
+            // End of this week = upcoming Sunday (or today if today is Sunday).
+            // getDay(): 0=Sun, 1=Mon, ..., 6=Sat
+            const thisWeekEnd = new Date(today);
+            thisWeekEnd.setDate(today.getDate() + ((7 - today.getDay()) % 7));
+            const thisWeekEndStr = isoDate(thisWeekEnd);
+
+            // Start of next week = next Monday.
+            const nextWeekStart = new Date(today);
+            nextWeekStart.setDate(today.getDate() + (((8 - today.getDay()) % 7) || 7));
+            const nextWeekStartStr = isoDate(nextWeekStart);
+            const nextWeekEnd = new Date(nextWeekStart);
+            nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
+            const nextWeekEndStr = isoDate(nextWeekEnd);
 
             const resolveDue = (kind) => {
                 if (kind === 'today')     return todayStr;
                 if (kind === 'tomorrow')  return tomorrowStr;
-                if (kind === 'this_week') return weekEndStr;
+                if (kind === 'next_week') return nextWeekStartStr;  // next Monday
                 if (kind === 'custom')    return newCustomDate || null;
                 return null;
             };
@@ -3861,14 +3874,16 @@
                 fetchTodos();
             };
 
-            // Group todos by due date
+            // Group todos by due date.
+            // Today / Tomorrow / This week (rest of this week) / Next week (Mon–Sun) / Later / No date
             const open    = todos.filter(t => !t.done);
             const done    = todos.filter(t =>  t.done);
             const overdue  = open.filter(t => t.due_date && t.due_date <  todayStr);
             const todayL   = open.filter(t => t.due_date === todayStr);
             const tomorrow = open.filter(t => t.due_date === tomorrowStr);
-            const thisWeek = open.filter(t => t.due_date && t.due_date >  tomorrowStr && t.due_date <= weekEndStr);
-            const later    = open.filter(t => t.due_date && t.due_date >  weekEndStr);
+            const thisWeek = open.filter(t => t.due_date && t.due_date >  tomorrowStr && t.due_date <= thisWeekEndStr);
+            const nextWeek = open.filter(t => t.due_date && t.due_date >= nextWeekStartStr && t.due_date <= nextWeekEndStr);
+            const later    = open.filter(t => t.due_date && t.due_date >  nextWeekEndStr);
             const noDate   = open.filter(t => !t.due_date);
 
             // (Account-alerts panel removed per Vid request — keep My Tasks focused
@@ -3944,7 +3959,7 @@
                                 <option value="">no date</option>
                                 <option value="today">today</option>
                                 <option value="tomorrow">tomorrow</option>
-                                <option value="this_week">this week</option>
+                                <option value="next_week">next week</option>
                                 <option value="custom">📅 custom…</option>
                             </select>
                             {newDue === 'custom' && (
@@ -3975,6 +3990,7 @@
                                 <Section title="Today"       items={todayL}   accent="today" />
                                 <Section title="Tomorrow"    items={tomorrow} />
                                 <Section title="This week"   items={thisWeek} />
+                                <Section title="Next week"   items={nextWeek} />
                                 <Section title="Later"       items={later} />
                                 <Section title="No date"     items={noDate} />
 
