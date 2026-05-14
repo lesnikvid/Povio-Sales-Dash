@@ -435,7 +435,23 @@
         .task-section-count { font-size: 11px; color: var(--povio-gray-400); font-weight: 600; padding: 2px 8px; background: var(--povio-gray-100); border-radius: 100px; }
 
         .task-list { display: flex; flex-direction: column; gap: 5px; }
-        .task-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 10px; transition: border-color 0.15s ease, opacity 0.4s ease, transform 0.4s ease; min-height: 44px; }
+        .task-row {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            grid-template-areas: "check title chips delete";
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: var(--povio-white);
+            border: 1px solid var(--povio-border);
+            border-radius: 10px;
+            transition: border-color 0.15s ease, opacity 0.4s ease, transform 0.4s ease;
+            min-height: 44px;
+        }
+        .task-row .task-check       { grid-area: check; }
+        .task-row .task-title-wrap  { grid-area: title; }
+        .task-row .task-row-chips   { grid-area: chips; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .task-row .task-delete      { grid-area: delete; }
         .task-row:hover { border-color: var(--povio-border-hover); }
         .task-row.done { opacity: 0.6; background: var(--povio-gray-50, #FAFAFA); }
 
@@ -506,10 +522,48 @@
         .task-empty p { font-size: 13px; color: var(--povio-gray-500); }
 
         @media (max-width: 720px) {
-            .task-add { flex-wrap: wrap; padding: 10px; }
-            .task-add-input { width: 100%; padding: 6px 0; }
-            .task-add-select { flex: 1; min-width: 0; }
-            .task-row { padding: 10px 12px; gap: 8px; }
+            /* Mobile quick-add — title on top, then row of [date] [tag] [Add] */
+            .task-add { flex-wrap: wrap; padding: 12px; gap: 8px; }
+            .task-add-input { width: 100%; padding: 10px 4px; font-size: 16px; /* 16px prevents iOS zoom-on-focus */ }
+            .task-add-select { flex: 1; min-width: 0; padding: 10px 28px 10px 14px; font-size: 13px; min-height: 40px; }
+            .task-add .btn { padding: 10px 18px; font-size: 14px; min-height: 40px; }
+
+            /* Mobile task-row — two-line grid: head row + chips row */
+            .task-row {
+                grid-template-columns: auto 1fr auto;
+                grid-template-areas:
+                    "check title delete"
+                    ".     chips chips";
+                gap: 4px 12px;
+                padding: 12px 12px;
+                min-height: 56px;
+            }
+            .task-row .task-row-chips { margin-top: 2px; gap: 6px; }
+
+            /* Bigger tap targets */
+            .task-check { width: 26px; height: 26px; border-width: 2.5px; }
+            .task-check.checked::after { font-size: 16px; }
+            .task-title-wrap { font-size: 15px; }
+
+            /* Always-visible delete on mobile (no hover) */
+            .task-delete { opacity: 1; width: 36px; height: 36px; font-size: 22px; }
+
+            /* Bigger chips, easier to tap */
+            .task-due, .task-done-chip, .task-row-chips .tag {
+                padding: 6px 12px;
+                font-size: 12px;
+                min-height: 30px;
+                display: inline-flex;
+                align-items: center;
+            }
+            .task-due-empty, .task-tag-empty { padding: 6px 8px; font-size: 12px; }
+
+            /* Bigger Done section header tap target */
+            .task-section-head.clickable { padding: 10px 4px; }
+
+            /* Inline edit fields need finger-sized too */
+            .task-row .task-row-chips > span { min-height: 32px; }
+
             .task-row > .acct-hide-mobile { display: none; }
         }
 
@@ -3776,16 +3830,11 @@
             const later    = open.filter(t => t.due_date && t.due_date >  weekEndStr);
             const noDate   = open.filter(t => !t.due_date);
 
-            // Stale-accounts alerts (admin only)
-            const staleAccounts = isAdmin ? whales.filter(w => {
-                const d = w.updated_at || w.last_touch_at;
-                if (!d) return false;
-                const ts = parseDate(d);
-                return ts && (Date.now() - ts.getTime()) / (1000 * 60 * 60 * 24) > 30;
-            }) : [];
+            // (Account-alerts panel removed per Vid request — keep My Tasks focused
+            // on todos only. The stale-accounts insight lives elsewhere now.)
 
             const TaskRow = ({ t }) => {
-                const visualDone = t.done || t._animating;  // checkbox + title styling
+                const visualDone = t.done || t._animating;
                 const isOverdue = !t.done && t.due_date && t.due_date < todayStr;
                 const isToday   = !t.done && t.due_date === todayStr;
                 const dueClass  = isOverdue ? 'overdue' : (isToday ? 'today' : '');
@@ -3798,19 +3847,21 @@
                         <div className={'task-title-wrap' + (visualDone ? ' done' : '')}>
                             <InlineEdit value={t.title} onSave={v => v && updateTodo(t.id, { title: v })} />
                         </div>
-                        <InlineEdit value={t.due_date || ''} type="date"
-                            display={t.due_date
-                                ? <span className={'task-due ' + (t.done ? 'was' : dueClass)}>{t.done ? 'was ' : ''}{formatDateShort(t.due_date)}</span>
-                                : (t.done ? null : <span className="task-due-empty">+ date</span>)}
-                            onSave={v => updateTodo(t.id, { due_date: v || null })} />
-                        {t.done && t.completed_at && (
-                            <span className="task-done-chip">✓ done {relTime(t.completed_at)}</span>
-                        )}
-                        <InlineEdit value={t.tag || ''} options={TAG_OPTIONS}
-                            display={t.tag
-                                ? <span className="tag">{tagLabel(t.tag)}</span>
-                                : (t.done ? null : <span className="task-tag-empty">+ tag</span>)}
-                            onSave={v => updateTodo(t.id, { tag: v || null })} />
+                        <div className="task-row-chips">
+                            <InlineEdit value={t.due_date || ''} type="date"
+                                display={t.due_date
+                                    ? <span className={'task-due ' + (t.done ? 'was' : dueClass)}>{t.done ? 'was ' : ''}{formatDateShort(t.due_date)}</span>
+                                    : (t.done ? null : <span className="task-due-empty">+ date</span>)}
+                                onSave={v => updateTodo(t.id, { due_date: v || null })} />
+                            {t.done && t.completed_at && (
+                                <span className="task-done-chip">✓ done {relTime(t.completed_at)}</span>
+                            )}
+                            <InlineEdit value={t.tag || ''} options={TAG_OPTIONS}
+                                display={t.tag
+                                    ? <span className="tag">{tagLabel(t.tag)}</span>
+                                    : (t.done ? null : <span className="task-tag-empty">+ tag</span>)}
+                                onSave={v => updateTodo(t.id, { tag: v || null })} />
+                        </div>
                         <button onClick={() => deleteTodo(t.id)} className="task-delete" title="Delete">×</button>
                     </div>
                 );
@@ -3829,7 +3880,7 @@
             );
 
             return (
-                <div style={{ display: 'grid', gridTemplateColumns: isAdmin && whales.length > 0 ? 'minmax(0, 1fr) 320px' : '1fr', gap: 24, maxWidth: 1200, margin: '0 auto' }}>
+                <div style={{ maxWidth: 720, margin: '0 auto' }}>
                     <div>
                         <div className="task-add">
                             <input ref={inputRef} type="text"
@@ -3885,23 +3936,6 @@
                             </React.Fragment>
                         )}
                     </div>
-
-                    {isAdmin && whales.length > 0 && (
-                        <div>
-                            <h3 style={{ fontSize: 11, fontWeight: 700, color: 'var(--povio-gray-500)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Account alerts</h3>
-                            {staleAccounts.length === 0 ? (
-                                <div style={{ padding: 20, textAlign: 'center', color: 'var(--povio-gray-500)', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10, fontSize: 13 }}>No stale accounts. Nice work.</div>
-                            ) : (
-                                <div style={{ padding: '14px 16px', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderLeft: '3px solid var(--povio-warning)', borderRadius: 10 }}>
-                                    <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>⚠ {staleAccounts.length} account{staleAccounts.length > 1 ? 's' : ''} with no activity 30+ days</div>
-                                    {staleAccounts.slice(0, 8).map(a => (
-                                        <div key={a.id} style={{ fontSize: 12, color: 'var(--povio-gray-500)', marginTop: 4 }}>· <strong>{a.name}</strong> — {relTime(a.updated_at || a.last_touch_at)}</div>
-                                    ))}
-                                    {staleAccounts.length > 8 && <div style={{ fontSize: 12, color: 'var(--povio-gray-400)', marginTop: 6 }}>+{staleAccounts.length - 8} more</div>}
-                                </div>
-                            )}
-                        </div>
-                    )}
                 </div>
             );
         };
