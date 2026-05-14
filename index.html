@@ -505,6 +505,10 @@
         .task-due.was { background: var(--povio-gray-100); color: var(--povio-gray-500); font-style: italic; }
         .task-done-chip { padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; background: var(--povio-success-subtle); color: var(--povio-success); white-space: nowrap; }
 
+        /* Recurrence chip on open tasks */
+        .task-recur-chip { padding: 3px 9px; border-radius: 100px; font-size: 11px; font-weight: 600; background: var(--povio-blue-subtle); color: var(--povio-blue); white-space: nowrap; }
+        .task-recur-empty { font-size: 11px; color: var(--povio-gray-400); font-style: italic; }
+
         .task-title-wrap { flex: 1; min-width: 0; font-size: 14px; }
         .task-title-wrap.done { text-decoration: line-through; color: var(--povio-gray-400); }
 
@@ -3722,6 +3726,27 @@
         ];
         const tagLabel = (t) => (TAG_OPTIONS.find(o => o.value === t) || {}).label || t;
 
+        const RECUR_OPTIONS = [
+            { value: '',         label: 'no repeat' },
+            { value: 'daily',    label: '🔁 daily' },
+            { value: 'weekly',   label: '🔁 weekly' },
+            { value: 'biweekly', label: '🔁 every 2 weeks' },
+            { value: 'monthly',  label: '🔁 monthly' },
+        ];
+        const recurShort = (r) => ({ daily: 'daily', weekly: 'weekly', biweekly: 'every 2 wks', monthly: 'monthly' }[r] || r);
+
+        // Advance a YYYY-MM-DD string by one recurrence interval. Returns YYYY-MM-DD.
+        // If no base date, anchors from today.
+        const advanceDate = (baseStr, kind) => {
+            const d = baseStr ? new Date(baseStr + 'T00:00:00') : new Date();
+            d.setHours(0, 0, 0, 0);
+            if (kind === 'daily')    d.setDate(d.getDate() + 1);
+            if (kind === 'weekly')   d.setDate(d.getDate() + 7);
+            if (kind === 'biweekly') d.setDate(d.getDate() + 14);
+            if (kind === 'monthly')  d.setMonth(d.getMonth() + 1);
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        };
+
         const MyWeekView = ({ whales, user, currentPovioUser, isAdmin }) => {
             const [todos, setTodos] = useState([]);
             const [loading, setLoading] = useState(true);
@@ -3729,6 +3754,7 @@
             const [newDue, setNewDue] = useState('');
             const [newCustomDate, setNewCustomDate] = useState('');
             const [newTag, setNewTag] = useState('');
+            const [newRecurrence, setNewRecurrence] = useState('');
             const [showDone, setShowDone] = useState(false);
             const inputRef = useRef(null);
 
@@ -3767,10 +3793,11 @@
                     title: newTitle.trim(),
                     due_date: resolveDue(newDue),
                     tag: newTag || null,
+                    recurrence: newRecurrence || null,
                     source: 'manual'
                 });
                 if (error) { console.error('addTodo error', error); alert('Could not add task: ' + error.message); return; }
-                setNewTitle(''); setNewDue(''); setNewCustomDate(''); setNewTag('');
+                setNewTitle(''); setNewDue(''); setNewCustomDate(''); setNewTag(''); setNewRecurrence('');
                 if (inputRef.current) inputRef.current.focus();
                 fetchTodos();
             };
@@ -3802,6 +3829,20 @@
                             ? { ...x, _animating: false } : x));
                         alert('Could not save: ' + error.message);
                         return;
+                    }
+                    // Spawn the next occurrence if this task is recurring.
+                    // Inherits title / tag / recurrence; due_date advances by interval.
+                    if (t.recurrence) {
+                        const nextDate = advanceDate(t.due_date, t.recurrence);
+                        const { error: insertErr } = await supabaseClient.from('todos').insert({
+                            user_id: user.id,
+                            title: t.title,
+                            tag: t.tag,
+                            due_date: nextDate,
+                            recurrence: t.recurrence,
+                            source: 'recurring'
+                        });
+                        if (insertErr) console.error('Could not spawn recurring task', insertErr);
                     }
                     setTimeout(fetchTodos, 700);
                 } else {
@@ -3863,6 +3904,13 @@
                                     ? <span className="tag">{tagLabel(t.tag)}</span>
                                     : (t.done ? null : <span className="task-tag-empty">+ tag</span>)}
                                 onSave={v => updateTodo(t.id, { tag: v || null })} />
+                            {!t.done && (
+                                <InlineEdit value={t.recurrence || ''} options={RECUR_OPTIONS}
+                                    display={t.recurrence
+                                        ? <span className="task-recur-chip">🔁 {recurShort(t.recurrence)}</span>
+                                        : <span className="task-recur-empty">+ repeat</span>}
+                                    onSave={v => updateTodo(t.id, { recurrence: v || null })} />
+                            )}
                         </div>
                         <button onClick={() => deleteTodo(t.id)} className="task-delete" title="Delete">×</button>
                     </div>
@@ -3907,6 +3955,9 @@
                             )}
                             <select value={newTag} onChange={e => setNewTag(e.target.value)} className="task-add-select" title="Tag">
                                 {TAG_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                            </select>
+                            <select value={newRecurrence} onChange={e => setNewRecurrence(e.target.value)} className="task-add-select" title="Repeats">
+                                {RECUR_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                             </select>
                             <button type="submit" className="btn btn-primary">Add</button>
                         </form>
