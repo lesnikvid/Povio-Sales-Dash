@@ -3882,13 +3882,14 @@
             return (
                 <div style={{ maxWidth: 720, margin: '0 auto' }}>
                     <div>
-                        <div className="task-add">
+                        <form className="task-add" onSubmit={e => { e.preventDefault(); addTodo(); }}>
                             <input ref={inputRef} type="text"
                                 placeholder="What needs doing?"
                                 value={newTitle}
                                 onChange={e => setNewTitle(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && addTodo()}
-                                className="task-add-input" />
+                                className="task-add-input"
+                                enterKeyHint="done"
+                                autoComplete="off" />
                             <select value={newDue} onChange={e => { setNewDue(e.target.value); if (e.target.value !== 'custom') setNewCustomDate(''); }} className="task-add-select" title="Due date">
                                 <option value="">no date</option>
                                 <option value="today">today</option>
@@ -3905,8 +3906,8 @@
                             <select value={newTag} onChange={e => setNewTag(e.target.value)} className="task-add-select" title="Tag">
                                 {TAG_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                             </select>
-                            <button className="btn btn-primary" onClick={addTodo} disabled={!newTitle.trim()}>Add</button>
-                        </div>
+                            <button type="submit" className="btn btn-primary" disabled={!newTitle.trim()}>Add</button>
+                        </form>
 
                         {loading ? (
                             <p style={{ color: 'var(--povio-gray-500)' }}>Loading…</p>
