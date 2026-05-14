@@ -435,14 +435,36 @@
         .task-section-count { font-size: 11px; color: var(--povio-gray-400); font-weight: 600; padding: 2px 8px; background: var(--povio-gray-100); border-radius: 100px; }
 
         .task-list { display: flex; flex-direction: column; gap: 5px; }
-        .task-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 10px; transition: border-color 0.15s ease; min-height: 44px; }
+        .task-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 10px; transition: border-color 0.15s ease, opacity 0.45s ease, transform 0.45s ease, background 0.3s ease; min-height: 44px; }
         .task-row:hover { border-color: var(--povio-border-hover); }
-        .task-row.done { opacity: 0.55; }
+        .task-row.done { opacity: 0.5; transform: scale(0.99); }
+        .task-row.just-checked { animation: taskComplete 0.6s ease forwards; }
 
-        .task-check { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--povio-gray-300); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s ease; background: var(--povio-white); }
-        .task-check:hover { border-color: var(--povio-blue); }
-        .task-check.checked { background: var(--povio-blue); border-color: var(--povio-blue); }
-        .task-check.checked::after { content: '✓'; color: white; font-size: 12px; font-weight: 800; line-height: 1; }
+        @keyframes taskComplete {
+            0%   { background: var(--povio-white); transform: scale(1); }
+            25%  { background: rgba(22, 163, 74, 0.12); transform: scale(1.01); }
+            70%  { background: var(--povio-white); transform: scale(1); opacity: 1; }
+            100% { background: var(--povio-white); transform: scale(0.99); opacity: 0.5; }
+        }
+
+        .task-check { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--povio-gray-300); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1); background: var(--povio-white); }
+        .task-check:hover { border-color: var(--povio-blue); transform: scale(1.08); }
+        .task-check.checked { background: var(--povio-blue); border-color: var(--povio-blue); animation: checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .task-check.checked::after { content: '✓'; color: white; font-size: 13px; font-weight: 800; line-height: 1; animation: checkmarkDraw 0.3s ease-out 0.05s backwards; }
+
+        @keyframes checkPop {
+            0%   { transform: scale(1); }
+            50%  { transform: scale(1.35); }
+            100% { transform: scale(1); }
+        }
+        @keyframes checkmarkDraw {
+            0%   { opacity: 0; transform: scale(0) rotate(-30deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+
+        /* Title strike-through animation */
+        .task-title-wrap { flex: 1; min-width: 0; font-size: 14px; transition: color 0.3s ease; }
+        .task-title-wrap.done { color: var(--povio-gray-400); }
 
         .task-title-wrap { flex: 1; min-width: 0; font-size: 14px; }
         .task-title-wrap.done { text-decoration: line-through; color: var(--povio-gray-400); }
@@ -3614,12 +3636,12 @@
 
         // ============== My Week — personal task list (every user has their own) ==============
         const TAG_OPTIONS = [
-            { value: '',          label: '— no tag —' },
-            { value: 'outbound',  label: '📤 outbound' },
-            { value: 'new_sales', label: '💰 new sales' },
-            { value: 'am',        label: '🤝 AM' },
-            { value: 'internal',  label: '🏠 internal' },
-            { value: 'ceo',       label: '⭐ CEO' },
+            { value: '',           label: '— no tag —' },
+            { value: 'new_sales',  label: '💰 New Sales' },
+            { value: 'am',         label: '🤝 AM' },
+            { value: 'outbound',   label: '📤 Outbound' },
+            { value: 'management', label: '⭐ Management' },
+            { value: 'operations', label: '⚙ Operations' },
         ];
         const tagLabel = (t) => (TAG_OPTIONS.find(o => o.value === t) || {}).label || t;
 
@@ -3628,6 +3650,7 @@
             const [loading, setLoading] = useState(true);
             const [newTitle, setNewTitle] = useState('');
             const [newDue, setNewDue] = useState('');
+            const [newCustomDate, setNewCustomDate] = useState('');
             const [newTag, setNewTag] = useState('');
             const [showDone, setShowDone] = useState(false);
             const inputRef = useRef(null);
@@ -3644,6 +3667,7 @@
                 if (kind === 'today')     return todayStr;
                 if (kind === 'tomorrow')  return tomorrowStr;
                 if (kind === 'this_week') return weekEndStr;
+                if (kind === 'custom')    return newCustomDate || null;
                 return null;
             };
 
@@ -3669,7 +3693,7 @@
                     source: 'manual'
                 });
                 if (error) { console.error('addTodo error', error); alert('Could not add task: ' + error.message); return; }
-                setNewTitle(''); setNewDue(''); setNewTag('');
+                setNewTitle(''); setNewDue(''); setNewCustomDate(''); setNewTag('');
                 if (inputRef.current) inputRef.current.focus();
                 fetchTodos();
             };
@@ -3680,10 +3704,26 @@
                 fetchTodos();
             };
 
-            const toggleDone = (t) => updateTodo(t.id, {
-                done: !t.done,
-                completed_at: !t.done ? new Date().toISOString() : null
-            });
+            // Optimistic toggle: flip local state instantly so the animation
+            // fires immediately, then save to DB in background. Refetch after
+            // the animation completes so the row re-sorts into the right group
+            // (Done section, or back into its date bucket on un-check).
+            const toggleDone = async (t) => {
+                const newDone = !t.done;
+                setTodos(prev => prev.map(x => x.id === t.id ? { ...x, done: newDone, _justChecked: newDone } : x));
+                const { error } = await supabaseClient.from('todos').update({
+                    done: newDone,
+                    completed_at: newDone ? new Date().toISOString() : null
+                }).eq('id', t.id);
+                if (error) {
+                    setTodos(prev => prev.map(x => x.id === t.id ? { ...x, done: t.done, _justChecked: false } : x));
+                    alert('Could not save: ' + error.message);
+                    return;
+                }
+                // After the satisfying-click animation, refetch so the row
+                // resettles into the correct group.
+                setTimeout(fetchTodos, 600);
+            };
 
             const deleteTodo = async (id) => {
                 if (!confirm('Delete this task?')) return;
@@ -3714,7 +3754,7 @@
                 const isToday   = !t.done && t.due_date === todayStr;
                 const dueClass  = isOverdue ? 'overdue' : (isToday ? 'today' : '');
                 return (
-                    <div className={'task-row' + (t.done ? ' done' : '')}>
+                    <div className={'task-row' + (t.done ? ' done' : '') + (t._justChecked ? ' just-checked' : '')}>
                         <div onClick={() => toggleDone(t)} className={'task-check' + (t.done ? ' checked' : '')} />
                         <div className={'task-title-wrap' + (t.done ? ' done' : '')}>
                             <InlineEdit value={t.title} onSave={v => v && updateTodo(t.id, { title: v })} />
@@ -3756,12 +3796,19 @@
                                 onChange={e => setNewTitle(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && addTodo()}
                                 className="task-add-input" />
-                            <select value={newDue} onChange={e => setNewDue(e.target.value)} className="task-add-select" title="Due date">
+                            <select value={newDue} onChange={e => { setNewDue(e.target.value); if (e.target.value !== 'custom') setNewCustomDate(''); }} className="task-add-select" title="Due date">
                                 <option value="">no date</option>
                                 <option value="today">today</option>
                                 <option value="tomorrow">tomorrow</option>
                                 <option value="this_week">this week</option>
+                                <option value="custom">📅 custom…</option>
                             </select>
+                            {newDue === 'custom' && (
+                                <input type="date" value={newCustomDate}
+                                    onChange={e => setNewCustomDate(e.target.value)}
+                                    className="task-add-select" style={{ paddingRight: 10 }}
+                                    autoFocus />
+                            )}
                             <select value={newTag} onChange={e => setNewTag(e.target.value)} className="task-add-select" title="Tag">
                                 {TAG_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                             </select>
