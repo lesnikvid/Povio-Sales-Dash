@@ -435,36 +435,59 @@
         .task-section-count { font-size: 11px; color: var(--povio-gray-400); font-weight: 600; padding: 2px 8px; background: var(--povio-gray-100); border-radius: 100px; }
 
         .task-list { display: flex; flex-direction: column; gap: 5px; }
-        .task-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 10px; transition: border-color 0.15s ease, opacity 0.45s ease, transform 0.45s ease, background 0.3s ease; min-height: 44px; }
+        .task-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 10px; transition: border-color 0.15s ease, opacity 0.4s ease, transform 0.4s ease; min-height: 44px; }
         .task-row:hover { border-color: var(--povio-border-hover); }
-        .task-row.done { opacity: 0.5; transform: scale(0.99); }
-        .task-row.just-checked { animation: taskComplete 0.6s ease forwards; }
+        .task-row.done { opacity: 0.6; background: var(--povio-gray-50, #FAFAFA); }
 
-        @keyframes taskComplete {
-            0%   { background: var(--povio-white); transform: scale(1); }
-            25%  { background: rgba(22, 163, 74, 0.12); transform: scale(1.01); }
-            70%  { background: var(--povio-white); transform: scale(1); opacity: 1; }
-            100% { background: var(--povio-white); transform: scale(0.99); opacity: 0.5; }
+        /* The big satisfying animation when a task is checked off.
+           Plays while the row is still in its current section (not yet
+           moved to Done) — so the user sees it. ~700ms total. */
+        .task-row.completing {
+            animation: rowCompletePulse 0.7s ease forwards;
+            border-color: var(--povio-success) !important;
+        }
+        @keyframes rowCompletePulse {
+            0%   { background: var(--povio-white); transform: scale(1); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+            18%  { background: rgba(22, 163, 74, 0.22); transform: scale(1.025); box-shadow: 0 6px 24px rgba(22, 163, 74, 0.3); }
+            45%  { background: rgba(22, 163, 74, 0.12); transform: scale(1.005); box-shadow: 0 3px 12px rgba(22, 163, 74, 0.15); }
+            100% { background: var(--povio-gray-50, #FAFAFA); transform: scale(1); opacity: 0.7; box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
         }
 
-        .task-check { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--povio-gray-300); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1); background: var(--povio-white); }
-        .task-check:hover { border-color: var(--povio-blue); transform: scale(1.08); }
-        .task-check.checked { background: var(--povio-blue); border-color: var(--povio-blue); animation: checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .task-check.checked::after { content: '✓'; color: white; font-size: 13px; font-weight: 800; line-height: 1; animation: checkmarkDraw 0.3s ease-out 0.05s backwards; }
-
+        /* Checkbox — empty / hover / checked states with bouncy animation */
+        .task-check { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--povio-gray-400); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1); background: var(--povio-white); position: relative; }
+        .task-check:hover { border-color: var(--povio-blue); transform: scale(1.1); }
+        .task-check.checked {
+            background: var(--povio-success);
+            border-color: var(--povio-success);
+            animation: checkPop 0.55s cubic-bezier(0.5, 1.6, 0.4, 1);
+        }
+        .task-check.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 14px;
+            font-weight: 900;
+            line-height: 1;
+            animation: checkmarkDraw 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 0.08s backwards;
+        }
         @keyframes checkPop {
             0%   { transform: scale(1); }
-            50%  { transform: scale(1.35); }
+            35%  { transform: scale(1.5); }
+            70%  { transform: scale(0.92); }
             100% { transform: scale(1); }
         }
         @keyframes checkmarkDraw {
-            0%   { opacity: 0; transform: scale(0) rotate(-30deg); }
-            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+            0%   { opacity: 0; transform: scale(0) rotate(-25deg); }
+            70%  { opacity: 1; transform: scale(1.2) rotate(5deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0); }
         }
 
-        /* Title strike-through animation */
-        .task-title-wrap { flex: 1; min-width: 0; font-size: 14px; transition: color 0.3s ease; }
+        /* Title with smooth strike-through */
+        .task-title-wrap { flex: 1; min-width: 0; font-size: 14px; transition: color 0.4s ease, text-decoration-color 0.4s ease; position: relative; }
         .task-title-wrap.done { color: var(--povio-gray-400); }
+
+        /* Done-section chips */
+        .task-due.was { background: var(--povio-gray-100); color: var(--povio-gray-500); font-style: italic; }
+        .task-done-chip { padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; background: var(--povio-success-subtle); color: var(--povio-success); white-space: nowrap; }
 
         .task-title-wrap { flex: 1; min-width: 0; font-size: 14px; }
         .task-title-wrap.done { text-decoration: line-through; color: var(--povio-gray-400); }
@@ -3704,25 +3727,37 @@
                 fetchTodos();
             };
 
-            // Optimistic toggle: flip local state instantly so the animation
-            // fires immediately, then save to DB in background. Refetch after
-            // the animation completes so the row re-sorts into the right group
-            // (Done section, or back into its date bucket on un-check).
+            // Two-phase toggle:
+            //   Check (open -> done): set _animating flag so row stays in its
+            //     current section AND looks visually checked. Save to DB in
+            //     parallel. After 700ms (animation done), refetch — server
+            //     truth now has done=true, row resettles into Done section.
+            //   Uncheck (done -> open): no animation, just flip and refetch.
             const toggleDone = async (t) => {
                 const newDone = !t.done;
-                setTodos(prev => prev.map(x => x.id === t.id ? { ...x, done: newDone, _justChecked: newDone } : x));
-                const { error } = await supabaseClient.from('todos').update({
-                    done: newDone,
-                    completed_at: newDone ? new Date().toISOString() : null
-                }).eq('id', t.id);
-                if (error) {
-                    setTodos(prev => prev.map(x => x.id === t.id ? { ...x, done: t.done, _justChecked: false } : x));
-                    alert('Could not save: ' + error.message);
-                    return;
+
+                if (newDone) {
+                    setTodos(prev => prev.map(x => x.id === t.id
+                        ? { ...x, _animating: true } : x));
+                    const { error } = await supabaseClient.from('todos').update({
+                        done: true,
+                        completed_at: new Date().toISOString()
+                    }).eq('id', t.id);
+                    if (error) {
+                        setTodos(prev => prev.map(x => x.id === t.id
+                            ? { ...x, _animating: false } : x));
+                        alert('Could not save: ' + error.message);
+                        return;
+                    }
+                    setTimeout(fetchTodos, 700);
+                } else {
+                    const { error } = await supabaseClient.from('todos').update({
+                        done: false,
+                        completed_at: null
+                    }).eq('id', t.id);
+                    if (error) { alert('Could not save: ' + error.message); return; }
+                    fetchTodos();
                 }
-                // After the satisfying-click animation, refetch so the row
-                // resettles into the correct group.
-                setTimeout(fetchTodos, 600);
             };
 
             const deleteTodo = async (id) => {
@@ -3750,24 +3785,31 @@
             }) : [];
 
             const TaskRow = ({ t }) => {
+                const visualDone = t.done || t._animating;  // checkbox + title styling
                 const isOverdue = !t.done && t.due_date && t.due_date < todayStr;
                 const isToday   = !t.done && t.due_date === todayStr;
                 const dueClass  = isOverdue ? 'overdue' : (isToday ? 'today' : '');
                 return (
-                    <div className={'task-row' + (t.done ? ' done' : '') + (t._justChecked ? ' just-checked' : '')}>
-                        <div onClick={() => toggleDone(t)} className={'task-check' + (t.done ? ' checked' : '')} />
-                        <div className={'task-title-wrap' + (t.done ? ' done' : '')}>
+                    <div className={'task-row'
+                        + (t.done ? ' done' : '')
+                        + (t._animating ? ' completing' : '')}>
+                        <div onClick={() => toggleDone(t)}
+                             className={'task-check' + (visualDone ? ' checked' : '')} />
+                        <div className={'task-title-wrap' + (visualDone ? ' done' : '')}>
                             <InlineEdit value={t.title} onSave={v => v && updateTodo(t.id, { title: v })} />
                         </div>
                         <InlineEdit value={t.due_date || ''} type="date"
                             display={t.due_date
-                                ? <span className={'task-due ' + dueClass}>{formatDateShort(t.due_date)}</span>
-                                : <span className="task-due-empty">+ date</span>}
+                                ? <span className={'task-due ' + (t.done ? 'was' : dueClass)}>{t.done ? 'was ' : ''}{formatDateShort(t.due_date)}</span>
+                                : (t.done ? null : <span className="task-due-empty">+ date</span>)}
                             onSave={v => updateTodo(t.id, { due_date: v || null })} />
+                        {t.done && t.completed_at && (
+                            <span className="task-done-chip">✓ done {relTime(t.completed_at)}</span>
+                        )}
                         <InlineEdit value={t.tag || ''} options={TAG_OPTIONS}
                             display={t.tag
                                 ? <span className="tag">{tagLabel(t.tag)}</span>
-                                : <span className="task-tag-empty">+ tag</span>}
+                                : (t.done ? null : <span className="task-tag-empty">+ tag</span>)}
                             onSave={v => updateTodo(t.id, { tag: v || null })} />
                         <button onClick={() => deleteTodo(t.id)} className="task-delete" title="Delete">×</button>
                     </div>
