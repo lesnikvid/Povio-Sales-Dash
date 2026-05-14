@@ -9,6 +9,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Apply saved theme BEFORE React mounts so there's no flash of blue → pink
+        // on reload. Stored per-device in localStorage; default = blue.
+        (function () {
+            try {
+                var t = localStorage.getItem('povio-theme');
+                if (t === 'pink') document.documentElement.dataset.themePending = 'pink';
+            } catch (e) {}
+        })();
+        // Once body exists, transfer the flag to body.classList
+        document.addEventListener('DOMContentLoaded', function () {
+            if (document.documentElement.dataset.themePending === 'pink') {
+                document.body.classList.add('theme-pink');
+                delete document.documentElement.dataset.themePending;
+            }
+        });
+    </script>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='4 7 23 30' fill='%230A0A0A'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M15.4538 11.4261C11.34 11.4261 8 14.9289 8 19.2193V33H9.84648V24.3107C11.2042 26.035 13.2543 27.0397 15.4538 27.0533C19.5676 27.0533 22.9076 23.5368 22.9076 19.2057C22.894 14.9289 19.5541 11.4261 15.4538 11.4261ZM15.4538 25.2067C12.3582 25.2067 9.84648 22.5185 9.84648 19.2192C9.84648 15.9608 12.3582 13.3132 15.4538 13.3132C18.5494 13.3132 21.0611 15.9608 21.0611 19.2192C21.0475 22.5185 18.5358 25.2067 15.4538 25.2067Z'/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css?family=Inter:400,500,600,700,800&display=swap&subset=latin,latin-ext" rel="stylesheet">
@@ -20,9 +37,13 @@
             --povio-card-hover: #FAFAFA;
             --povio-border: #E5E5E5;
             --povio-border-hover: #D4D4D4;
+            /* "blue" is the accent — overridden in body.theme-pink to repaint the app */
             --povio-blue: #1F35FF;
             --povio-blue-hover: #1428CC;
             --povio-blue-subtle: rgba(31, 53, 255, 0.08);
+            --povio-blue-border: rgba(31, 53, 255, 0.20);
+            --povio-blue-shadow: rgba(31, 53, 255, 0.25);
+            --povio-blue-shadow-strong: rgba(31, 53, 255, 0.30);
             --povio-black: #0A0A0A;
             --povio-gray-900: #171717;
             --povio-gray-700: #404040;
@@ -42,6 +63,20 @@
             --povio-event-sick: #ef4444;
             --povio-event-trip: #f97316;
             --povio-today-tint: #eff6ff;
+        }
+
+        /* Baby-pink theme — toggled per device via the header pill, persisted in
+           localStorage('povio-theme'). Only the accent + bg variables change;
+           semantic status colors (success/warning/danger) stay readable. */
+        body.theme-pink {
+            --povio-bg: #FFF5F8;
+            --povio-blue: #EC4899;
+            --povio-blue-hover: #DB2777;
+            --povio-blue-subtle: rgba(236, 72, 153, 0.10);
+            --povio-blue-border: rgba(236, 72, 153, 0.25);
+            --povio-blue-shadow: rgba(236, 72, 153, 0.28);
+            --povio-blue-shadow-strong: rgba(236, 72, 153, 0.35);
+            --povio-today-tint: #FFE4EC;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -75,7 +110,7 @@
 
         .btn { padding: 12px 20px; border-radius: 100px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s ease; display: flex; align-items: center; gap: 8px; }
         .btn-primary { background: var(--povio-blue); color: var(--povio-white); }
-        .btn-primary:hover { background: var(--povio-blue-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(31, 53, 255, 0.25); }
+        .btn-primary:hover { background: var(--povio-blue-hover); transform: translateY(-1px); box-shadow: 0 4px 12px var(--povio-blue-shadow); }
         .btn-secondary { background: var(--povio-white); color: var(--povio-gray-700); border: 1px solid var(--povio-border); }
         .btn-secondary:hover { background: var(--povio-bg); border-color: var(--povio-border-hover); }
         .btn-danger { background: var(--povio-danger); color: white; }
@@ -317,7 +352,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, var(--povio-blue) 0%, #1428CC 100%);
+            background: linear-gradient(135deg, var(--povio-blue) 0%, var(--povio-blue-hover) 100%);
             padding: 24px;
         }
         .login-card {
@@ -363,7 +398,7 @@
         .login-btn:hover {
             background: var(--povio-blue-hover);
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(31, 53, 255, 0.3);
+            box-shadow: 0 8px 20px var(--povio-blue-shadow-strong);
         }
         .logout-btn {
             padding: 8px 16px;
@@ -379,6 +414,38 @@
         .logout-btn:hover {
             background: var(--povio-gray-100);
             border-color: var(--povio-border-hover);
+        }
+
+        /* Theme toggle pill — sits in header-actions, lets user swap blue/pink */
+        .theme-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--povio-border);
+            background: var(--povio-white);
+            color: var(--povio-gray-700);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .theme-toggle:hover {
+            border-color: var(--povio-blue);
+            color: var(--povio-blue);
+        }
+        .theme-toggle .theme-swatch {
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--povio-blue) 0%, var(--povio-blue-hover) 100%);
+            box-shadow: 0 0 0 1px var(--povio-white), 0 0 0 2px var(--povio-blue-border);
+            flex-shrink: 0;
+        }
+        @media (max-width: 768px) {
+            .theme-toggle-label { display: none; }
+            .theme-toggle { padding: 7px 9px; }
         }
 
         /* Calendar */
@@ -641,7 +708,7 @@
         .filters-bar select, .filters-bar input { padding: 8px 12px; font-size: 12px; min-width: 130px; background: var(--povio-bg); border: 1px solid var(--povio-border); border-radius: 8px; color: var(--povio-gray-900); }
         .filters-bar input:focus, .filters-bar select:focus { outline: none; border-color: var(--povio-blue); }
         .toggle-pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; background: var(--povio-bg); border: 1px solid var(--povio-border); border-radius: 100px; font-size: 12px; font-weight: 600; color: var(--povio-gray-700); cursor: pointer; }
-        .toggle-pill.active { background: var(--povio-blue-subtle); color: var(--povio-blue); border-color: rgba(31, 53, 255, 0.2); }
+        .toggle-pill.active { background: var(--povio-blue-subtle); color: var(--povio-blue); border-color: var(--povio-blue-border); }
         .filters-bar .search-input { flex: 1; min-width: 180px; }
 
         /* KPI / dashboard cards */
@@ -4621,10 +4688,10 @@
             }
 
             // Main authenticated app
-            return <AuthenticatedApp user={user} currentPovioUser={currentPovioUser} onLogout={handleLogout} />;
+            return <AuthenticatedApp user={user} currentPovioUser={currentPovioUser} onLogout={handleLogout} theme={theme} toggleTheme={toggleTheme} />;
         };
 
-        const AuthenticatedApp = ({ user, currentPovioUser, onLogout }) => {
+        const AuthenticatedApp = ({ user, currentPovioUser, onLogout, theme, toggleTheme }) => {
             const isAdmin = currentPovioUser?.role === 'admin';
             // Reps see only Accounts + Calendar. Admins see everything.
             const VIEWS = isAdmin
@@ -4638,6 +4705,20 @@
 
             const [view, setView] = useState(getViewFromHash);
             const [allowedUsers, setAllowedUsers] = useState([]);  // directory (Vid + all AMs)
+
+            // Theme: 'blue' (default Povio palette) | 'pink' (baby-pink palette).
+            // Per-device, stored in localStorage('povio-theme'). The pre-React inline
+            // script in <head> applies the class on first paint to avoid a flash.
+            const [theme, setTheme] = useState(() => {
+                try {
+                    return localStorage.getItem('povio-theme') === 'pink' ? 'pink' : 'blue';
+                } catch (e) { return 'blue'; }
+            });
+            useEffect(() => {
+                document.body.classList.toggle('theme-pink', theme === 'pink');
+                try { localStorage.setItem('povio-theme', theme); } catch (e) {}
+            }, [theme]);
+            const toggleTheme = () => setTheme(t => t === 'pink' ? 'blue' : 'pink');
 
             // Keep URL hash in sync when view changes.
             // Skip when the hash contains an OAuth callback fragment (access_token=...,
@@ -5069,6 +5150,16 @@
                                     >{n.label}</button>
                                 ))}
                             </div>
+                            <button
+                                className="theme-toggle"
+                                onClick={toggleTheme}
+                                title={theme === 'pink' ? 'Switch to Povio blue' : 'Switch to baby pink'}
+                            >
+                                <span className="theme-swatch" />
+                                <span className="theme-toggle-label">
+                                    {theme === 'pink' ? 'Pink' : 'Blue'}
+                                </span>
+                            </button>
                             <button className="logout-btn" onClick={onLogout}>Sign Out</button>
                         </div>
                     </div>
