@@ -4688,10 +4688,10 @@
             }
 
             // Main authenticated app
-            return <AuthenticatedApp user={user} currentPovioUser={currentPovioUser} onLogout={handleLogout} theme={theme} toggleTheme={toggleTheme} />;
+            return <AuthenticatedApp user={user} currentPovioUser={currentPovioUser} onLogout={handleLogout} />;
         };
 
-        const AuthenticatedApp = ({ user, currentPovioUser, onLogout, theme, toggleTheme }) => {
+        const AuthenticatedApp = ({ user, currentPovioUser, onLogout }) => {
             const isAdmin = currentPovioUser?.role === 'admin';
             // Reps see only Accounts + Calendar. Admins see everything.
             const VIEWS = isAdmin
