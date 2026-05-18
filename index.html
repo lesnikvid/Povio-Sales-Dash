@@ -4077,6 +4077,26 @@
                 return () => window.removeEventListener('keydown', onKey);
             }, [selectedId]);
 
+            // Close on click outside the sidebar. Carve out exceptions so:
+            //   - clicks inside the sidebar itself don't dismiss it,
+            //   - clicks on another account row let that row's own handler
+            //     swap the selection (no flicker / double-state),
+            //   - clicks on the filter bar let users search while keeping
+            //     the panel open (common workflow).
+            // mousedown (not click) so we fire BEFORE React's synthetic click
+            // on row swap, but only do anything if the click was truly outside.
+            useEffect(() => {
+                if (!selectedId) return;
+                const onMouseDown = (e) => {
+                    if (e.target.closest('.acct-sidebar')) return;
+                    if (e.target.closest('.account-row')) return;
+                    if (e.target.closest('.filters-bar')) return;
+                    setSelectedId(null);
+                };
+                document.addEventListener('mousedown', onMouseDown);
+                return () => document.removeEventListener('mousedown', onMouseDown);
+            }, [selectedId]);
+
             // Currently-selected whale, looked up freshly so saveField+refetch
             // updates flow through naturally without needing setState dance.
             const selectedWhale = selectedId ? whales.find(w => w.id === selectedId) : null;
