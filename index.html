@@ -796,6 +796,177 @@
             .acct-sidebar-tab { padding: 12px 10px; }
             .acct-sidebar-title { font-size: 18px; padding-right: 36px; }
         }
+
+        /* ===== Audit log feed ===== */
+        /* Used by AuditLogView in Admin and by AccountHistoryFeed inside the
+           account sidebar. Each entry is a card with avatar + actor + verb +
+           time on the top line, then a diff block (kind='edit') or summary
+           text (other kinds) below. */
+        .audit-feed { display: flex; flex-direction: column; gap: 10px; }
+        .audit-empty {
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--povio-gray-500);
+            background: var(--povio-white);
+            border: 1px dashed var(--povio-border);
+            border-radius: 12px;
+            font-size: 13px;
+        }
+        .audit-empty strong { color: var(--povio-gray-700); display: block; margin-bottom: 6px; font-weight: 700; }
+        .audit-row {
+            display: grid;
+            grid-template-columns: 32px 1fr;
+            gap: 12px;
+            background: var(--povio-white);
+            border: 1px solid var(--povio-border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            transition: border-color 0.15s ease;
+        }
+        .audit-row:hover { border-color: var(--povio-border-hover); }
+        .audit-avatar {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            background: var(--povio-gray-400);
+            flex-shrink: 0;
+        }
+        .audit-body { min-width: 0; }
+        .audit-line {
+            display: flex; flex-wrap: wrap;
+            align-items: baseline;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--povio-gray-700);
+            line-height: 1.5;
+        }
+        .audit-actor { font-weight: 700; color: var(--povio-gray-900); }
+        .audit-verb { color: var(--povio-gray-500); }
+        .audit-account {
+            font-weight: 700;
+            color: var(--povio-blue);
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .audit-account.no-link { color: var(--povio-gray-900); cursor: default; }
+        .audit-account:hover:not(.no-link) { text-decoration: underline; }
+        .audit-time {
+            margin-left: auto;
+            font-size: 11px;
+            color: var(--povio-gray-500);
+            white-space: nowrap;
+        }
+        .audit-kind-pill {
+            padding: 2px 8px;
+            border-radius: 100px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .audit-kind-pill.edit { background: var(--povio-blue-subtle); color: var(--povio-blue); }
+        .audit-kind-pill.note { background: var(--povio-gray-100); color: var(--povio-gray-700); }
+        .audit-kind-pill.call,
+        .audit-kind-pill.meeting,
+        .audit-kind-pill.email { background: var(--povio-success-subtle); color: var(--povio-success); }
+        .audit-kind-pill.qbr { background: var(--povio-warning-subtle); color: var(--povio-warning); }
+        .audit-kind-pill.escalation { background: var(--povio-danger-subtle); color: var(--povio-danger); }
+        .audit-summary {
+            margin-top: 6px;
+            font-size: 13px;
+            color: var(--povio-gray-700);
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .audit-diff {
+            margin-top: 8px;
+            background: var(--povio-bg);
+            border: 1px solid var(--povio-border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .audit-diff-row {
+            display: grid;
+            grid-template-columns: 130px 1fr auto 1fr;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .audit-diff-label {
+            font-weight: 700;
+            color: var(--povio-gray-700);
+            text-transform: lowercase;
+            font-size: 11px;
+            letter-spacing: 0.3px;
+        }
+        .audit-diff-old, .audit-diff-new {
+            font-family: ui-monospace, "SF Mono", Menlo, monospace;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .audit-diff-old {
+            background: rgba(220, 38, 38, 0.08);
+            color: var(--povio-danger);
+            text-decoration: line-through;
+            text-decoration-color: rgba(220, 38, 38, 0.4);
+        }
+        .audit-diff-new {
+            background: var(--povio-success-subtle);
+            color: var(--povio-success);
+            font-weight: 700;
+        }
+        .audit-diff-arrow {
+            color: var(--povio-gray-400);
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .audit-diff-empty {
+            font-size: 11px;
+            color: var(--povio-gray-500);
+            font-style: italic;
+        }
+        .audit-load-more {
+            margin-top: 16px;
+            padding: 10px 18px;
+            background: var(--povio-white);
+            border: 1px dashed var(--povio-border);
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--povio-gray-700);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            width: 100%;
+            text-align: center;
+        }
+        .audit-load-more:hover { border-color: var(--povio-blue); color: var(--povio-blue); }
+        .audit-load-more:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Compact variant when rendered inside the account sidebar (narrower) */
+        .acct-sidebar-body .audit-diff-row {
+            grid-template-columns: 90px 1fr auto 1fr;
+            gap: 6px;
+        }
+        .acct-sidebar-body .audit-row { padding: 10px 12px; }
+
+        @media (max-width: 600px) {
+            .audit-diff-row { grid-template-columns: 1fr; gap: 2px; }
+            .audit-diff-arrow { display: none; }
+        }
         .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
         .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--povio-border); font-size: 13px; gap: 12px; min-height: 36px; }
         .detail-row:last-child { border-bottom: none; }
@@ -3526,12 +3697,365 @@
             );
         };
 
+        // ============== Audit log components ==============
+        // Surfaces the activities table written by the server-side triggers
+        // in migration 004 (enforce_whale_audit_stamp + log_whale_edit) and by
+        // AddNoteForm. Two entry points:
+        //   - AuditLogView      → global feed in Admin
+        //   - AccountHistoryFeed → per-account feed in the sidebar
+        // Both share <AuditEntry> for rendering a single row.
+
+        // Fine-grained relative time (minutes/hours/days) — the global relTime
+        // helper is day-grained which is too coarse for an audit feed.
+        const auditRelTime = (iso) => {
+            if (!iso) return '—';
+            const d = new Date(iso);
+            const ms = Date.now() - d.getTime();
+            const mins  = Math.floor(ms / 60000);
+            const hours = Math.floor(ms / 3600000);
+            const days  = Math.floor(ms / 86400000);
+            if (mins < 1)   return 'just now';
+            if (mins < 60)  return mins + 'm ago';
+            if (hours < 24) return hours + 'h ago';
+            if (days === 1) return 'yesterday';
+            if (days < 7)   return days + 'd ago';
+            if (days < 30)  return Math.floor(days / 7) + 'w ago';
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        };
+
+        // Verb derived from activity kind. Drives the "Žiga edited X" line.
+        const auditVerb = (kind) => ({
+            edit:       'edited',
+            note:       'added a note on',
+            call:       'logged a call with',
+            email:      'logged an email to',
+            meeting:    'had a meeting with',
+            qbr:        'completed a QBR for',
+            escalation: 'escalated',
+        }[kind] || ('logged a ' + (kind || 'activity') + ' for'));
+
+        // Format a single field value for the diff display. Numbers, bools,
+        // and null fall back to readable strings; long strings truncate.
+        const auditFmtValue = (v) => {
+            if (v === null || v === undefined || v === '') return '∅';
+            if (typeof v === 'boolean') return v ? 'yes' : 'no';
+            const s = String(v);
+            return s.length > 60 ? s.slice(0, 57) + '…' : s;
+        };
+
+        // <AuditDiffRows> — renders the before/after pairs for kind='edit'.
+        // payload shape: { before: {field1: oldVal, ...}, after: {field1: newVal, ...} }
+        const AuditDiffRows = ({ payload }) => {
+            if (!payload || typeof payload !== 'object') return null;
+            const after = payload.after || {};
+            const before = payload.before || {};
+            const fields = Object.keys(after);
+            if (fields.length === 0) return <div className="audit-diff-empty">No field-level diff recorded.</div>;
+            return (
+                <div className="audit-diff">
+                    {fields.map(field => (
+                        <div className="audit-diff-row" key={field}>
+                            <span className="audit-diff-label">{field.replace(/_/g, ' ')}</span>
+                            <span className="audit-diff-old" title={String(before[field] ?? '')}>{auditFmtValue(before[field])}</span>
+                            <span className="audit-diff-arrow">→</span>
+                            <span className="audit-diff-new" title={String(after[field] ?? '')}>{auditFmtValue(after[field])}</span>
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        // <AuditEntry> — one card per activity row. Props:
+        //   row              — the activities row joined with whales.name
+        //   actor            — looked-up povio_users / allowed_users entry (or null)
+        //   showAccountName  — true in Admin feed, false in per-account history
+        //   onAccountClick   — callback when the account name is clicked
+        const AuditEntry = ({ row, actor, showAccountName, onAccountClick }) => {
+            const initials = actor?.initials || '??';
+            const actorName = actor?.name || 'Unknown actor';
+            const color = actor?.color || '#A3A3A3';
+            const accountName = row._account_name || 'Unknown account';
+            const kind = row.kind || 'note';
+            return (
+                <div className="audit-row">
+                    <span className="audit-avatar" style={{ background: color }}>{initials}</span>
+                    <div className="audit-body">
+                        <div className="audit-line">
+                            <span className="audit-actor">{actorName}</span>
+                            <span className="audit-verb">{auditVerb(kind)}</span>
+                            {showAccountName && (
+                                <span
+                                    className={'audit-account' + (onAccountClick ? '' : ' no-link')}
+                                    onClick={onAccountClick ? () => onAccountClick(row.whale_id) : undefined}
+                                >{accountName}</span>
+                            )}
+                            <span className={'audit-kind-pill ' + kind}>{kind}</span>
+                            <span className="audit-time" title={new Date(row.occurred_at).toLocaleString()}>{auditRelTime(row.occurred_at)}</span>
+                        </div>
+                        {kind === 'edit' ? (
+                            <AuditDiffRows payload={row.payload} />
+                        ) : (
+                            row.summary && <div className="audit-summary">{row.summary}</div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Shared fetch for audit rows. Stitches actor info from the already-
+        // fetched allowedUsers map; joins whales.name via the FK sugar that
+        // does exist (activities.whale_id → whales.id was set up in mig 002).
+        // Returns { rows, hasMore } so callers can drive pagination.
+        const fetchAuditRows = async ({ whaleId, actorId, kind, sinceIso, before, limit }) => {
+            let q = supabaseClient
+                .from('activities')
+                .select('id, occurred_at, kind, summary, payload, actor_povio_id, whale_id, whales:whale_id ( id, name )')
+                .order('occurred_at', { ascending: false })
+                .limit(limit + 1);  // +1 sentinel to detect hasMore without a count() query
+            if (whaleId)  q = q.eq('whale_id', whaleId);
+            if (actorId)  q = q.eq('actor_povio_id', actorId);
+            if (kind)     q = q.eq('kind', kind);
+            if (sinceIso) q = q.gte('occurred_at', sinceIso);
+            if (before)   q = q.lt('occurred_at', before);
+            const { data, error } = await q;
+            if (error) { console.error('fetchAuditRows', error); return { rows: [], hasMore: false, error }; }
+            const rows = (data || []).slice(0, limit).map(r => ({
+                ...r,
+                _account_name: r.whales?.name,
+            }));
+            return { rows, hasMore: (data || []).length > limit };
+        };
+
+        // Date-range pills → ISO cutoff timestamp (or null for "all")
+        const auditSinceIso = (range) => {
+            const ms = { '24h': 86400000, '7d': 7 * 86400000, '30d': 30 * 86400000 }[range];
+            return ms ? new Date(Date.now() - ms).toISOString() : null;
+        };
+
+        // <AccountHistoryFeed> — slim per-account feed shown inside the
+        // account sidebar's "History" tab. Pre-filtered to one whale.
+        const AccountHistoryFeed = ({ whaleId, allowedUsers }) => {
+            const [rows, setRows] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [hasMore, setHasMore] = useState(false);
+            const [filterActor, setFilterActor] = useState('');
+            const [filterKind, setFilterKind]   = useState('');
+            const PAGE = 30;
+
+            const actorsById = useMemo(() => {
+                const m = new Map();
+                (allowedUsers || []).forEach(u => m.set(u.povio_id, u));
+                return m;
+            }, [allowedUsers]);
+
+            const loadInitial = async () => {
+                setLoading(true);
+                const { rows, hasMore } = await fetchAuditRows({
+                    whaleId,
+                    actorId: filterActor || null,
+                    kind: filterKind || null,
+                    limit: PAGE,
+                });
+                setRows(rows);
+                setHasMore(hasMore);
+                setLoading(false);
+            };
+            const loadMore = async () => {
+                if (rows.length === 0) return;
+                const cursor = rows[rows.length - 1].occurred_at;
+                const { rows: more, hasMore } = await fetchAuditRows({
+                    whaleId,
+                    actorId: filterActor || null,
+                    kind: filterKind || null,
+                    before: cursor,
+                    limit: PAGE,
+                });
+                setRows([...rows, ...more]);
+                setHasMore(hasMore);
+            };
+            useEffect(() => { loadInitial(); }, [whaleId, filterActor, filterKind]);
+
+            return (
+                <div>
+                    <div className="filters-bar" style={{ marginBottom: 12 }}>
+                        <select value={filterActor} onChange={e => setFilterActor(e.target.value)}>
+                            <option value="">All actors</option>
+                            {(allowedUsers || []).filter(u => u.povio_id).map(u => (
+                                <option key={u.povio_id} value={u.povio_id}>{u.name}</option>
+                            ))}
+                        </select>
+                        <select value={filterKind} onChange={e => setFilterKind(e.target.value)}>
+                            <option value="">All kinds</option>
+                            <option value="edit">Edits</option>
+                            <option value="note">Notes</option>
+                            <option value="call">Calls</option>
+                            <option value="meeting">Meetings</option>
+                            <option value="email">Emails</option>
+                            <option value="qbr">QBRs</option>
+                            <option value="escalation">Escalations</option>
+                        </select>
+                    </div>
+                    {loading ? (
+                        <div className="audit-empty">Loading history…</div>
+                    ) : rows.length === 0 ? (
+                        <div className="audit-empty">
+                            <strong>No activity yet for this account.</strong>
+                            Any edits via the Overview tab will appear here automatically.
+                        </div>
+                    ) : (
+                        <div className="audit-feed">
+                            {rows.map(r => (
+                                <AuditEntry
+                                    key={r.id}
+                                    row={r}
+                                    actor={actorsById.get(r.actor_povio_id)}
+                                    showAccountName={false}
+                                />
+                            ))}
+                            {hasMore && (
+                                <button className="audit-load-more" onClick={loadMore}>Load more</button>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // <AuditLogView> — global feed shown in Admin. Filters by account
+        // name search + actor + kind + date range pill.
+        const AuditLogView = ({ allowedUsers, onAccountClick }) => {
+            const [rows, setRows] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [hasMore, setHasMore] = useState(false);
+            const [searchAcct, setSearchAcct] = useState('');
+            const [filterActor, setFilterActor] = useState('');
+            const [filterKind, setFilterKind]   = useState('');
+            const [range, setRange] = useState('30d');
+            const PAGE = 50;
+
+            const actorsById = useMemo(() => {
+                const m = new Map();
+                (allowedUsers || []).forEach(u => m.set(u.povio_id, u));
+                return m;
+            }, [allowedUsers]);
+
+            const loadInitial = async () => {
+                setLoading(true);
+                const { rows, hasMore } = await fetchAuditRows({
+                    actorId: filterActor || null,
+                    kind: filterKind || null,
+                    sinceIso: auditSinceIso(range),
+                    limit: PAGE,
+                });
+                setRows(rows);
+                setHasMore(hasMore);
+                setLoading(false);
+            };
+            const loadMore = async () => {
+                if (rows.length === 0) return;
+                const cursor = rows[rows.length - 1].occurred_at;
+                const { rows: more, hasMore } = await fetchAuditRows({
+                    actorId: filterActor || null,
+                    kind: filterKind || null,
+                    sinceIso: auditSinceIso(range),
+                    before: cursor,
+                    limit: PAGE,
+                });
+                setRows([...rows, ...more]);
+                setHasMore(hasMore);
+            };
+            useEffect(() => { loadInitial(); }, [filterActor, filterKind, range]);
+
+            // Account-name search is client-side over already-fetched rows.
+            // (Filtering server-side would need an ilike on the joined column,
+            // which Supabase REST doesn't support cleanly. The page-size of 50
+            // makes client-side filter responsive enough.)
+            const visible = searchAcct
+                ? rows.filter(r => (r._account_name || '').toLowerCase().includes(searchAcct.toLowerCase()))
+                : rows;
+
+            return (
+                <div>
+                    <div className="filters-bar">
+                        <input
+                            className="search-input"
+                            type="text"
+                            placeholder="Filter by account name…"
+                            value={searchAcct}
+                            onChange={e => setSearchAcct(e.target.value)}
+                        />
+                        <select value={filterActor} onChange={e => setFilterActor(e.target.value)}>
+                            <option value="">All actors</option>
+                            {(allowedUsers || []).filter(u => u.povio_id).map(u => (
+                                <option key={u.povio_id} value={u.povio_id}>{u.name}</option>
+                            ))}
+                        </select>
+                        <select value={filterKind} onChange={e => setFilterKind(e.target.value)}>
+                            <option value="">All kinds</option>
+                            <option value="edit">Edits</option>
+                            <option value="note">Notes</option>
+                            <option value="call">Calls</option>
+                            <option value="meeting">Meetings</option>
+                            <option value="email">Emails</option>
+                            <option value="qbr">QBRs</option>
+                            <option value="escalation">Escalations</option>
+                        </select>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                            {[['24h','24h'],['7d','7d'],['30d','30d'],['','all']].map(([v, label]) => (
+                                <button
+                                    key={v || 'all'}
+                                    className={'toggle-pill ' + (range === v ? 'active' : '')}
+                                    onClick={() => setRange(v)}
+                                >{label}</button>
+                            ))}
+                        </div>
+                    </div>
+                    {loading ? (
+                        <div className="audit-empty">Loading audit log…</div>
+                    ) : visible.length === 0 ? (
+                        <div className="audit-empty">
+                            <strong>{rows.length === 0 ? 'No audit entries yet.' : 'No matches for that account name.'}</strong>
+                            {rows.length === 0 && (
+                                <span>Edits to any account via the Overview tab, and manually-logged notes / calls / meetings, will appear here automatically.</span>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="audit-feed">
+                            {visible.map(r => (
+                                <AuditEntry
+                                    key={r.id}
+                                    row={r}
+                                    actor={actorsById.get(r.actor_povio_id)}
+                                    showAccountName={true}
+                                    onAccountClick={onAccountClick}
+                                />
+                            ))}
+                            {hasMore && !searchAcct && (
+                                <button className="audit-load-more" onClick={loadMore}>Load more</button>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
         // ============== Accounts (full 198-row list) ==============
-        const AccountsView = ({ whales, allowedUsers, onUpdate, onWhalesRefresh, currentPovioUser, user }) => {
+        const AccountsView = ({ whales, allowedUsers, onUpdate, onWhalesRefresh, currentPovioUser, user, pendingWhaleId, onPendingHandled }) => {
             // Selected row → opens slide-out sidebar on the right. Click another
             // row to swap; click ✕ / Esc / same-row again to close.
-            const [selectedId, setSelectedId] = useState(null);
+            const [selectedId, setSelectedId] = useState(pendingWhaleId || null);
             const [activeTab, setActiveTab] = useState('overview');
+
+            // Consume the deep-link from Admin's audit log: open the requested
+            // whale in the sidebar, then clear the pending state so subsequent
+            // navigation doesn't reopen it.
+            useEffect(() => {
+                if (pendingWhaleId) {
+                    setSelectedId(pendingWhaleId);
+                    setActiveTab('overview');
+                    if (onPendingHandled) onPendingHandled();
+                }
+            }, [pendingWhaleId]);
             const [search, setSearch] = useState('');
             const [filterOwner, setFilterOwner] = useState('all');
             const [filterHealth, setFilterHealth] = useState('all');
@@ -3752,6 +4276,7 @@
                                 </div>
                                 <div className="acct-sidebar-tabs">
                                     <button className={'acct-sidebar-tab ' + (activeTab === 'overview' ? 'active' : '')} onClick={() => setActiveTab('overview')}>Overview</button>
+                                    <button className={'acct-sidebar-tab ' + (activeTab === 'history' ? 'active' : '')} onClick={() => setActiveTab('history')}>History</button>
                                     <button className={'acct-sidebar-tab ' + (activeTab === 'qbr' ? 'active' : '')} onClick={() => setActiveTab('qbr')}>QBR history</button>
                                 </div>
                                 <div className="acct-sidebar-body">
@@ -3925,6 +4450,9 @@
                                                         <div style={{ marginTop: 14, fontSize: 11, color: 'var(--povio-blue)' }}>Saving…</div>
                                                     )}
                                                 </div>
+                                            )}
+                                            {activeTab === 'history' && (
+                                                <AccountHistoryFeed whaleId={w.id} allowedUsers={allowedUsers} />
                                             )}
                                             {activeTab === 'qbr' && (
                                                 <div>
@@ -4471,15 +4999,17 @@
             );
         };
 
-        const AdminView = ({ whales, allowedUsers, user, currentPovioUser, onWhalesRefresh }) => {
-            const [tab, setTab] = useState('import');
+        const AdminView = ({ whales, allowedUsers, user, currentPovioUser, onWhalesRefresh, openAccountById }) => {
+            const [tab, setTab] = useState('audit');
             return (
                 <div>
-                    <div style={{ display: 'flex', gap: 6, padding: 4, background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10, marginBottom: 18, width: 'fit-content' }}>
+                    <div style={{ display: 'flex', gap: 6, padding: 4, background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10, marginBottom: 18, width: 'fit-content', flexWrap: 'wrap' }}>
+                        <button className={'view-btn ' + (tab === 'audit' ? 'active' : '')} onClick={() => setTab('audit')}>Audit log</button>
                         <button className={'view-btn ' + (tab === 'import' ? 'active' : '')} onClick={() => setTab('import')}>Import 198 accounts</button>
                         <button className={'view-btn ' + (tab === 'team' ? 'active' : '')} onClick={() => setTab('team')}>Team allowlist</button>
                         <button className={'view-btn ' + (tab === 'data' ? 'active' : '')} onClick={() => setTab('data')}>Data status</button>
                     </div>
+                    {tab === 'audit' && <AuditLogView allowedUsers={allowedUsers} onAccountClick={openAccountById} />}
                     {tab === 'import' && <ImportFlow user={user} currentPovioUser={currentPovioUser} allowedUsers={allowedUsers} onWhalesRefresh={onWhalesRefresh} />}
                     {tab === 'team' && (
                         <table className="data-table">
@@ -4870,6 +5400,16 @@
 
             const [view, setView] = useState(getViewFromHash);
             const [allowedUsers, setAllowedUsers] = useState([]);  // directory (Vid + all AMs)
+
+            // Cross-view "deep-link" for opening a specific account. The audit
+            // log in Admin clicks an account name → we setView('whales') and
+            // stash the ID here; AccountsView reads it on mount, pre-selects,
+            // and clears via onPendingHandled.
+            const [pendingWhaleId, setPendingWhaleId] = useState(null);
+            const openAccountById = (id) => {
+                setPendingWhaleId(id);
+                setView('whales');
+            };
 
             // Theme: 'blue' (default Povio palette) | 'pink' (baby-pink palette).
             // Per-device, stored in localStorage('povio-theme'). The pre-React inline
@@ -5341,12 +5881,12 @@
                     {isAdmin && view === 'dashboard' && <DashboardView whales={whales} goals={goals} allowedUsers={allowedUsers} setView={setView} />}
                     {isAdmin && view === 'goals'     && <GoalsView goals={goals} onUpdate={updateGoal} onDelete={deleteGoal} onAdd={addGoal} />}
                     {isAdmin && view === 'roadmap'   && <RoadmapView goals={goals} />}
-                    {            view === 'whales'   && <AccountsView whales={whales} allowedUsers={allowedUsers} onUpdate={updateWhales} onWhalesRefresh={fetchWhales} currentPovioUser={currentPovioUser} user={user} />}
+                    {            view === 'whales'   && <AccountsView whales={whales} allowedUsers={allowedUsers} onUpdate={updateWhales} onWhalesRefresh={fetchWhales} currentPovioUser={currentPovioUser} user={user} pendingWhaleId={pendingWhaleId} onPendingHandled={() => setPendingWhaleId(null)} />}
                     {            view === 'calendar' && <CalendarView teamData={teamData} events={calendarEvents} onUpdateEvents={updateCalendarEvents} user={user} readOnly={!isAdmin} />}
                     {isAdmin && view === 'team'      && <TeamView teamData={teamData} onUpdate={updateTeam} user={user} />}
                     {            view === 'my-week'   && <MyWeekView whales={whales} user={user} currentPovioUser={currentPovioUser} isAdmin={isAdmin} />}
                     {isAdmin && view === 'process'   && <ProcessView />}
-                    {isAdmin && view === 'admin'     && <AdminView whales={whales} allowedUsers={allowedUsers} user={user} currentPovioUser={currentPovioUser} onWhalesRefresh={fetchWhales} />}
+                    {isAdmin && view === 'admin'     && <AdminView whales={whales} allowedUsers={allowedUsers} user={user} currentPovioUser={currentPovioUser} onWhalesRefresh={fetchWhales} openAccountById={openAccountById} />}
 
                     {/* Mobile bottom nav — adapts to role */}
                     <nav className="mobile-nav">
