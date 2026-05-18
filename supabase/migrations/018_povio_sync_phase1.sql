@@ -18,7 +18,7 @@
 --    show up in the Admin "unlinked" list for explicit review.
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS povio_clients (
-    whale_id          uuid PRIMARY KEY REFERENCES whales(id) ON DELETE CASCADE,
+    whale_id          integer PRIMARY KEY REFERENCES whales(id) ON DELETE CASCADE,
     povio_client_id   integer NOT NULL,
     povio_company     text NOT NULL,                          -- snapshot of the name at link time, for "diverged?" detection
     match_confidence  text NOT NULL,                          -- 'exact' | 'fuzzy' | 'manual'
