@@ -689,6 +689,113 @@
         .acct-tab:hover { color: var(--povio-gray-900); }
         .acct-tab.active { color: var(--povio-blue); border-bottom-color: var(--povio-blue); }
         .acct-tab-content { padding: 22px; }
+
+        /* ===== Account detail sidebar (slides in from right) ===== */
+        /* List stays full width on the left; sidebar floats over the right edge.
+           No backdrop — list remains interactive so users can click row → row
+           and the sidebar swaps content. ESC + ✕ close it. */
+        .acct-sidebar {
+            position: fixed; top: 0; right: 0; bottom: 0;
+            width: 540px; max-width: 100vw;
+            background: var(--povio-white);
+            box-shadow: -12px 0 40px rgba(10, 10, 10, 0.10);
+            z-index: 90;
+            display: flex; flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .acct-sidebar.open { transform: translateX(0); }
+        .acct-sidebar-header {
+            flex-shrink: 0;
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--povio-border);
+            background: var(--povio-white);
+            position: relative;
+        }
+        .acct-sidebar-close {
+            position: absolute; top: 12px; right: 12px;
+            width: 32px; height: 32px;
+            border-radius: 8px; border: none;
+            background: transparent; color: var(--povio-gray-500);
+            font-size: 22px; line-height: 1;
+            cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: all 0.15s ease;
+        }
+        .acct-sidebar-close:hover { background: var(--povio-gray-100); color: var(--povio-gray-900); }
+        .acct-sidebar-title {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 20px; font-weight: 800;
+            letter-spacing: -0.4px; color: var(--povio-black);
+            padding-right: 40px;
+            line-height: 1.25;
+        }
+        .acct-sidebar-sub { font-size: 12px; color: var(--povio-gray-500); margin-top: 4px; }
+        .acct-sidebar-meta {
+            display: flex; flex-wrap: wrap; gap: 18px;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px dashed var(--povio-border);
+        }
+        .acct-sidebar-meta-item { display: inline-flex; flex-direction: column; gap: 3px; }
+        .acct-sidebar-meta-label {
+            font-size: 9px; text-transform: uppercase;
+            letter-spacing: 0.6px; color: var(--povio-gray-500);
+            font-weight: 700;
+        }
+        .acct-sidebar-meta-value { font-size: 13px; font-weight: 700; color: var(--povio-black); }
+        .acct-sidebar-meta-value.arr { color: var(--povio-blue); font-size: 14px; }
+        .acct-sidebar-tabs {
+            flex-shrink: 0;
+            display: flex; padding: 0 20px;
+            background: var(--povio-white);
+            border-bottom: 1px solid var(--povio-border);
+        }
+        .acct-sidebar-tab {
+            padding: 13px 14px; border: none;
+            background: transparent;
+            font-size: 13px; font-weight: 600;
+            color: var(--povio-gray-500);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+        }
+        .acct-sidebar-tab:hover { color: var(--povio-gray-900); }
+        .acct-sidebar-tab.active { color: var(--povio-blue); border-bottom-color: var(--povio-blue); }
+        .acct-sidebar-body {
+            flex: 1; overflow-y: auto;
+            padding: 20px 22px 50px;
+            background: var(--povio-bg);
+        }
+        /* Card-style sections inside the sidebar (instead of bare detail-grid) */
+        .acct-sidebar-body .detail-grid { grid-template-columns: 1fr; gap: 10px; }
+        .acct-sidebar-body .detail-section {
+            background: var(--povio-white);
+            border: 1px solid var(--povio-border);
+            border-radius: 10px;
+            padding: 14px 16px;
+        }
+        .acct-sidebar-body .detail-section h4 { margin-bottom: 8px; }
+        .acct-sidebar-body textarea {
+            background: var(--povio-white) !important;
+        }
+
+        /* Selected row state in the list */
+        .account-row.selected {
+            border-color: var(--povio-blue);
+            box-shadow: 0 0 0 1px var(--povio-blue), 0 4px 14px var(--povio-blue-subtle);
+        }
+        .account-row.selected .account-summary { background: var(--povio-blue-subtle); }
+        .acct-expand-icon.selected { color: var(--povio-blue); transform: rotate(-90deg); }
+
+        @media (max-width: 600px) {
+            .acct-sidebar { width: 100vw; box-shadow: none; }
+            .acct-sidebar-header { padding: 14px 16px 12px; }
+            .acct-sidebar-body { padding: 14px 14px 40px; }
+            .acct-sidebar-tabs { padding: 0 12px; }
+            .acct-sidebar-tab { padding: 12px 10px; }
+            .acct-sidebar-title { font-size: 18px; padding-right: 36px; }
+        }
         .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
         .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--povio-border); font-size: 13px; gap: 12px; min-height: 36px; }
         .detail-row:last-child { border-bottom: none; }
@@ -3421,7 +3528,9 @@
 
         // ============== Accounts (full 198-row list) ==============
         const AccountsView = ({ whales, allowedUsers, onUpdate, onWhalesRefresh, currentPovioUser, user }) => {
-            const [expandedId, setExpandedId] = useState(null);
+            // Selected row → opens slide-out sidebar on the right. Click another
+            // row to swap; click ✕ / Esc / same-row again to close.
+            const [selectedId, setSelectedId] = useState(null);
             const [activeTab, setActiveTab] = useState('overview');
             const [search, setSearch] = useState('');
             const [filterOwner, setFilterOwner] = useState('all');
@@ -3435,6 +3544,18 @@
                 allowedUsers.forEach(u => m.set(u.povio_id, u));
                 return m;
             }, [allowedUsers]);
+
+            // Close the sidebar on Esc key — universal "dismiss panel" affordance.
+            useEffect(() => {
+                if (!selectedId) return;
+                const onKey = (e) => { if (e.key === 'Escape') setSelectedId(null); };
+                window.addEventListener('keydown', onKey);
+                return () => window.removeEventListener('keydown', onKey);
+            }, [selectedId]);
+
+            // Currently-selected whale, looked up freshly so saveField+refetch
+            // updates flow through naturally without needing setState dance.
+            const selectedWhale = selectedId ? whales.find(w => w.id === selectedId) : null;
 
             // Save a single field to Supabase, then refresh the whales list.
             // Used by all the InlineEdit components in the Overview tab.
@@ -3535,11 +3656,11 @@
                         </div>
                     ) : filtered.map(w => {
                         const owner = ownersById.get(w.owner_povio_id);
-                        const isExpanded = expandedId === w.id;
+                        const isSelected = selectedId === w.id;
                         const healthClass = ['healthy', 'at_risk', 'critical'].includes((w.health || '').toLowerCase()) ? (w.health || '').toLowerCase() : 'healthy';
                         return (
-                            <div className={'account-row ' + healthClass} key={w.id}>
-                                <div className="account-summary" onClick={() => { setExpandedId(isExpanded ? null : w.id); setActiveTab('overview'); }}>
+                            <div className={'account-row ' + healthClass + (isSelected ? ' selected' : '')} key={w.id}>
+                                <div className="account-summary" onClick={() => { setSelectedId(isSelected ? null : w.id); setActiveTab('overview'); }}>
                                     <div className="acct-name-cell">
                                         {w.is_key_account && <span style={{ fontSize: 14 }}>🐋</span>}
                                         <div style={{ minWidth: 0 }}>
@@ -3570,17 +3691,71 @@
                                     </div>
                                     <div className="acct-hide-mobile" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12, color: 'var(--povio-gray-500)', fontStyle: 'italic' }}>{w.last_note || w.notes || ''}</div>
                                     <div className="acct-hide-mobile" style={{ fontSize: 12, color: 'var(--povio-gray-500)' }}>{relTime(w.updated_at || w.last_touch_at)}</div>
-                                    <div className={'acct-expand-icon ' + (isExpanded ? 'expanded' : '')}>⌄</div>
+                                    <div className={'acct-expand-icon ' + (isSelected ? 'selected' : '')}>›</div>
                                 </div>
+                            </div>
+                        );
+                    })}
 
-                                {isExpanded && (
-                                    <div className="acct-expanded">
-                                        <div className="acct-tabs">
-                                            <button className={'acct-tab ' + (activeTab === 'overview' ? 'active' : '')} onClick={() => setActiveTab('overview')}>Overview</button>
-                                            <button className={'acct-tab ' + (activeTab === 'edit' ? 'active' : '')} onClick={() => setActiveTab('edit')}>Edit</button>
-                                            <button className={'acct-tab ' + (activeTab === 'qbr' ? 'active' : '')} onClick={() => setActiveTab('qbr')}>QBR history</button>
+                    {/* ===== Slide-out detail sidebar ===== */}
+                    {/* Anchored to the right edge of the viewport. Renders the
+                        same Overview / Edit / QBR content the inline accordion
+                        used to show, but in a dedicated panel so the list stays
+                        visible behind it. The IIFE scopes `w` → selectedWhale so
+                        the existing inline JSX below can be reused unchanged. */}
+                    {selectedWhale && (() => {
+                        const w = selectedWhale;
+                        const owner = ownersById.get(w.owner_povio_id);
+                        const healthClass = ['healthy', 'at_risk', 'critical'].includes((w.health || '').toLowerCase()) ? (w.health || '').toLowerCase() : 'healthy';
+                        return (
+                            <div className="acct-sidebar open" key={w.id} role="dialog" aria-modal="false" aria-labelledby="acct-sb-title">
+                                <div className="acct-sidebar-header">
+                                    <button className="acct-sidebar-close" onClick={() => setSelectedId(null)} aria-label="Close detail panel" title="Close (Esc)">×</button>
+                                    <div className="acct-sidebar-title" id="acct-sb-title">
+                                        {w.is_key_account && <span title="Key account">🐋</span>}
+                                        <span>{w.name}</span>
+                                    </div>
+                                    <div className="acct-sidebar-sub">
+                                        {w.industry || '—'} · {(w.engagement_type || 'team_aug').replace('_', ' ')}
+                                    </div>
+                                    <div className="acct-sidebar-meta">
+                                        <div className="acct-sidebar-meta-item">
+                                            <span className="acct-sidebar-meta-label">ARR</span>
+                                            <span className="acct-sidebar-meta-value arr">{fmtARR(w.arr)}</span>
                                         </div>
-                                        <div className="acct-tab-content">
+                                        {w.fte > 0 && (
+                                            <div className="acct-sidebar-meta-item">
+                                                <span className="acct-sidebar-meta-label">FTE</span>
+                                                <span className="acct-sidebar-meta-value">{parseFloat(w.fte).toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        <div className="acct-sidebar-meta-item">
+                                            <span className="acct-sidebar-meta-label">Owner</span>
+                                            <span className="acct-sidebar-meta-value" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                {owner ? (
+                                                    <>
+                                                        <span style={{ width: 16, height: 16, borderRadius: '50%', background: owner.color || '#A3A3A3', color: 'white', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 700 }}>{owner.initials}</span>
+                                                        {owner.name}
+                                                    </>
+                                                ) : <span style={{ color: 'var(--povio-gray-400)' }}>— Unassigned —</span>}
+                                            </span>
+                                        </div>
+                                        <div className="acct-sidebar-meta-item">
+                                            <span className="acct-sidebar-meta-label">Health</span>
+                                            <span className={'tag tag-' + (healthClass === 'healthy' ? 'green' : healthClass === 'at_risk' ? 'yellow' : 'red')} style={{ fontSize: 11 }}>{(w.health || 'healthy').replace('_', ' ')}</span>
+                                        </div>
+                                        <div className="acct-sidebar-meta-item">
+                                            <span className="acct-sidebar-meta-label">Updated</span>
+                                            <span className="acct-sidebar-meta-value" style={{ fontWeight: 600, color: 'var(--povio-gray-700)' }}>{relTime(w.updated_at || w.last_touch_at) || '—'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="acct-sidebar-tabs">
+                                    <button className={'acct-sidebar-tab ' + (activeTab === 'overview' ? 'active' : '')} onClick={() => setActiveTab('overview')}>Overview</button>
+                                    <button className={'acct-sidebar-tab ' + (activeTab === 'edit' ? 'active' : '')} onClick={() => setActiveTab('edit')}>Edit</button>
+                                    <button className={'acct-sidebar-tab ' + (activeTab === 'qbr' ? 'active' : '')} onClick={() => setActiveTab('qbr')}>QBR history</button>
+                                </div>
+                                <div className="acct-sidebar-body">
                                             {activeTab === 'overview' && (
                                                 <div>
                                                     <p style={{ fontSize: 12, color: 'var(--povio-gray-500)', marginBottom: 16 }}>
@@ -3772,12 +3947,10 @@
                                                     )}
                                                 </div>
                                             )}
-                                        </div>
-                                    </div>
-                                )}
+                                </div>
                             </div>
                         );
-                    })}
+                    })()}
                 </div>
             );
         };
