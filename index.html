@@ -3752,7 +3752,6 @@
                                 </div>
                                 <div className="acct-sidebar-tabs">
                                     <button className={'acct-sidebar-tab ' + (activeTab === 'overview' ? 'active' : '')} onClick={() => setActiveTab('overview')}>Overview</button>
-                                    <button className={'acct-sidebar-tab ' + (activeTab === 'edit' ? 'active' : '')} onClick={() => setActiveTab('edit')}>Edit</button>
                                     <button className={'acct-sidebar-tab ' + (activeTab === 'qbr' ? 'active' : '')} onClick={() => setActiveTab('qbr')}>QBR history</button>
                                 </div>
                                 <div className="acct-sidebar-body">
@@ -3926,13 +3925,6 @@
                                                         <div style={{ marginTop: 14, fontSize: 11, color: 'var(--povio-blue)' }}>Saving…</div>
                                                     )}
                                                 </div>
-                                            )}
-                                            {activeTab === 'edit' && (
-                                                <WhaleEditForm whale={w} onSave={async (updated) => {
-                                                    const next = whales.map(x => x.id === w.id ? { ...x, ...updated } : x);
-                                                    await onUpdate(next);
-                                                    setActiveTab('overview');
-                                                }} onCancel={() => setActiveTab('overview')} />
                                             )}
                                             {activeTab === 'qbr' && (
                                                 <div>
