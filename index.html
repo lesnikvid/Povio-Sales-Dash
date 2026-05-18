@@ -4152,10 +4152,16 @@
                 return true;
             });
 
+            // Counts derived from `filtered` so they reflect the active filters
+            // in real time. Key count + health buckets all recompute every
+            // render. Cheap — ~200 rows, single pass.
+            const hasActiveFilter =
+                filterOwner !== 'all' || filterHealth !== 'all' || keyOnly || search.length > 0;
+            const keyCount = filtered.filter(w => w.is_key_account).length;
             const healthCounts = {
-                healthy: whales.filter(w => (w.health || '').toLowerCase() === 'healthy').length,
-                at_risk: whales.filter(w => ['at_risk', 'warning'].includes((w.health || '').toLowerCase())).length,
-                critical: whales.filter(w => (w.health || '').toLowerCase() === 'critical').length
+                healthy: filtered.filter(w => (w.health || '').toLowerCase() === 'healthy').length,
+                at_risk: filtered.filter(w => ['at_risk', 'warning'].includes((w.health || '').toLowerCase())).length,
+                critical: filtered.filter(w => (w.health || '').toLowerCase() === 'critical').length
             };
 
             const updateField = async (whale, field, newValue) => {
@@ -4167,12 +4173,24 @@
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 18, gap: 12, flexWrap: 'wrap' }}>
                         <div>
-                            <h2 style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px' }}>All accounts</h2>
+                            <h2 style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px' }}>
+                                {hasActiveFilter ? 'Filtered accounts' : 'All accounts'}
+                            </h2>
                             <p style={{ fontSize: 13, color: 'var(--povio-gray-500)', marginTop: 2 }}>
-                                {whales.length} total · {whales.filter(w => w.is_key_account).length} key accounts ·
-                                {' '}<span style={{ color: 'var(--povio-success)' }}>{healthCounts.healthy} healthy</span> ·
-                                {' '}<span style={{ color: 'var(--povio-warning)' }}>{healthCounts.at_risk} at risk</span> ·
-                                {' '}<span style={{ color: 'var(--povio-danger)' }}>{healthCounts.critical} critical</span>
+                                {hasActiveFilter
+                                    ? <>Showing <strong style={{ color: 'var(--povio-gray-900)' }}>{filtered.length}</strong> of {whales.length}</>
+                                    : <><strong style={{ color: 'var(--povio-gray-900)' }}>{filtered.length}</strong> total</>
+                                }
+                                {keyCount > 0 && <> · {keyCount} key account{keyCount === 1 ? '' : 's'}</>}
+                                {healthCounts.healthy  > 0 && <> · <span style={{ color: 'var(--povio-success)' }}>{healthCounts.healthy} healthy</span></>}
+                                {healthCounts.at_risk  > 0 && <> · <span style={{ color: 'var(--povio-warning)' }}>{healthCounts.at_risk} at risk</span></>}
+                                {healthCounts.critical > 0 && <> · <span style={{ color: 'var(--povio-danger)' }}>{healthCounts.critical} critical</span></>}
+                                {hasActiveFilter && (
+                                    <> · <button
+                                        onClick={() => { setFilterOwner('all'); setFilterHealth('all'); setKeyOnly(false); setSearch(''); }}
+                                        style={{ background: 'none', border: 'none', color: 'var(--povio-blue)', cursor: 'pointer', fontSize: 13, fontWeight: 600, padding: 0 }}
+                                    >Clear filters</button></>
+                                )}
                             </p>
                         </div>
                     </div>
