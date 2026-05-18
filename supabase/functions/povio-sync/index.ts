@@ -22,9 +22,24 @@
 //     -H "Content-Type: application/json" \
 //     -d '{"action":"test"}'
 //
-// Deploy:
-//   supabase secrets set POVIO_API_TOKEN=<token>
-//   supabase functions deploy povio-sync
+// Deploy: see README. Token is set via the Supabase Dashboard secrets UI
+// (or `supabase secrets set POVIO_API_TOKEN=...`) — never inline.
+//
+// =============================================================================
+// SECURITY — READ BEFORE CHANGING ANYTHING
+// =============================================================================
+// The POVIO_API_TOKEN secret is the keys to our production billing data.
+//   • NEVER console.log it, ever, anywhere — Edge Function logs are
+//     visible to all Supabase project members.
+//   • NEVER include it in an error message, response body, return value,
+//     or DB column (povio_sync_runs.errors and .summary included).
+//   • NEVER copy it into the React bundle — the token MUST stay server-side.
+//   • NEVER echo upstream Povio response bodies in errors that reach the
+//     browser. Their error body could theoretically contain the token.
+//     The 502 path below returns only status-class messages to the client.
+//   • If you need to debug, work locally with a throwaway test token.
+//   • Token rotation: regenerate at app.povio.com, then update the Supabase
+//     secret via Dashboard → Settings → Edge Functions → Secrets.
 // =============================================================================
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
@@ -37,12 +52,27 @@ const POVIO_BASE = "https://app.povio.com/api/public/v1";
 const SYNC_WINDOW_DAYS = 365;             // 12-month rolling window for ARR
 const PAGE_SIZE = 50;                     // page size for /clients and /invoices
 const INVOICE_DELAY_MS = 150;             // polite delay between per-client invoice calls
+const CONCURRENCY_WINDOW_MS = 10 * 60 * 1000;  // refuse new sync if one started < 10min ago
 
-const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+// CORS allowlist — only echo Origin if the request came from one of these.
+// Wildcard "*" would let any site preflight our endpoint, which combined
+// with an admin's stale JWT could enable cross-site invocation.
+const ALLOWED_ORIGINS = new Set<string>([
+    "https://lesnikvid.github.io",       // production GitHub Pages
+    "http://localhost:8000",             // local python http.server
+    "http://localhost:3000",
+    "http://localhost:54321",            // `supabase functions serve` local
+]);
+
+function corsFor(req: Request): Record<string, string> {
+    const origin = req.headers.get("Origin") || "";
+    return {
+        "Access-Control-Allow-Origin": ALLOWED_ORIGINS.has(origin) ? origin : "null",
+        "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Vary": "Origin",
+    };
+}
 
 // -----------------------------------------------------------------------------
 // Types (just the fields we consume)
@@ -68,24 +98,39 @@ interface PovioInvoice {
 // -----------------------------------------------------------------------------
 // HTTP helpers
 // -----------------------------------------------------------------------------
-function jsonResponse(body: unknown, status = 200) {
+function jsonResponse(body: unknown, status = 200, cors: Record<string, string> = {}) {
     return new Response(JSON.stringify(body), {
         status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
     });
 }
 
 async function povioGet<T>(path: string, params: Record<string, string | number> = {}): Promise<T> {
     const token = Deno.env.get("POVIO_API_TOKEN");
-    if (!token) throw new Error("POVIO_API_TOKEN secret not configured");
+    if (!token) throw new HttpError(500, "POVIO_API_TOKEN not configured");
     const qs = new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)]));
     const url = `${POVIO_BASE}${path}${qs.toString() ? "?" + qs.toString() : ""}`;
     const r = await fetch(url, {
         headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
     });
     if (!r.ok) {
-        const body = await r.text().catch(() => "");
-        throw new Error(`Povio ${r.status} on ${path}: ${body.slice(0, 200)}`);
+        // SECURITY: We do NOT include the upstream response body in the
+        // error we throw, because Povio's body could theoretically contain
+        // the token (some APIs echo invalid bearer tokens back, and we
+        // can't trust a third-party API not to). Status alone is enough
+        // for the user-facing error. If detailed debugging is needed,
+        // an operator with Supabase project access can investigate via
+        // the function's invocation history.
+        if (r.status === 401 || r.status === 403) {
+            throw new HttpError(502, "Povio auth failed — check token validity");
+        }
+        if (r.status === 429) {
+            throw new HttpError(502, "Povio rate limit hit — retry shortly");
+        }
+        if (r.status >= 500) {
+            throw new HttpError(502, "Povio API is having trouble — try again later");
+        }
+        throw new HttpError(502, `Povio API error (status ${r.status})`);
     }
     return r.json() as Promise<T>;
 }
@@ -180,13 +225,27 @@ async function actionListClients(): Promise<Record<string, unknown>> {
 // in $K. Log to povio_sync_runs.
 // -----------------------------------------------------------------------------
 async function actionSyncInvoices(supa: SupabaseClient, triggeredBy: string): Promise<Record<string, unknown>> {
+    // Concurrency guard: if another sync started recently and hasn't
+    // finished, refuse this one. Prevents double Povio API quota burn
+    // and duplicate writes when two admins click "Sync now" together.
+    const cutoff = new Date(Date.now() - CONCURRENCY_WINDOW_MS).toISOString();
+    const { data: inFlight } = await supa
+        .from("povio_sync_runs")
+        .select("id, started_at")
+        .is("finished_at", null)
+        .gte("started_at", cutoff)
+        .limit(1);
+    if (inFlight && inFlight.length > 0) {
+        throw new HttpError(409, "A sync is already in progress; wait for it to finish.");
+    }
+
     // Open a run row immediately so the Admin UI sees "running…"
     const { data: runRow, error: runErr } = await supa
         .from("povio_sync_runs")
         .insert({ triggered_by: triggeredBy, summary: "in progress" })
         .select()
         .single();
-    if (runErr) throw new Error("Could not open sync run: " + runErr.message);
+    if (runErr) throw new HttpError(500, "Could not open sync run");
     const runId = runRow.id;
     const errors: string[] = [];
     let invoicesPulled = 0;
@@ -262,22 +321,25 @@ async function actionSyncInvoices(supa: SupabaseClient, triggeredBy: string): Pr
 // Entrypoint
 // -----------------------------------------------------------------------------
 serve(async (req) => {
-    if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-    if (req.method !== "POST") return jsonResponse({ ok: false, error: "POST only" }, 405);
+    const cors = corsFor(req);
+    if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+    if (req.method !== "POST") return jsonResponse({ ok: false, error: "POST only" }, 405, cors);
 
     try {
         const { supa, povioId } = await requireAdmin(req);
         const body = await req.json().catch(() => ({}));
         const action = String(body?.action || "");
 
-        if (action === "test")           return jsonResponse(await actionTest());
-        if (action === "list-clients")   return jsonResponse(await actionListClients());
-        if (action === "sync-invoices")  return jsonResponse(await actionSyncInvoices(supa, povioId));
+        if (action === "test")           return jsonResponse(await actionTest(), 200, cors);
+        if (action === "list-clients")   return jsonResponse(await actionListClients(), 200, cors);
+        if (action === "sync-invoices")  return jsonResponse(await actionSyncInvoices(supa, povioId), 200, cors);
 
-        return jsonResponse({ ok: false, error: "unknown action: " + action }, 400);
+        return jsonResponse({ ok: false, error: "unknown action: " + action }, 400, cors);
     } catch (err: unknown) {
-        if (err instanceof HttpError) return jsonResponse({ ok: false, error: err.message }, err.status);
-        const msg = err instanceof Error ? err.message : String(err);
-        return jsonResponse({ ok: false, error: msg }, 500);
+        // SECURITY: only HttpError messages reach the client. Any other
+        // throwable surfaces as a generic 500 — we don't trust arbitrary
+        // Error.message strings not to contain something they shouldn't.
+        if (err instanceof HttpError) return jsonResponse({ ok: false, error: err.message }, err.status, cors);
+        return jsonResponse({ ok: false, error: "Internal server error" }, 500, cors);
     }
 });

@@ -1,0 +1,17 @@
+# =============================================================================
+# Supabase project config
+# =============================================================================
+# This file is read by the Supabase CLI for `functions serve` / `functions
+# deploy` / etc. Per-function settings live under [functions.<name>].
+#
+# We declare verify_jwt explicitly on every function we ship — Supabase's
+# default is true, but declaring it locks the behaviour against accidental
+# relaxation in a future deploy. With verify_jwt = true, the Supabase
+# functions gateway rejects requests that don't carry a valid Supabase JWT
+# in the Authorization header. Our function code then ALSO checks the
+# JWT corresponds to an admin in allowed_users — two layers, neither
+# sufficient alone, both required.
+# =============================================================================
+
+[functions.povio-sync]
+verify_jwt = true
