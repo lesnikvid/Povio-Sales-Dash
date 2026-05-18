@@ -1007,6 +1007,65 @@
         .import-bucket.update { background: var(--povio-blue-subtle); color: var(--povio-blue); }
         .import-bucket.skip   { background: var(--povio-warning-subtle); color: var(--povio-warning); }
 
+        /* ===== Povio sync (Admin) ===== */
+        .povio-status-card {
+            background: var(--povio-white);
+            border: 1px solid var(--povio-border);
+            border-radius: 12px;
+            padding: 16px 18px;
+            display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+        .povio-status-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: var(--povio-gray-400);
+            flex-shrink: 0;
+        }
+        .povio-status-dot.ok    { background: var(--povio-success); box-shadow: 0 0 0 4px var(--povio-success-subtle); }
+        .povio-status-dot.error { background: var(--povio-danger);  box-shadow: 0 0 0 4px var(--povio-danger-subtle); }
+        .povio-status-text { font-size: 13px; color: var(--povio-gray-700); flex: 1; }
+        .povio-status-text strong { color: var(--povio-gray-900); }
+        .povio-match-row {
+            display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 12px;
+            padding: 10px 14px; border-bottom: 1px solid var(--povio-border);
+            font-size: 13px; align-items: center;
+            background: var(--povio-white);
+        }
+        .povio-match-row:last-child { border-bottom: none; }
+        .povio-match-row.head {
+            font-size: 10px; font-weight: 700; color: var(--povio-gray-500);
+            text-transform: uppercase; letter-spacing: 0.5px;
+            background: var(--povio-gray-100); border-radius: 6px 6px 0 0;
+        }
+        .povio-match-suggestion { font-size: 12px; color: var(--povio-gray-700); }
+        .povio-match-suggestion .pct { color: var(--povio-gray-500); font-size: 11px; margin-left: 6px; }
+        .povio-match-actions { display: flex; gap: 6px; }
+        .povio-match-actions button {
+            padding: 4px 10px; font-size: 11px; font-weight: 600;
+            border-radius: 6px; cursor: pointer; border: 1px solid var(--povio-border);
+            background: var(--povio-white); color: var(--povio-gray-700);
+        }
+        .povio-match-actions button.primary {
+            background: var(--povio-blue); color: white; border-color: var(--povio-blue);
+        }
+        .povio-match-actions button.primary:hover { background: var(--povio-blue-hover); }
+        .povio-match-actions button:hover:not(.primary) { background: var(--povio-gray-100); }
+        .povio-runs-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .povio-runs-table th, .povio-runs-table td {
+            padding: 8px 12px; text-align: left;
+            border-bottom: 1px solid var(--povio-border);
+        }
+        .povio-runs-table th {
+            font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--povio-gray-500); background: var(--povio-gray-100);
+            font-weight: 700;
+        }
+        .povio-arr-flag {
+            display: inline-flex; align-items: center;
+            color: var(--povio-warning); font-size: 11px;
+            margin-left: 6px; cursor: help;
+        }
+
         /* Process flow + simple admin tables */
         .process-flow { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
         .process-step-card { flex: 1; min-width: 200px; background: var(--povio-white); border: 1px solid var(--povio-border); border-radius: 12px; padding: 16px; }
@@ -3765,8 +3824,9 @@
             last_note:             'last note',
             invoicing_note:        'invoicing note',
             project_manager:       'project manager',
-            is_key_account:        'key account',
             team_members:          'team members',
+            arr_from_povio:        'ARR (Povio)',
+            povio_synced_at:       'Povio sync time',
         }[k] || k.replace(/_/g, ' '));
 
         // <AuditDiffRows> — renders the before/after pairs for kind='edit'.
@@ -4376,10 +4436,31 @@
                                                         </div>
                                                         <div className="detail-section">
                                                             <h4>Financial</h4>
-                                                            <div className="detail-row"><span className="detail-label">ARR (in $K)</span>
-                                                                <InlineEdit value={w.arr || 0} display={<span style={{ color: 'var(--povio-blue)', fontWeight: 700 }}>{fmtARR(w.arr)}</span>}
+                                                            <div className="detail-row"><span className="detail-label">ARR — manual</span>
+                                                                <InlineEdit value={w.arr || 0} display={
+                                                                    <span style={{ color: 'var(--povio-blue)', fontWeight: 700, display: 'inline-flex', alignItems: 'center' }}>
+                                                                        {fmtARR(w.arr)}
+                                                                        {/* ⚠ flag when manual diverges from Povio by >20% (and both are non-zero) */}
+                                                                        {w.arr_from_povio != null && w.arr > 0 &&
+                                                                         Math.abs(w.arr - w.arr_from_povio) / Math.max(w.arr, w.arr_from_povio) > 0.20 && (
+                                                                            <span className="povio-arr-flag"
+                                                                                title={`Manual ${fmtARR(w.arr)} diverges from Povio billing ${fmtARR(w.arr_from_povio)} by ${Math.round(Math.abs(w.arr - w.arr_from_povio) / Math.max(w.arr, w.arr_from_povio) * 100)}%`}>⚠</span>
+                                                                        )}
+                                                                    </span>
+                                                                }
                                                                     onSave={v => saveField(w.id, 'arr', v)} type="number" />
                                                             </div>
+                                                            {w.arr_from_povio != null && (
+                                                                <div className="detail-row">
+                                                                    <span className="detail-label">ARR — Povio</span>
+                                                                    <span className="detail-value" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                                                                        <span style={{ color: 'var(--povio-success)', fontWeight: 700 }}>{fmtARR(w.arr_from_povio)}</span>
+                                                                        <span style={{ fontSize: 11, color: 'var(--povio-gray-500)', fontWeight: 500 }}>
+                                                                            from invoices · {relTime(w.povio_synced_at)}
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                            )}
                                                             <div className="detail-row"><span className="detail-label">LTV (in $K)</span>
                                                                 <InlineEdit value={w.ltv || 0} display={fmtARR(w.ltv)}
                                                                     onSave={v => saveField(w.id, 'ltv', v)} type="number" />
@@ -5054,17 +5135,319 @@
             );
         };
 
+        // ============== Povio sync (Admin tab) ==============
+        // Surfaces three sub-panels:
+        //   A. Connection — calls the povio-sync Edge Function with ?action=test
+        //   B. Client matching — fuzzy-matches unlinked whales against the
+        //      Povio /clients list (cached in-session via ?action=list-clients)
+        //   C. Sync runs — last 10 entries from povio_sync_runs, + Sync now button
+        // The Edge Function holds the bearer token; browser never sees it.
+
+        // Punctuation-stripped lowercase for stable fuzzy comparison.
+        const povioNorm = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+        // Tokenized Jaccard similarity over word sets — 0..1.
+        const povioSim = (a, b) => {
+            const tokA = new Set((a || '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean));
+            const tokB = new Set((b || '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean));
+            if (tokA.size === 0 || tokB.size === 0) return 0;
+            let inter = 0;
+            tokA.forEach(t => { if (tokB.has(t)) inter += 1; });
+            return inter / (tokA.size + tokB.size - inter);
+        };
+
+        const PovioSyncTab = ({ whales, allowedUsers, currentPovioUser, onWhalesRefresh }) => {
+            // Connection state
+            const [testResult, setTestResult] = useState(null);  // {ok, latency_ms, sample_client} | {ok:false, error}
+            const [testing, setTesting] = useState(false);
+
+            // Povio clients list (cached after first list-clients call)
+            const [povioClientsList, setPovioClientsList] = useState(null);  // array | null
+            const [loadingList, setLoadingList] = useState(false);
+
+            // Existing links from DB
+            const [links, setLinks] = useState([]);
+            const [linksLoaded, setLinksLoaded] = useState(false);
+
+            // Sync runs from DB (most recent 10)
+            const [runs, setRuns] = useState([]);
+            const [syncing, setSyncing] = useState(false);
+
+            // Initial load: pull existing links + recent runs from DB.
+            useEffect(() => {
+                (async () => {
+                    const [linksRes, runsRes] = await Promise.all([
+                        supabaseClient.from('povio_clients').select('*'),
+                        supabaseClient.from('povio_sync_runs').select('*').order('started_at', { ascending: false }).limit(10),
+                    ]);
+                    setLinks(linksRes.data || []);
+                    setRuns(runsRes.data || []);
+                    setLinksLoaded(true);
+                })();
+            }, []);
+
+            const refreshLinks = async () => {
+                const { data } = await supabaseClient.from('povio_clients').select('*');
+                setLinks(data || []);
+            };
+            const refreshRuns = async () => {
+                const { data } = await supabaseClient.from('povio_sync_runs').select('*').order('started_at', { ascending: false }).limit(10);
+                setRuns(data || []);
+            };
+
+            // ---- Action: test connection ----
+            const runTest = async () => {
+                setTesting(true);
+                const { data, error } = await supabaseClient.functions.invoke('povio-sync', { body: { action: 'test' } });
+                setTesting(false);
+                if (error) { setTestResult({ ok: false, error: error.message || String(error) }); return; }
+                setTestResult(data);
+            };
+
+            // ---- Action: load Povio client list (cached per session) ----
+            const loadList = async () => {
+                if (povioClientsList) return povioClientsList;
+                setLoadingList(true);
+                const { data, error } = await supabaseClient.functions.invoke('povio-sync', { body: { action: 'list-clients' } });
+                setLoadingList(false);
+                if (error || !data?.ok) { alert('Could not load Povio clients: ' + (error?.message || data?.error)); return null; }
+                setPovioClientsList(data.clients);
+                return data.clients;
+            };
+
+            // ---- Action: sync invoices ----
+            const runSync = async () => {
+                if (!confirm('Sync paid invoices for the last 12 months from Povio? This will overwrite arr_from_povio on linked whales.')) return;
+                setSyncing(true);
+                const { data, error } = await supabaseClient.functions.invoke('povio-sync', { body: { action: 'sync-invoices' } });
+                setSyncing(false);
+                await refreshRuns();
+                await refreshLinks();
+                if (onWhalesRefresh) await onWhalesRefresh();
+                if (error) { alert('Sync failed: ' + (error.message || String(error))); return; }
+                alert(`Sync done. Pulled ${data.invoices_pulled} invoices, updated ${data.whales_updated} whales.` +
+                      (data.errors?.length ? '\\n\\n' + data.errors.length + ' errors. See run history.' : ''));
+            };
+
+            // ---- Matching: derive unlinked whales + fuzzy suggestions ----
+            const linkedByWhale = useMemo(() => new Map(links.map(l => [l.whale_id, l])), [links]);
+            const linkedPovioIds = useMemo(() => new Set(links.map(l => l.povio_client_id)), [links]);
+            const unlinkedWhales = useMemo(
+                () => whales.filter(w => !linkedByWhale.has(w.id)),
+                [whales, linkedByWhale]
+            );
+
+            // For each unlinked whale, compute top-3 fuzzy candidates from the cached list.
+            const matchSuggestions = useMemo(() => {
+                if (!povioClientsList || unlinkedWhales.length === 0) return new Map();
+                const m = new Map();
+                const candidates = povioClientsList.filter(c => !linkedPovioIds.has(c.id));
+                for (const w of unlinkedWhales) {
+                    const ranked = candidates
+                        .map(c => ({ ...c, sim: povioSim(w.name, c.company) }))
+                        .filter(c => c.sim > 0.3)
+                        .sort((a, b) => b.sim - a.sim)
+                        .slice(0, 3);
+                    m.set(w.id, ranked);
+                }
+                return m;
+            }, [povioClientsList, unlinkedWhales, linkedPovioIds]);
+
+            // Link a single whale → povio client.
+            const linkOne = async (whale, povioClient, confidence) => {
+                const { error } = await supabaseClient.from('povio_clients').insert({
+                    whale_id: whale.id,
+                    povio_client_id: povioClient.id,
+                    povio_company: povioClient.company,
+                    match_confidence: confidence,
+                    linked_by: currentPovioUser?.povio_id,
+                });
+                if (error) { alert('Could not link: ' + error.message); return; }
+                await refreshLinks();
+            };
+
+            const unlinkOne = async (whaleId) => {
+                if (!confirm('Remove this Povio link? (The whale stays; only the link is dropped.)')) return;
+                const { error } = await supabaseClient.from('povio_clients').delete().eq('whale_id', whaleId);
+                if (error) { alert(error.message); return; }
+                await refreshLinks();
+            };
+
+            // Bulk: accept all exact (sim ≥ 0.95) matches at once.
+            const acceptAllExact = async () => {
+                const toLink = [];
+                for (const w of unlinkedWhales) {
+                    const top = matchSuggestions.get(w.id)?.[0];
+                    if (top && top.sim >= 0.95) toLink.push({ whale: w, client: top });
+                }
+                if (toLink.length === 0) { alert('No exact matches found above the 0.95 threshold.'); return; }
+                if (!confirm(`Auto-link ${toLink.length} whale${toLink.length === 1 ? '' : 's'} to their exact-name match in Povio?`)) return;
+                const rows = toLink.map(({ whale, client }) => ({
+                    whale_id: whale.id,
+                    povio_client_id: client.id,
+                    povio_company: client.company,
+                    match_confidence: 'exact',
+                    linked_by: currentPovioUser?.povio_id,
+                }));
+                const { error } = await supabaseClient.from('povio_clients').insert(rows);
+                if (error) { alert('Bulk link failed: ' + error.message); return; }
+                await refreshLinks();
+            };
+
+            // Render
+
+            return (
+                <div>
+                    {/* ===== A. Connection status ===== */}
+                    <h3 style={{ fontSize: 13, textTransform: 'uppercase', color: 'var(--povio-gray-500)', letterSpacing: 0.5, marginBottom: 8 }}>Connection</h3>
+                    <div className="povio-status-card">
+                        <span className={'povio-status-dot ' + (testResult == null ? '' : testResult.ok ? 'ok' : 'error')} />
+                        <div className="povio-status-text">
+                            {testResult == null ? (
+                                <>Token status unknown. Click <strong>Test connection</strong>.</>
+                            ) : testResult.ok ? (
+                                <>
+                                    <strong>Connected.</strong> Last test {testResult.latency_ms}ms.
+                                    {testResult.sample_client && (
+                                        <> Sample client: <em>{testResult.sample_client.company}</em>.</>
+                                    )}
+                                </>
+                            ) : (
+                                <><strong style={{ color: 'var(--povio-danger)' }}>Failed:</strong> {testResult.error}</>
+                            )}
+                        </div>
+                        <button className="btn btn-secondary btn-small" onClick={runTest} disabled={testing}>
+                            {testing ? 'Testing…' : 'Test connection'}
+                        </button>
+                    </div>
+
+                    {/* ===== B. Client matching ===== */}
+                    <h3 style={{ fontSize: 13, textTransform: 'uppercase', color: 'var(--povio-gray-500)', letterSpacing: 0.5, marginBottom: 8, marginTop: 24 }}>Client matching</h3>
+                    <div className="povio-status-card">
+                        <div className="povio-status-text">
+                            <strong>{whales.length}</strong> whales · <strong style={{ color: 'var(--povio-success)' }}>{links.length}</strong> linked · <strong style={{ color: 'var(--povio-warning)' }}>{unlinkedWhales.length}</strong> unmatched
+                            {povioClientsList && <> · {povioClientsList.length} clients in Povio</>}
+                        </div>
+                        {!povioClientsList ? (
+                            <button className="btn btn-primary btn-small" onClick={loadList} disabled={loadingList}>
+                                {loadingList ? 'Loading…' : 'Load Povio clients'}
+                            </button>
+                        ) : (
+                            <button className="btn btn-secondary btn-small" onClick={acceptAllExact}>Accept all exact matches</button>
+                        )}
+                    </div>
+
+                    {povioClientsList && unlinkedWhales.length > 0 && (
+                        <div style={{ background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10, overflow: 'hidden', marginTop: 10 }}>
+                            <div className="povio-match-row head">
+                                <span>Our whale</span>
+                                <span>Top Povio match</span>
+                                <span style={{ textAlign: 'right' }}>Confidence</span>
+                                <span></span>
+                            </div>
+                            {unlinkedWhales.slice(0, 40).map(w => {
+                                const cand = matchSuggestions.get(w.id) || [];
+                                const top = cand[0];
+                                return (
+                                    <div className="povio-match-row" key={w.id}>
+                                        <span style={{ fontWeight: 600 }}>{w.name}</span>
+                                        <span className="povio-match-suggestion">
+                                            {top ? top.company : <em style={{ color: 'var(--povio-gray-400)' }}>no candidate found</em>}
+                                            {cand.length > 1 && (
+                                                <details style={{ display: 'inline', marginLeft: 8 }}>
+                                                    <summary style={{ display: 'inline', cursor: 'pointer', color: 'var(--povio-blue)', fontSize: 11 }}>{cand.length - 1} more</summary>
+                                                    <div style={{ paddingTop: 6 }}>
+                                                        {cand.slice(1).map(c => (
+                                                            <div key={c.id} style={{ fontSize: 12, marginTop: 4 }}>
+                                                                {c.company} <span className="pct">{Math.round(c.sim * 100)}%</span>{' '}
+                                                                <button onClick={() => linkOne(w, c, c.sim >= 0.95 ? 'exact' : 'fuzzy')}
+                                                                    style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, border: '1px solid var(--povio-border)', background: 'var(--povio-white)', cursor: 'pointer' }}>link</button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </details>
+                                            )}
+                                        </span>
+                                        <span style={{ textAlign: 'right', fontWeight: 700, color: top && top.sim >= 0.95 ? 'var(--povio-success)' : top && top.sim >= 0.6 ? 'var(--povio-warning)' : 'var(--povio-gray-400)' }}>
+                                            {top ? Math.round(top.sim * 100) + '%' : '—'}
+                                        </span>
+                                        <div className="povio-match-actions">
+                                            {top && (
+                                                <button
+                                                    className="primary"
+                                                    onClick={() => linkOne(w, top, top.sim >= 0.95 ? 'exact' : 'fuzzy')}
+                                                >Link →</button>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                            {unlinkedWhales.length > 40 && (
+                                <div style={{ padding: 10, textAlign: 'center', color: 'var(--povio-gray-500)', fontSize: 12 }}>
+                                    … and {unlinkedWhales.length - 40} more. Use bulk-accept above.
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {povioClientsList && unlinkedWhales.length === 0 && (
+                        <div style={{ padding: 30, textAlign: 'center', color: 'var(--povio-gray-500)', background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10, marginTop: 10 }}>
+                            ✓ Every whale is linked to a Povio client.
+                        </div>
+                    )}
+
+                    {/* ===== C. Sync runs ===== */}
+                    <h3 style={{ fontSize: 13, textTransform: 'uppercase', color: 'var(--povio-gray-500)', letterSpacing: 0.5, marginBottom: 8, marginTop: 24 }}>Sync runs</h3>
+                    <div className="povio-status-card">
+                        <div className="povio-status-text">
+                            {runs.length === 0
+                                ? <>No syncs run yet.</>
+                                : <>Last sync: <strong>{relTime(runs[0].started_at)}</strong> · {runs[0].whales_updated} whales updated · {runs[0].errors?.length ? <span style={{ color: 'var(--povio-danger)' }}>{runs[0].errors.length} errors</span> : 'no errors'}</>
+                            }
+                        </div>
+                        <button className="btn btn-primary btn-small" onClick={runSync} disabled={syncing || links.length === 0}>
+                            {syncing ? 'Syncing…' : 'Sync now'}
+                        </button>
+                    </div>
+
+                    {runs.length > 0 && (
+                        <table className="povio-runs-table">
+                            <thead>
+                                <tr><th>Started</th><th>By</th><th>Invoices</th><th>Whales updated</th><th>Errors</th><th>Summary</th></tr>
+                            </thead>
+                            <tbody>
+                                {runs.map(r => {
+                                    const actor = allowedUsers.find(u => u.povio_id === r.triggered_by);
+                                    return (
+                                        <tr key={r.id}>
+                                            <td>{new Date(r.started_at).toLocaleString()}</td>
+                                            <td>{actor?.name || (r.triggered_by ? r.triggered_by : <em style={{ color: 'var(--povio-gray-400)' }}>cron</em>)}</td>
+                                            <td>{r.invoices_pulled}</td>
+                                            <td>{r.whales_updated}</td>
+                                            <td style={{ color: r.errors?.length ? 'var(--povio-danger)' : 'var(--povio-gray-400)' }}>{r.errors?.length || 0}</td>
+                                            <td style={{ fontSize: 11, color: 'var(--povio-gray-500)' }}>{r.summary}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+            );
+        };
+
         const AdminView = ({ whales, allowedUsers, user, currentPovioUser, onWhalesRefresh, openAccountById }) => {
             const [tab, setTab] = useState('audit');
             return (
                 <div>
                     <div style={{ display: 'flex', gap: 6, padding: 4, background: 'var(--povio-white)', border: '1px solid var(--povio-border)', borderRadius: 10, marginBottom: 18, width: 'fit-content', flexWrap: 'wrap' }}>
                         <button className={'view-btn ' + (tab === 'audit' ? 'active' : '')} onClick={() => setTab('audit')}>Audit log</button>
+                        <button className={'view-btn ' + (tab === 'povio' ? 'active' : '')} onClick={() => setTab('povio')}>Povio sync</button>
                         <button className={'view-btn ' + (tab === 'import' ? 'active' : '')} onClick={() => setTab('import')}>Import 198 accounts</button>
                         <button className={'view-btn ' + (tab === 'team' ? 'active' : '')} onClick={() => setTab('team')}>Team allowlist</button>
                         <button className={'view-btn ' + (tab === 'data' ? 'active' : '')} onClick={() => setTab('data')}>Data status</button>
                     </div>
                     {tab === 'audit' && <AuditLogView allowedUsers={allowedUsers} onAccountClick={openAccountById} />}
+                    {tab === 'povio' && <PovioSyncTab whales={whales} allowedUsers={allowedUsers} currentPovioUser={currentPovioUser} onWhalesRefresh={onWhalesRefresh} />}
                     {tab === 'import' && <ImportFlow user={user} currentPovioUser={currentPovioUser} allowedUsers={allowedUsers} onWhalesRefresh={onWhalesRefresh} />}
                     {tab === 'team' && (
                         <table className="data-table">
